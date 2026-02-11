@@ -109,6 +109,13 @@ export const BACKGROUNDS: BackgroundOption[] = [
      source: require('../assets/backgrounds/pexels-ladfury-2835623.jpg'),
      preview: '#C8A96E',
    },
+   {
+     id: 'sky',
+     label: 'Ciel',
+     type: 'image',
+     source: require('../assets/backgrounds/sky.jpg'),
+     preview: '#C8A96E',
+   },
 ];
 
 export const DEFAULT_BACKGROUND_ID = 'default';

@@ -116,8 +116,8 @@ export const translations = {
     links: {
       quran: 'Coran',
       allahNames: 'Noms d\'Allah',
-      nationalGeographic: 'Nature & Animaux',
-      codeOrg: 'Apprendre à coder',
+      drawing: 'Coloriage',
+      arabicTracing: 'Alphabet Arabe',
       background: 'Fond d\'écran',
       calculator: 'Calculatrice',
     },
