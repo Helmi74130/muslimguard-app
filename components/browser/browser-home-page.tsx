@@ -80,6 +80,13 @@ const QUICK_LINKS = [
     colorIndex: 5,
     isInternal: true,
   },
+  {
+    label: t.links.calligraphy,
+    url: 'calligraphy',
+    icon: 'fountain-pen-tip' as const,
+    colorIndex: 0,
+    isInternal: true,
+  },
 ];
 
 export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps) {

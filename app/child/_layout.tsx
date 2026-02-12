@@ -22,6 +22,7 @@ export default function ChildLayout() {
       <Stack.Screen name="allah-names" />
       <Stack.Screen name="drawing" />
       <Stack.Screen name="arabic-tracing" />
+      <Stack.Screen name="calligraphy" />
       <Stack.Screen
         name="blocked"
         options={{

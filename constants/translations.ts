@@ -120,6 +120,7 @@ export const translations = {
       arabicTracing: 'Alphabet Arabe',
       background: 'Fond d\'écran',
       calculator: 'Calculatrice',
+      calligraphy: 'Calligraphie',
     },
     error: {
       title: 'Oups !',

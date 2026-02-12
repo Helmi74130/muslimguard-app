@@ -1,13 +1,13 @@
 /**
  * Geocoding Service - MuslimGuard
- * Uses OpenStreetMap Nominatim API for city search
- * https://nominatim.org/release-docs/develop/api/Search/
+ * Uses Photon API (Komoot) for city search - based on OpenStreetMap data
+ * https://photon.komoot.io/
  */
 
-const NOMINATIM_API = 'https://nominatim.openstreetmap.org/search';
+const PHOTON_API = 'https://photon.komoot.io/api';
 
 /**
- * City search result from Nominatim API
+ * City search result
  */
 export interface CitySearchResult {
   name: string;
@@ -19,38 +19,41 @@ export interface CitySearchResult {
 }
 
 /**
- * Raw Nominatim API response
+ * Raw Photon API response (GeoJSON)
  */
-interface NominatimResult {
-  place_id: number;
-  lat: string;
-  lon: string;
-  display_name: string;
-  address?: {
+interface PhotonFeature {
+  type: 'Feature';
+  properties: {
+    osm_type?: string;
+    osm_id?: number;
+    osm_key?: string;
+    osm_value?: string;
+    type?: string;
+    name?: string;
     city?: string;
-    town?: string;
-    village?: string;
-    municipality?: string;
     county?: string;
     state?: string;
     country?: string;
-    country_code?: string;
+    countrycode?: string;
+    postcode?: string;
   };
-  type: string;
-  class: string;
+  geometry: {
+    type: 'Point';
+    coordinates: [number, number]; // [longitude, latitude]
+  };
+}
+
+interface PhotonResponse {
+  type: 'FeatureCollection';
+  features: PhotonFeature[];
 }
 
 /**
  * Get timezone from coordinates using a simple approximation
- * For more accuracy, we could use a timezone API, but this is good enough
  */
 function getTimezoneFromCoordinates(lat: number, lon: number): string {
-  // Simple timezone estimation based on longitude
-  // Each 15 degrees of longitude = 1 hour offset
   const offset = Math.round(lon / 15);
 
-  // Common timezone mappings for better accuracy
-  // This is a simplified approach - for production, use a proper timezone API
   if (lat > 35 && lat < 72 && lon > -10 && lon < 40) {
     // Europe
     if (lon < 5) return 'Europe/London';
@@ -89,14 +92,6 @@ function getTimezoneFromCoordinates(lat: number, lon: number): string {
 }
 
 /**
- * Extract city name from Nominatim address
- */
-function extractCityName(address: NominatimResult['address']): string {
-  if (!address) return '';
-  return address.city || address.town || address.village || address.municipality || address.county || address.state || '';
-}
-
-/**
  * Search for cities by query
  * @param query - Search query (city name)
  * @param limit - Maximum number of results (default: 5)
@@ -108,42 +103,33 @@ async function searchCities(query: string, limit: number = 5): Promise<CitySearc
 
   const params = new URLSearchParams({
     q: query,
-    format: 'json',
-    addressdetails: '1',
     limit: String(limit),
-    'accept-language': 'fr', // French results
-    featuretype: 'city', // Prefer cities
+    lang: 'fr',
   });
 
   try {
-    const response = await fetch(`${NOMINATIM_API}?${params.toString()}`, {
-      headers: {
-        'User-Agent': 'MuslimGuard/1.0 (https://muslimguard.app)', // Required by Nominatim
-      },
-    });
+    const response = await fetch(`${PHOTON_API}?${params.toString()}`);
 
     if (!response.ok) {
       console.error('[Geocoding] API error:', response.status);
       return [];
     }
 
-    const results: NominatimResult[] = await response.json();
+    const data: PhotonResponse = await response.json();
 
-    // Filter and map results
-    return results
-      .filter((r) => r.address?.country) // Must have a country
-      .map((r) => {
-        const lat = parseFloat(r.lat);
-        const lon = parseFloat(r.lon);
-        const cityName = extractCityName(r.address);
-        const country = r.address?.country || '';
+    return data.features
+      .filter((f) => f.properties.country)
+      .map((f) => {
+        const [lon, lat] = f.geometry.coordinates;
+        const name = f.properties.name || f.properties.city || f.properties.county || f.properties.state || '';
+        const country = f.properties.country || '';
 
         return {
-          name: cityName || r.display_name.split(',')[0],
+          name,
           country,
           latitude: lat,
           longitude: lon,
-          displayName: `${cityName || r.display_name.split(',')[0]}, ${country}`,
+          displayName: `${name}, ${country}`,
           timezone: getTimezoneFromCoordinates(lat, lon),
         };
       });
@@ -160,7 +146,7 @@ function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null;
+  let timeout: ReturnType<typeof setTimeout> | null = null;
 
   return (...args: Parameters<T>) => {
     if (timeout) {

@@ -1,6 +1,6 @@
 /**
- * Arabic Letter Tracing - MuslimGuard
- * Kid-friendly screen to learn writing Arabic letters by tracing
+ * Calligraphy Workshop - MuslimGuard
+ * Trace sacred Arabic words over calligraphy guides
  */
 
 import React, { useState, useRef, useCallback } from 'react';
@@ -11,51 +11,60 @@ import {
   SafeAreaView,
   Pressable,
   Dimensions,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Canvas, Path, Skia, SkPath } from '@shopify/react-native-skia';
 import * as Speech from 'expo-speech';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
-import { ARABIC_ALPHABET, ArabicLetter } from '@/constants/arabic-alphabet';
+import { CALLIGRAPHY_MODELS, CalligraphyModel } from '@/constants/calligraphy-models';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CANVAS_SIZE = SCREEN_WIDTH - Spacing.lg * 2;
 
-// Tracing pen colors
-const PEN_COLORS = [
-  '#2563EB', // blue
-  '#059669', // green
-  '#DC2626', // red
-  '#7C3AED', // purple
-  '#EA580C', // orange
+// Ink colors for calligraphy
+const INK_COLORS = [
+  { color: '#1B1B1B', label: 'Encre noire' },
+  { color: '#1E3A5F', label: 'Encre bleue' },
+  { color: '#5C2D0A', label: 'Encre marron' },
+  { color: '#0E6B3A', label: 'Encre verte' },
+  { color: '#8B0000', label: 'Encre rouge' },
+];
+
+const BRUSH_SIZES = [
+  { size: 4, label: 'Fin' },
+  { size: 10, label: 'Moyen' },
+  { size: 18, label: 'Gros' },
 ];
 
 interface TracePath {
   path: SkPath;
   color: string;
+  strokeWidth: number;
 }
 
-export default function ArabicTracingScreen() {
+export default function CalligraphyScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [paths, setPaths] = useState<TracePath[]>([]);
-  const [penColor, setPenColor] = useState(PEN_COLORS[0]);
+  const [inkColor, setInkColor] = useState(INK_COLORS[0].color);
+  const [brushSize, setBrushSize] = useState(BRUSH_SIZES[1].size);
   const currentPathRef = useRef<SkPath | null>(null);
 
-  const letter: ArabicLetter = ARABIC_ALPHABET[currentIndex];
-  const progress = `${currentIndex + 1} / ${ARABIC_ALPHABET.length}`;
+  const model: CalligraphyModel = CALLIGRAPHY_MODELS[currentIndex];
+  const progress = `${currentIndex + 1} / ${CALLIGRAPHY_MODELS.length}`;
 
-  const speakLetter = useCallback(() => {
+  const speakWord = useCallback(() => {
     Speech.stop();
-    Speech.speak(letter.letter, { language: 'ar', rate: 0.7, pitch: 0.8 });
-  }, [letter.letter]);
+    Speech.speak(model.arabic, { language: 'ar', rate: 0.6, pitch: 0.8 });
+  }, [model.arabic]);
 
   const handleTouchStart = useCallback((x: number, y: number) => {
     const path = Skia.Path.Make();
     path.moveTo(x, y);
     currentPathRef.current = path;
-    setPaths((prev) => [...prev, { path, color: penColor }]);
-  }, [penColor]);
+    setPaths((prev) => [...prev, { path, color: inkColor, strokeWidth: brushSize }]);
+  }, [inkColor, brushSize]);
 
   const handleTouchMove = useCallback((x: number, y: number) => {
     if (currentPathRef.current) {
@@ -79,19 +88,26 @@ export default function ArabicTracingScreen() {
       setCurrentIndex(newIndex);
       handleClear();
       Speech.stop();
-      Speech.speak(ARABIC_ALPHABET[newIndex].letter, { language: 'ar', rate: 0.7, pitch: 0.8 });
+      Speech.speak(CALLIGRAPHY_MODELS[newIndex].arabic, { language: 'ar', rate: 0.6, pitch: 0.8 });
     }
   };
 
   const handleNext = () => {
-    if (currentIndex < ARABIC_ALPHABET.length - 1) {
+    if (currentIndex < CALLIGRAPHY_MODELS.length - 1) {
       const newIndex = currentIndex + 1;
       setCurrentIndex(newIndex);
       handleClear();
       Speech.stop();
-      Speech.speak(ARABIC_ALPHABET[newIndex].letter, { language: 'ar', rate: 0.7, pitch: 0.8 });
+      Speech.speak(CALLIGRAPHY_MODELS[newIndex].arabic, { language: 'ar', rate: 0.6, pitch: 0.8 });
     }
   };
+
+  // Dynamic font size based on word length
+  const guideFontSize = model.arabic.length > 10
+    ? CANVAS_SIZE * 0.12
+    : model.arabic.length > 4
+      ? CANVAS_SIZE * 0.25
+      : CANVAS_SIZE * 0.45;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -101,7 +117,7 @@ export default function ArabicTracingScreen() {
           <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
         </Pressable>
         <View style={styles.headerCenter}>
-          <Text style={styles.title}>Alphabet Arabe</Text>
+          <Text style={styles.title}>Calligraphie</Text>
           <Text style={styles.progress}>{progress}</Text>
         </View>
         <Pressable style={styles.headerBtn} onPress={handleClear}>
@@ -109,22 +125,32 @@ export default function ArabicTracingScreen() {
         </Pressable>
       </View>
 
-      {/* Letter info */}
-      <View style={styles.letterInfo}>
-        <View style={styles.letterNameRow}>
-          <Text style={styles.letterName}>{letter.name}</Text>
-          <Pressable style={styles.soundButton} onPress={speakLetter}>
+      {/* Model info */}
+      <View style={styles.modelInfo}>
+        <View style={styles.modelNameRow}>
+          <Text style={styles.modelName}>{model.name}</Text>
+          <Pressable style={styles.soundButton} onPress={speakWord}>
             <MaterialCommunityIcons name="volume-high" size={22} color={Colors.primary} />
           </Pressable>
         </View>
-        <Text style={styles.letterHint}>{letter.frenchHint}</Text>
+        <Text style={styles.modelTranslation} numberOfLines={2}>{model.translation}</Text>
       </View>
 
-      {/* Tracing canvas area */}
+      {/* Canvas */}
       <View style={styles.canvasWrapper}>
-        {/* Guide letter behind canvas */}
-        <View style={styles.guideLetterContainer} pointerEvents="none">
-          <Text style={styles.guideLetter}>{letter.letter}</Text>
+        {/* Guide: image or text fallback */}
+        <View style={styles.guideContainer} pointerEvents="none">
+          {model.image ? (
+            <Image
+              source={model.image}
+              style={styles.guideImage}
+              resizeMode="contain"
+            />
+          ) : (
+            <Text style={[styles.guideText, { fontSize: guideFontSize }]}>
+              {model.arabic}
+            </Text>
+          )}
         </View>
 
         {/* Touch canvas overlay */}
@@ -147,7 +173,7 @@ export default function ArabicTracingScreen() {
                 path={p.path}
                 color={p.color}
                 style="stroke"
-                strokeWidth={14}
+                strokeWidth={p.strokeWidth}
                 strokeCap="round"
                 strokeJoin="round"
               />
@@ -155,32 +181,64 @@ export default function ArabicTracingScreen() {
           </Canvas>
         </View>
 
-        {/* Trace hint */}
+        {/* Hint */}
         {paths.length === 0 && (
           <View style={styles.hintOverlay} pointerEvents="none">
-            <MaterialCommunityIcons name="gesture" size={28} color="#94A3B8" />
-            <Text style={styles.hintText}>Trace la lettre avec ton doigt !</Text>
+            <MaterialCommunityIcons name="gesture" size={24} color="#94A3B8" />
+            <Text style={styles.hintText}>Trace par-dessus le modèle</Text>
           </View>
         )}
       </View>
 
-      {/* Pen color selector */}
-      <View style={styles.penRow}>
-        {PEN_COLORS.map((color) => (
-          <Pressable
-            key={color}
-            style={[
-              styles.penButton,
-              { backgroundColor: color },
-              penColor === color && styles.penButtonSelected,
-            ]}
-            onPress={() => setPenColor(color)}
-          >
-            {penColor === color && (
-              <MaterialCommunityIcons name="check" size={16} color="#FFF" />
-            )}
-          </Pressable>
-        ))}
+      {/* Brush size + Ink color */}
+      <View style={styles.toolbarRow}>
+        {/* Brush sizes */}
+        <View style={styles.brushRow}>
+          {BRUSH_SIZES.map((b) => (
+            <Pressable
+              key={b.size}
+              style={[
+                styles.brushButton,
+                brushSize === b.size && styles.brushButtonSelected,
+              ]}
+              onPress={() => setBrushSize(b.size)}
+            >
+              <View
+                style={[
+                  styles.brushDot,
+                  {
+                    width: b.size + 6,
+                    height: b.size + 6,
+                    borderRadius: (b.size + 6) / 2,
+                    backgroundColor: brushSize === b.size ? Colors.primary : '#94A3B8',
+                  },
+                ]}
+              />
+              <Text style={[styles.brushLabel, brushSize === b.size && styles.brushLabelSelected]}>
+                {b.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {/* Ink colors */}
+        <View style={styles.inkRow}>
+          {INK_COLORS.map((ink) => (
+            <Pressable
+              key={ink.color}
+              style={[
+                styles.inkButton,
+                { backgroundColor: ink.color },
+                inkColor === ink.color && styles.inkButtonSelected,
+              ]}
+              onPress={() => setInkColor(ink.color)}
+            >
+              {inkColor === ink.color && (
+                <MaterialCommunityIcons name="check" size={14} color="#FFF" />
+              )}
+            </Pressable>
+          ))}
+        </View>
       </View>
 
       {/* Navigation */}
@@ -200,23 +258,22 @@ export default function ArabicTracingScreen() {
           </Text>
         </Pressable>
 
-        {/* Current letter badge */}
         <View style={styles.currentBadge}>
-          <Text style={styles.currentBadgeLetter}>{letter.letter}</Text>
+          <MaterialCommunityIcons name="fountain-pen-tip" size={24} color="#FFF" />
         </View>
 
         <Pressable
           style={[
             styles.navButton,
-            currentIndex === ARABIC_ALPHABET.length - 1 && styles.navButtonDisabled,
+            currentIndex === CALLIGRAPHY_MODELS.length - 1 && styles.navButtonDisabled,
           ]}
           onPress={handleNext}
-          disabled={currentIndex === ARABIC_ALPHABET.length - 1}
+          disabled={currentIndex === CALLIGRAPHY_MODELS.length - 1}
         >
           <Text
             style={[
               styles.navText,
-              currentIndex === ARABIC_ALPHABET.length - 1 && styles.navTextDisabled,
+              currentIndex === CALLIGRAPHY_MODELS.length - 1 && styles.navTextDisabled,
             ]}
           >
             Suivant
@@ -224,9 +281,7 @@ export default function ArabicTracingScreen() {
           <MaterialCommunityIcons
             name="chevron-right"
             size={28}
-            color={
-              currentIndex === ARABIC_ALPHABET.length - 1 ? '#CBD5E1' : Colors.primary
-            }
+            color={currentIndex === CALLIGRAPHY_MODELS.length - 1 ? '#CBD5E1' : Colors.primary}
           />
         </Pressable>
       </View>
@@ -237,7 +292,7 @@ export default function ArabicTracingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F0F7FF',
+    backgroundColor: '#FDF8F0',
   },
 
   // Header
@@ -270,17 +325,18 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Letter info
-  letterInfo: {
+  // Model info
+  modelInfo: {
     alignItems: 'center',
     paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
   },
-  letterNameRow: {
+  modelNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
-  letterName: {
+  modelName: {
     fontSize: 22,
     fontWeight: '700',
     color: Colors.light.text,
@@ -293,10 +349,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  letterHint: {
+  modelTranslation: {
     fontSize: 14,
     color: '#64748B',
     marginTop: 4,
+    textAlign: 'center',
   },
 
   // Canvas
@@ -305,23 +362,32 @@ const styles = StyleSheet.create({
     height: CANVAS_SIZE,
     alignSelf: 'center',
     borderRadius: BorderRadius.xl,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FFFBF2',
     overflow: 'hidden',
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
+    borderWidth: 1,
+    borderColor: '#F0E6D4',
   },
-  guideLetterContainer: {
+  guideContainer: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: Spacing.lg,
   },
-  guideLetter: {
-    fontSize: CANVAS_SIZE * 0.65,
-    color: '#E2E8F0',
+  guideImage: {
+    width: '85%',
+    height: '85%',
+    opacity: 0.15,
+    tintColor: '#8B7355',
+  },
+  guideText: {
+    color: '#D4C5A9',
     fontWeight: '300',
+    textAlign: 'center',
   },
   canvasOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -331,36 +397,77 @@ const styles = StyleSheet.create({
   },
   hintOverlay: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 16,
     left: 0,
     right: 0,
     alignItems: 'center',
     gap: 4,
   },
   hintText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#94A3B8',
     fontWeight: '500',
   },
 
-  // Pen colors
-  penRow: {
+  // Toolbar
+  toolbarRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: Spacing.md,
-    paddingVertical: Spacing.md,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
   },
-  penButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+
+  // Brush sizes
+  brushRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  brushButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: BorderRadius.md,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#F0E6D4',
+  },
+  brushButtonSelected: {
+    backgroundColor: '#DBEAFE',
+    borderColor: Colors.primary,
+  },
+  brushDot: {
+    backgroundColor: '#94A3B8',
+  },
+  brushLabel: {
+    fontSize: 10,
+    color: '#94A3B8',
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  brushLabelSelected: {
+    color: Colors.primary,
+  },
+
+  // Ink colors
+  inkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  inkButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  penButtonSelected: {
-    borderColor: '#FFFFFF',
+  inkButtonSelected: {
+    borderColor: '#F0E6D4',
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -398,16 +505,11 @@ const styles = StyleSheet.create({
     color: '#CBD5E1',
   },
   currentBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  currentBadgeLetter: {
-    fontSize: 28,
-    color: '#FFFFFF',
-    fontWeight: '700',
   },
 });
