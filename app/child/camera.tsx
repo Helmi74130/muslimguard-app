@@ -34,6 +34,7 @@ interface PlacedSticker {
   sticker: CameraSticker;
   x: number;
   y: number;
+  scale: number;
 }
 
 // Draggable sticker component using PanResponder
@@ -46,6 +47,7 @@ function DraggableSticker({
 }) {
   const posRef = useRef({ x: placed.x, y: placed.y });
   const [pos, setPos] = useState({ x: placed.x, y: placed.y });
+  const [scale, setScale] = useState(placed.scale);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -66,6 +68,10 @@ function DraggableSticker({
   ).current;
 
   const { sticker } = placed;
+  const scaledSize = sticker.size * scale;
+
+  const grow = () => setScale((s) => Math.min(s + 0.25, 3));
+  const shrink = () => setScale((s) => Math.max(s - 0.25, 0.5));
 
   return (
     <View
@@ -73,34 +79,38 @@ function DraggableSticker({
       style={[
         styles.placedSticker,
         {
-          left: pos.x - sticker.size / 2,
-          top: pos.y - sticker.size / 2,
-          width: sticker.size,
-          height: sticker.size,
+          left: pos.x - scaledSize / 2,
+          top: pos.y - scaledSize / 2,
+          width: scaledSize,
+          height: scaledSize,
         },
       ]}
     >
       {sticker.type === 'icon' && sticker.icon ? (
         <MaterialCommunityIcons
           name={sticker.icon as any}
-          size={sticker.size}
+          size={scaledSize}
           color={sticker.iconColor || '#FFF'}
         />
       ) : sticker.image ? (
         <Image
           source={sticker.image}
-          style={{ width: sticker.size, height: sticker.size }}
+          style={{ width: scaledSize, height: scaledSize }}
           resizeMode="contain"
         />
       ) : null}
-      {/* Remove button */}
-      <Pressable
-        style={styles.removeSticker}
-        onPress={() => onRemove(placed.id)}
-        hitSlop={8}
-      >
-        <MaterialCommunityIcons name="close-circle" size={18} color="#FF4444" />
-      </Pressable>
+      {/* Resize & remove buttons */}
+      <View style={styles.stickerControlsRow}>
+        <Pressable style={styles.stickerControlBtn} onPress={shrink} hitSlop={6}>
+          <MaterialCommunityIcons name="minus-circle" size={18} color="#FFF" />
+        </Pressable>
+        <Pressable style={styles.stickerControlBtn} onPress={grow} hitSlop={6}>
+          <MaterialCommunityIcons name="plus-circle" size={18} color="#FFF" />
+        </Pressable>
+        <Pressable style={styles.stickerControlBtn} onPress={() => onRemove(placed.id)} hitSlop={6}>
+          <MaterialCommunityIcons name="close-circle" size={18} color="#FF4444" />
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -142,6 +152,7 @@ export default function CameraScreen() {
       sticker,
       x: SCREEN_WIDTH / 2,
       y: CAMERA_HEIGHT / 2,
+      scale: 1,
     };
     setPlacedStickers((prev) => [...prev, newPlaced]);
   }, []);
@@ -551,12 +562,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  removeSticker: {
+  stickerControlsRow: {
     position: 'absolute',
-    top: -6,
-    right: -6,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: 9,
+    top: -10,
+    right: -10,
+    flexDirection: 'row',
+    gap: 4,
+  },
+  stickerControlBtn: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 10,
   },
 
   // Saved feedback
