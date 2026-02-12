@@ -121,6 +121,7 @@ export const translations = {
       background: 'Fond d\'écran',
       calculator: 'Calculatrice',
       calligraphy: 'Calligraphie',
+      camera: 'Caméra',
     },
     error: {
       title: 'Oups !',

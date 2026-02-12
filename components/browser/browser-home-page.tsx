@@ -87,6 +87,13 @@ const QUICK_LINKS = [
     colorIndex: 0,
     isInternal: true,
   },
+  {
+    label: t.links.camera,
+    url: 'camera',
+    icon: 'camera' as const,
+    colorIndex: 1,
+    isInternal: true,
+  },
 ];
 
 export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps) {
