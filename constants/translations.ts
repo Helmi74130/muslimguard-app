@@ -408,6 +408,16 @@ export const translations = {
     },
   },
 
+  // Reading Mode
+  readingMode: {
+    title: 'Mode lecture',
+    description: 'Affiche uniquement le texte des pages web',
+    enabled: 'Activé - Images, vidéos et publicités supprimées',
+    disabled: 'Désactivé - Pages affichées normalement',
+    settingsSubtitle: 'Supprime images, vidéos et pubs',
+    indicator: 'Mode lecture actif',
+  },
+
   // Kiosk Mode
   kiosk: {
     title: 'Mode kiosque',

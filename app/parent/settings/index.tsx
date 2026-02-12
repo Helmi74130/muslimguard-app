@@ -3,7 +3,7 @@
  * Main settings menu for parent configuration
  */
 
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Alert,
+  Switch,
 } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -62,6 +63,18 @@ function SettingItem({
 
 export default function SettingsScreen() {
   const { isLoggedIn, isPremium, user } = useSubscription();
+  const [readingModeEnabled, setReadingModeEnabled] = useState(false);
+
+  useEffect(() => {
+    StorageService.getSettings().then((settings) => {
+      setReadingModeEnabled(settings.readingModeEnabled);
+    });
+  }, []);
+
+  const handleToggleReadingMode = useCallback(async (enabled: boolean) => {
+    await StorageService.updateSettings({ readingModeEnabled: enabled });
+    setReadingModeEnabled(enabled);
+  }, []);
 
   const handleResetApp = () => {
     Alert.alert(
@@ -173,6 +186,26 @@ export default function SettingsScreen() {
             subtitle="Définir les heures autorisées"
             onPress={() => router.push('/parent/settings/schedule')}
           />
+          <View style={styles.divider} />
+          <View style={styles.settingItem}>
+            <View style={[styles.settingIconContainer, { backgroundColor: Colors.primary + '15' }]}>
+              <MaterialCommunityIcons name="book-open-variant" size={22} color={Colors.primary} />
+            </View>
+            <View style={styles.settingContent}>
+              <Text style={styles.settingTitle}>{translations.readingMode.title}</Text>
+              <Text style={styles.settingSubtitle}>
+                {readingModeEnabled
+                  ? translations.readingMode.enabled
+                  : translations.readingMode.disabled}
+              </Text>
+            </View>
+            <Switch
+              value={readingModeEnabled}
+              onValueChange={handleToggleReadingMode}
+              trackColor={{ false: Colors.light.border, true: Colors.primary + '60' }}
+              thumbColor={readingModeEnabled ? Colors.primary : Colors.light.textSecondary}
+            />
+          </View>
         </Card>
 
         {/* Prayer Section */}

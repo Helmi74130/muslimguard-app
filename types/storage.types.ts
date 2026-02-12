@@ -33,6 +33,7 @@ export interface AppSettings {
   kioskModeEnabled: boolean;
   kioskHideStatusBar: boolean;
   strictModeEnabled: boolean; // Whitelist mode - only allow approved sites
+  readingModeEnabled: boolean; // Reading mode - strip images/videos, show text only
   childBackground: string; // Background ID for child home screen
 }
 
@@ -54,6 +55,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   kioskModeEnabled: false,
   kioskHideStatusBar: true,
   strictModeEnabled: false, // Whitelist mode disabled by default
+  readingModeEnabled: false, // Reading mode disabled by default
   childBackground: 'default', // Default background
 };
 

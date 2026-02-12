@@ -16,6 +16,7 @@ import { router } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import type { WebViewErrorEvent } from 'react-native-webview/lib/WebViewTypes';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as Speech from 'expo-speech';
 import { BrowserToolbar } from '@/components/browser/browser-toolbar';
 import { BrowserHomePage } from '@/components/browser/browser-home-page';
 import { BlockingService, BlockReason } from '@/services/blocking.service';
@@ -23,6 +24,7 @@ import { PrayerService } from '@/services/prayer.service';
 import { StorageService } from '@/services/storage.service';
 import { Colors, KidColors, Spacing, BorderRadius } from '@/constants/theme';
 import { translations } from '@/constants/translations';
+import { READING_MODE_SCRIPT, READING_MODE_PRELOAD_SCRIPT } from '@/constants/reading-mode-script';
 import { AppSettings, ScheduleData } from '@/types/storage.types';
 
 // Cached data for synchronous blocking checks
@@ -33,6 +35,7 @@ interface CachedData {
   blockedKeywords: string[];
   whitelistDomains: string[]; // For strict mode
   strictModeEnabled: boolean;
+  readingModeEnabled: boolean;
   prayerPaused: boolean;
   prayerPausedBy: string | null;
 }
@@ -47,6 +50,13 @@ export default function BrowserScreen() {
   const [canGoForward, setCanGoForward] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<{ isNoInternet: boolean } | null>(null);
+  const [readingMode, setReadingMode] = useState(false);
+
+  // TTS state
+  const ttsTextRef = useRef<string>('');
+  const ttsChunksRef = useRef<string[]>([]);
+  const ttsChunkIndexRef = useRef(0);
+  const ttsSpeakingRef = useRef(false);
 
   // Cached data for synchronous blocking checks
   const cachedDataRef = useRef<CachedData>({
@@ -56,6 +66,7 @@ export default function BrowserScreen() {
     blockedKeywords: [],
     whitelistDomains: [],
     strictModeEnabled: false,
+    readingModeEnabled: false,
     prayerPaused: false,
     prayerPausedBy: null,
   });
@@ -81,9 +92,11 @@ export default function BrowserScreen() {
           blockedKeywords: keywords,
           whitelistDomains: whitelist,
           strictModeEnabled: strictMode,
+          readingModeEnabled: settings?.readingModeEnabled ?? false,
           prayerPaused: prayerStatus.isPaused,
           prayerPausedBy: prayerStatus.currentPrayer || null,
         };
+        setReadingMode(settings?.readingModeEnabled ?? false);
       } catch (error) {
         console.error('Error loading cached data:', error);
       }
@@ -93,6 +106,14 @@ export default function BrowserScreen() {
     const interval = setInterval(loadData, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // When readingMode loads (async), inject scripts into already-loaded page
+  useEffect(() => {
+    if (readingMode && !showHomePage && currentUrl) {
+      webViewRef.current?.injectJavaScript(READING_MODE_PRELOAD_SCRIPT);
+      webViewRef.current?.injectJavaScript(READING_MODE_SCRIPT);
+    }
+  }, [readingMode]);
 
   // Check if URL should be blocked (synchronous using cached data)
   const shouldBlock = useCallback((url: string): { blocked: boolean; reason?: BlockReason; blockedBy?: string } => {
@@ -270,6 +291,8 @@ export default function BrowserScreen() {
 
   // Return to home page
   const handleHomePress = () => {
+    Speech.stop();
+    ttsSpeakingRef.current = false;
     setShowHomePage(true);
     setCanGoBack(false);
     setCanGoForward(false);
@@ -362,6 +385,88 @@ export default function BrowserScreen() {
     setCanGoForward(false);
   }, []);
 
+  // Split text into chunks for TTS (sentence-aware)
+  const splitTTSText = useCallback((text: string, maxLen: number): string[] => {
+    const result: string[] = [];
+    const sentences = text.split(/(?<=[.!?;:])\s+/);
+    let current = '';
+    for (const sentence of sentences) {
+      if ((current + ' ' + sentence).length > maxLen && current.length > 0) {
+        result.push(current.trim());
+        current = sentence;
+      } else {
+        current += (current ? ' ' : '') + sentence;
+      }
+    }
+    if (current.trim()) result.push(current.trim());
+    return result.length > 0 ? result : [text];
+  }, []);
+
+  // Speak a chunk and chain to next
+  const speakChunk = useCallback((index: number, rate: number) => {
+    const chunks = ttsChunksRef.current;
+    if (index >= chunks.length) {
+      ttsSpeakingRef.current = false;
+      ttsChunkIndexRef.current = 0;
+      webViewRef.current?.injectJavaScript('window.__ttsOnDone && window.__ttsOnDone(); true;');
+      return;
+    }
+    ttsChunkIndexRef.current = index;
+    const pct = (index / chunks.length) * 100;
+    webViewRef.current?.injectJavaScript(
+      'window.__ttsUpdateProgress && window.__ttsUpdateProgress(' + pct + '); true;'
+    );
+
+    Speech.speak(chunks[index], {
+      language: 'fr-FR',
+      rate,
+      onDone: () => {
+        if (ttsSpeakingRef.current) {
+          speakChunk(index + 1, rate);
+        }
+      },
+      onError: () => {
+        if (ttsSpeakingRef.current) {
+          speakChunk(index + 1, rate);
+        }
+      },
+    });
+  }, []);
+
+  // Stop TTS when leaving the page
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
+  }, []);
+
+  // Handle messages from WebView (TTS commands)
+  const handleWebViewMessage = useCallback((event: any) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (!data.type) return;
+
+      switch (data.type) {
+        case 'tts-init':
+          ttsTextRef.current = data.text || '';
+          ttsChunksRef.current = splitTTSText(data.text || '', 200);
+          ttsChunkIndexRef.current = 0;
+          ttsSpeakingRef.current = false;
+          break;
+        case 'tts-play':
+          Speech.stop();
+          ttsSpeakingRef.current = true;
+          speakChunk(ttsChunkIndexRef.current, data.rate || 1);
+          break;
+        case 'tts-stop':
+          Speech.stop();
+          ttsSpeakingRef.current = false;
+          ttsChunkIndexRef.current = 0;
+          break;
+      }
+    } catch {}
+  }, [splitTTSText, speakChunk]);
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -430,26 +535,52 @@ export default function BrowserScreen() {
           </View>
         </View>
       ) : currentUrl ? (
-        <WebView
-          ref={webViewRef}
-          source={{ uri: currentUrl }}
-          style={styles.webview}
-          onShouldStartLoadWithRequest={handleShouldStartLoad}
-          onNavigationStateChange={handleNavigationStateChange}
-          onLoadStart={() => {
-            setIsLoading(true);
-            setError(null);
-          }}
-          onLoadEnd={() => setIsLoading(false)}
-          onError={handleError}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
-          startInLoadingState={true}
-          scalesPageToFit={true}
-          setSupportMultipleWindows={false}
-          allowsBackForwardNavigationGestures={false}
-          mediaPlaybackRequiresUserAction={true}
-        />
+        <>
+          <WebView
+            ref={webViewRef}
+            source={{ uri: currentUrl }}
+            style={styles.webview}
+            onShouldStartLoadWithRequest={handleShouldStartLoad}
+            onNavigationStateChange={handleNavigationStateChange}
+            onLoadStart={() => {
+              setIsLoading(true);
+              setError(null);
+              // Stop any ongoing TTS on new navigation
+              Speech.stop();
+              ttsSpeakingRef.current = false;
+              // Inject Phase 1 CSS on every navigation start as backup
+              if (readingMode) {
+                webViewRef.current?.injectJavaScript(READING_MODE_PRELOAD_SCRIPT);
+              }
+            }}
+            onLoadEnd={() => {
+              setIsLoading(false);
+              // Manually inject reading mode script on every page load
+              // More reliable than injectedJavaScript prop on Android
+              if (readingMode) {
+                webViewRef.current?.injectJavaScript(READING_MODE_SCRIPT);
+              }
+            }}
+            onError={handleError}
+            onMessage={handleWebViewMessage}
+            injectedJavaScriptBeforeContentLoaded={
+              readingMode ? READING_MODE_PRELOAD_SCRIPT : undefined
+            }
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            startInLoadingState={true}
+            scalesPageToFit={true}
+            setSupportMultipleWindows={false}
+            allowsBackForwardNavigationGestures={false}
+            mediaPlaybackRequiresUserAction={true}
+          />
+          {readingMode && (
+            <View style={styles.readingModeIndicator}>
+              <MaterialCommunityIcons name="book-open-variant" size={14} color="#FFFFFF" />
+              <Text style={styles.readingModeText}>{translations.readingMode.indicator}</Text>
+            </View>
+          )}
+        </>
       ) : null}
     </SafeAreaView>
   );
@@ -535,5 +666,33 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: Colors.primary,
+  },
+  readingModeIndicator: {
+    position: 'absolute',
+    bottom: 12,
+    alignSelf: 'center',
+    left: 0,
+    right: 0,
+    marginHorizontal: 'auto' as any,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: Colors.primary,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    width: 160,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+  readingModeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
   },
 });
