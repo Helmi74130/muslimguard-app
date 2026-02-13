@@ -124,6 +124,19 @@ export const DEFAULT_LOCKOUT_STATE: PinLockoutState = {
   lockedUntil: null,
 };
 
+// Child note entry
+export interface NoteEntry {
+  id: string;
+  title: string;
+  content: string;
+  color: string; // Hex color for the note card
+  createdAt: number;
+  updatedAt: number;
+}
+
+// Maximum number of notes allowed
+export const MAX_NOTES = 50;
+
 // Storage keys enum for type safety
 export const STORAGE_KEYS = {
   // Settings
@@ -152,6 +165,12 @@ export const STORAGE_KEYS = {
 
   // Child preferences
   CHILD_BACKGROUND: 'child.background',
+
+  // Notes
+  NOTES_ENTRIES: 'notes.entries',
+
+  // Quiz
+  QUIZ_SCORES: 'quiz.scores',
 
   // Subscription & Account
   SUBSCRIPTION_STATE: 'subscription.state',

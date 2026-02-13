@@ -94,6 +94,34 @@ const QUICK_LINKS = [
     colorIndex: 1,
     isInternal: true,
   },
+  {
+    label: t.links.prayerTimes,
+    url: 'prayer-times',
+    icon: 'mosque' as const,
+    colorIndex: 2,
+    isInternal: true,
+  },
+  {
+    label: t.links.soundMixer,
+    url: 'sound-mixer',
+    icon: 'music-box-multiple' as const,
+    colorIndex: 3,
+    isInternal: true,
+  },
+  {
+    label: t.links.notes,
+    url: 'notes',
+    icon: 'notebook-edit' as const,
+    colorIndex: 4,
+    isInternal: true,
+  },
+  {
+    label: t.links.quiz,
+    url: 'quiz',
+    icon: 'head-question' as const,
+    colorIndex: 5,
+    isInternal: true,
+  },
 ];
 
 export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps) {
@@ -246,7 +274,7 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
         </View>
       )}
 
-      {/* Quick Links */}
+      {/* Applications */}
       <View style={styles.quickLinksSection}>
         <Text style={[styles.quickLinksTitle, dark && styles.textLight]}>{t.quickLinks}</Text>
         <View style={styles.quickLinksGrid}>
@@ -254,8 +282,7 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
             <Pressable
               key={link.url}
               style={({ pressed }) => [
-                styles.tile,
-                { backgroundColor: KidColors.tiles[link.colorIndex] },
+                styles.appItem,
                 pressed && styles.tilePressed,
               ]}
               onPress={() => {
@@ -269,16 +296,16 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
               }}
             >
               <View style={[
-                styles.tileIconContainer,
-                { backgroundColor: KidColors.tileIcons[link.colorIndex] + '20' },
+                styles.appIcon,
+                { backgroundColor: KidColors.tiles[link.colorIndex] },
               ]}>
                 <MaterialCommunityIcons
                   name={link.icon}
-                  size={36}
+                  size={28}
                   color={KidColors.tileIcons[link.colorIndex]}
                 />
               </View>
-              <Text style={styles.tileLabel} numberOfLines={2}>
+              <Text style={[styles.appLabel, dark && styles.textLight]} numberOfLines={1}>
                 {link.label}
               </Text>
             </Pressable>
@@ -503,33 +530,36 @@ const styles = StyleSheet.create({
   quickLinksGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'flex-start',
     gap: Spacing.md,
   },
-  tile: {
-    width: '47%',
-    minHeight: 130,
-    borderRadius: 20,
-    padding: Spacing.md,
+  appItem: {
+    width: '28%',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
+    marginBottom: Spacing.xs,
   },
   tilePressed: {
     opacity: 0.8,
-    transform: [{ scale: 0.96 }],
+    transform: [{ scale: 0.92 }],
   },
-  tileIconContainer: {
+  appIcon: {
     width: 60,
     height: 60,
-    borderRadius: 30,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
   },
-  tileLabel: {
-    fontSize: 14,
+  appLabel: {
+    fontSize: 12,
     fontWeight: '600',
     color: Colors.light.text,
     textAlign: 'center',
+    marginTop: 6,
   },
 
   // Allowed Sites (Strict Mode)

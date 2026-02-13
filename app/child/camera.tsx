@@ -1,6 +1,11 @@
 /**
  * Camera & Filtres Muslim-Friendly - MuslimGuard
  * Camera with decorative Islamic frame overlays + draggable stickers
+ *
+ * Capture strategy: the CameraView is NEVER inside a ViewShot (Android SurfaceView
+ * cannot be captured by PixelCopy). Instead, takePictureAsync() grabs the photo,
+ * then a SEPARATE ViewShot (containing only an <Image> + overlays) is rendered
+ * and captured.
  */
 
 import React, { useState, useRef, useCallback } from 'react';
@@ -28,6 +33,13 @@ import { CAMERA_STICKERS, CameraSticker } from '@/constants/camera-stickers';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CAMERA_HEIGHT = SCREEN_HEIGHT * 0.6;
 
+// Current transform for a sticker (tracked in parent via ref)
+interface StickerTransform {
+  x: number;
+  y: number;
+  scale: number;
+}
+
 // Placed sticker instance
 interface PlacedSticker {
   id: string;
@@ -41,13 +53,22 @@ interface PlacedSticker {
 function DraggableSticker({
   placed,
   onRemove,
+  onTransformChange,
+  hideControls,
 }: {
   placed: PlacedSticker;
   onRemove: (id: string) => void;
+  onTransformChange: (id: string, x: number, y: number, scale: number) => void;
+  hideControls?: boolean;
 }) {
   const posRef = useRef({ x: placed.x, y: placed.y });
+  const scaleRef = useRef(placed.scale);
   const [pos, setPos] = useState({ x: placed.x, y: placed.y });
   const [scale, setScale] = useState(placed.scale);
+
+  // Keep a ref to the callback so PanResponder always calls the latest version
+  const onTransformChangeRef = useRef(onTransformChange);
+  onTransformChangeRef.current = onTransformChange;
 
   const panResponder = useRef(
     PanResponder.create({
@@ -63,6 +84,12 @@ function DraggableSticker({
           x: posRef.current.x + gesture.dx,
           y: posRef.current.y + gesture.dy,
         };
+        onTransformChangeRef.current(
+          placed.id,
+          posRef.current.x,
+          posRef.current.y,
+          scaleRef.current
+        );
       },
     })
   ).current;
@@ -70,8 +97,19 @@ function DraggableSticker({
   const { sticker } = placed;
   const scaledSize = sticker.size * scale;
 
-  const grow = () => setScale((s) => Math.min(s + 0.25, 3));
-  const shrink = () => setScale((s) => Math.max(s - 0.25, 0.5));
+  const grow = () => {
+    const newScale = Math.min(scaleRef.current + 0.25, 3);
+    scaleRef.current = newScale;
+    setScale(newScale);
+    onTransformChange(placed.id, posRef.current.x, posRef.current.y, newScale);
+  };
+
+  const shrink = () => {
+    const newScale = Math.max(scaleRef.current - 0.25, 0.5);
+    scaleRef.current = newScale;
+    setScale(newScale);
+    onTransformChange(placed.id, posRef.current.x, posRef.current.y, newScale);
+  };
 
   return (
     <View
@@ -99,18 +137,20 @@ function DraggableSticker({
           resizeMode="contain"
         />
       ) : null}
-      {/* Resize & remove buttons */}
-      <View style={styles.stickerControlsRow}>
-        <Pressable style={styles.stickerControlBtn} onPress={shrink} hitSlop={6}>
-          <MaterialCommunityIcons name="minus-circle" size={18} color="#FFF" />
-        </Pressable>
-        <Pressable style={styles.stickerControlBtn} onPress={grow} hitSlop={6}>
-          <MaterialCommunityIcons name="plus-circle" size={18} color="#FFF" />
-        </Pressable>
-        <Pressable style={styles.stickerControlBtn} onPress={() => onRemove(placed.id)} hitSlop={6}>
-          <MaterialCommunityIcons name="close-circle" size={18} color="#FF4444" />
-        </Pressable>
-      </View>
+      {/* Resize & remove buttons (hidden during capture) */}
+      {!hideControls && (
+        <View style={styles.stickerControlsRow}>
+          <Pressable style={styles.stickerControlBtn} onPress={shrink} hitSlop={6}>
+            <MaterialCommunityIcons name="minus-circle" size={18} color="#FFF" />
+          </Pressable>
+          <Pressable style={styles.stickerControlBtn} onPress={grow} hitSlop={6}>
+            <MaterialCommunityIcons name="plus-circle" size={18} color="#FFF" />
+          </Pressable>
+          <Pressable style={styles.stickerControlBtn} onPress={() => onRemove(placed.id)} hitSlop={6}>
+            <MaterialCommunityIcons name="close-circle" size={18} color="#FF4444" />
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 }
@@ -124,8 +164,14 @@ export default function CameraScreen() {
   const [lastPhoto, setLastPhoto] = useState<string | null>(null);
   const [showStickers, setShowStickers] = useState(false);
   const [placedStickers, setPlacedStickers] = useState<PlacedSticker[]>([]);
-  const viewShotRef = useRef<ViewShot>(null);
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const cameraRef = useRef<CameraView>(null);
+  const captureViewShotRef = useRef<ViewShot>(null);
+  const onPhotoReadyRef = useRef<(() => void) | null>(null);
   let stickerCounter = useRef(0);
+
+  // Track sticker transforms (position + scale) in a ref to avoid re-renders
+  const stickerTransformsRef = useRef<Map<string, StickerTransform>>(new Map());
 
   const currentFrame: CameraFrame = CAMERA_FRAMES[frameIndex];
 
@@ -145,25 +191,109 @@ export default function CameraScreen() {
     setFacing((prev) => (prev === 'back' ? 'front' : 'back'));
   }, []);
 
+  const handleTransformChange = useCallback(
+    (id: string, x: number, y: number, scale: number) => {
+      stickerTransformsRef.current.set(id, { x, y, scale });
+    },
+    []
+  );
+
   const addSticker = useCallback((sticker: CameraSticker) => {
     stickerCounter.current += 1;
+    const id = `${sticker.id}-${stickerCounter.current}`;
     const newPlaced: PlacedSticker = {
-      id: `${sticker.id}-${stickerCounter.current}`,
+      id,
       sticker,
       x: SCREEN_WIDTH / 2,
       y: CAMERA_HEIGHT / 2,
       scale: 1,
     };
+    stickerTransformsRef.current.set(id, {
+      x: SCREEN_WIDTH / 2,
+      y: CAMERA_HEIGHT / 2,
+      scale: 1,
+    });
     setPlacedStickers((prev) => [...prev, newPlaced]);
   }, []);
 
   const removeSticker = useCallback((id: string) => {
+    stickerTransformsRef.current.delete(id);
     setPlacedStickers((prev) => prev.filter((s) => s.id !== id));
   }, []);
 
   const clearStickers = useCallback(() => {
+    stickerTransformsRef.current.clear();
     setPlacedStickers([]);
   }, []);
+
+  // Render frame overlay (shared between live view and capture view)
+  const renderFrameOverlay = () => {
+    if (currentFrame.id === 'none') return null;
+    return (
+      <View style={styles.frameOverlay} pointerEvents="none">
+        {currentFrame.overlay ? (
+          <Image
+            source={currentFrame.overlay}
+            style={styles.frameImage}
+            resizeMode="contain"
+          />
+        ) : (
+          <View
+            style={[
+              styles.fallbackFrame,
+              { borderColor: currentFrame.borderColor },
+            ]}
+          >
+            <View style={[styles.corner, styles.cornerTL, { borderColor: currentFrame.borderColor }]} />
+            <View style={[styles.corner, styles.cornerTR, { borderColor: currentFrame.borderColor }]} />
+            <View style={[styles.corner, styles.cornerBL, { borderColor: currentFrame.borderColor }]} />
+            <View style={[styles.corner, styles.cornerBR, { borderColor: currentFrame.borderColor }]} />
+            <View style={[styles.frameNameBadge, { backgroundColor: currentFrame.borderColor + 'CC' }]}>
+              <MaterialCommunityIcons name={currentFrame.icon as any} size={16} color="#FFF" />
+              <Text style={styles.frameNameText}>{currentFrame.name}</Text>
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  // Render static (non-draggable) stickers for the capture view
+  const renderStaticStickers = () => {
+    return placedStickers.map((placed) => {
+      const transform = stickerTransformsRef.current.get(placed.id);
+      if (!transform) return null;
+      const scaledSize = placed.sticker.size * transform.scale;
+      return (
+        <View
+          key={placed.id}
+          style={{
+            position: 'absolute',
+            left: transform.x - scaledSize / 2,
+            top: transform.y - scaledSize / 2,
+            width: scaledSize,
+            height: scaledSize,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          {placed.sticker.type === 'icon' && placed.sticker.icon ? (
+            <MaterialCommunityIcons
+              name={placed.sticker.icon as any}
+              size={scaledSize}
+              color={placed.sticker.iconColor || '#FFF'}
+            />
+          ) : placed.sticker.image ? (
+            <Image
+              source={placed.sticker.image}
+              style={{ width: scaledSize, height: scaledSize }}
+              resizeMode="contain"
+            />
+          ) : null}
+        </View>
+      );
+    });
+  };
 
   const takePhoto = useCallback(async () => {
     if (capturing) return;
@@ -178,19 +308,51 @@ export default function CameraScreen() {
 
     setCapturing(true);
     try {
-      if (viewShotRef.current?.capture) {
-        const uri = await viewShotRef.current.capture();
-        await MediaLibrary.saveToLibraryAsync(uri);
-        setLastPhoto(uri);
+      // 1. Take photo from camera native surface
+      const photo = await cameraRef.current?.takePictureAsync();
+      if (!photo?.uri) throw new Error('No photo captured');
+
+      const hasOverlays = currentFrame.id !== 'none' || placedStickers.length > 0;
+
+      if (!hasOverlays) {
+        // No overlays: save raw photo directly (bypasses ViewShot entirely)
+        await MediaLibrary.saveToLibraryAsync(photo.uri);
+        setLastPhoto(photo.uri);
         setTimeout(() => setLastPhoto(null), 2000);
+      } else {
+        // Has overlays: composite with ViewShot
+        // 2. Show captured photo in separate capture ViewShot, wait for Image to load
+        await new Promise<void>((resolve) => {
+          onPhotoReadyRef.current = resolve;
+          setCapturedPhoto(photo.uri);
+        });
+
+        // 3. Wait for rendering to fully complete
+        await new Promise<void>((resolve) => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              setTimeout(resolve, 100);
+            });
+          });
+        });
+
+        // 4. Capture the SEPARATE ViewShot (never contained a CameraView)
+        if (captureViewShotRef.current?.capture) {
+          const compositeUri = await captureViewShotRef.current.capture();
+          await MediaLibrary.saveToLibraryAsync(compositeUri);
+          setLastPhoto(compositeUri);
+          setTimeout(() => setLastPhoto(null), 2000);
+        }
       }
     } catch (error) {
       console.error('Capture error:', error);
       Alert.alert('Erreur', 'Impossible de prendre la photo. Réessaye.');
     } finally {
+      setCapturedPhoto(null);
+      onPhotoReadyRef.current = null;
       setCapturing(false);
     }
-  }, [capturing, mediaPermission, requestMediaPermission]);
+  }, [capturing, mediaPermission, requestMediaPermission, currentFrame, placedStickers.length]);
 
   // Permission not yet determined
   if (!cameraPermission) {
@@ -233,56 +395,55 @@ export default function CameraScreen() {
         </Pressable>
       </View>
 
-      {/* Camera + Frame + Stickers (captured together) */}
-      <ViewShot
-        ref={viewShotRef}
-        options={{ format: 'jpg', quality: 0.9 }}
-        style={styles.cameraContainer}
-      >
+      {/* Camera live preview (NO ViewShot — SurfaceView can't be captured) */}
+      <View style={styles.cameraContainer}>
         <CameraView
+          ref={cameraRef}
           style={styles.camera}
           facing={facing}
           mirror={facing === 'front'}
         />
 
-        {/* Frame overlay */}
-        {currentFrame.id !== 'none' && (
-          <View style={styles.frameOverlay} pointerEvents="none">
-            {currentFrame.overlay ? (
-              <Image
-                source={currentFrame.overlay}
-                style={styles.frameImage}
-                resizeMode="contain"
-              />
-            ) : (
-              <View
-                style={[
-                  styles.fallbackFrame,
-                  { borderColor: currentFrame.borderColor },
-                ]}
-              >
-                <View style={[styles.corner, styles.cornerTL, { borderColor: currentFrame.borderColor }]} />
-                <View style={[styles.corner, styles.cornerTR, { borderColor: currentFrame.borderColor }]} />
-                <View style={[styles.corner, styles.cornerBL, { borderColor: currentFrame.borderColor }]} />
-                <View style={[styles.corner, styles.cornerBR, { borderColor: currentFrame.borderColor }]} />
-                <View style={[styles.frameNameBadge, { backgroundColor: currentFrame.borderColor + 'CC' }]}>
-                  <MaterialCommunityIcons name={currentFrame.icon as any} size={16} color="#FFF" />
-                  <Text style={styles.frameNameText}>{currentFrame.name}</Text>
-                </View>
-              </View>
-            )}
-          </View>
-        )}
+        {/* Frame overlay (live) */}
+        {renderFrameOverlay()}
 
-        {/* Placed stickers (draggable) */}
+        {/* Draggable stickers (interactive, live) */}
         {placedStickers.map((placed) => (
           <DraggableSticker
             key={placed.id}
             placed={placed}
             onRemove={removeSticker}
+            onTransformChange={handleTransformChange}
+            hideControls={capturing}
           />
         ))}
-      </ViewShot>
+      </View>
+
+      {/*
+        CAPTURE ViewShot — rendered ON TOP of the camera only during capture.
+        This ViewShot NEVER contained a CameraView/SurfaceView, so PixelCopy
+        will reliably capture the Image + overlays.
+      */}
+      {capturedPhoto && (
+        <ViewShot
+          ref={captureViewShotRef}
+          options={{ format: 'jpg', quality: 0.9 }}
+          style={styles.captureViewShot}
+          // @ts-ignore — ensures Android keeps this View in native hierarchy
+          collapsable={false}
+        >
+          <Image
+            source={{ uri: capturedPhoto }}
+            style={{ width: SCREEN_WIDTH, height: CAMERA_HEIGHT }}
+            resizeMode="cover"
+            onLoad={() => onPhotoReadyRef.current?.()}
+          />
+          {/* Frame overlay (static copy) */}
+          {renderFrameOverlay()}
+          {/* Static stickers at their current tracked positions */}
+          {renderStaticStickers()}
+        </ViewShot>
+      )}
 
       {/* Saved feedback */}
       {lastPhoto && (
@@ -487,6 +648,18 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
+  },
+
+  // Capture ViewShot (positioned on top of camera, only during capture)
+  captureViewShot: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: SCREEN_WIDTH,
+    height: CAMERA_HEIGHT,
+    // offset to match camera container position (header height)
+    marginTop: Spacing.xl + Spacing.xs + 44,
+    overflow: 'hidden',
   },
 
   // Frame overlay

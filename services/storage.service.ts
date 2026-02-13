@@ -12,6 +12,8 @@ import {
   HistoryEntry,
   BlockedAttempt,
   PinLockoutState,
+  NoteEntry,
+  MAX_NOTES,
   DEFAULT_SETTINGS,
   DEFAULT_SCHEDULE,
   DEFAULT_LOCKOUT_STATE,
@@ -490,6 +492,76 @@ export const StorageService = {
       await SecureStore.deleteItemAsync('auth.token');
     } catch {
       // Ignore errors
+    }
+  },
+
+  // ==================== NOTES ====================
+
+  /**
+   * Get all notes
+   */
+  async getNotes(): Promise<NoteEntry[]> {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEYS.NOTES_ENTRIES);
+      if (!json) return [];
+      return JSON.parse(json);
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Save a note (create or update)
+   */
+  async saveNote(note: NoteEntry): Promise<boolean> {
+    const notes = await this.getNotes();
+    const existingIndex = notes.findIndex(n => n.id === note.id);
+
+    if (existingIndex >= 0) {
+      notes[existingIndex] = { ...note, updatedAt: Date.now() };
+    } else {
+      if (notes.length >= MAX_NOTES) return false;
+      notes.unshift(note);
+    }
+
+    await AsyncStorage.setItem(STORAGE_KEYS.NOTES_ENTRIES, JSON.stringify(notes));
+    return true;
+  },
+
+  /**
+   * Delete a note
+   */
+  async deleteNote(id: string): Promise<void> {
+    const notes = await this.getNotes();
+    const filtered = notes.filter(n => n.id !== id);
+    await AsyncStorage.setItem(STORAGE_KEYS.NOTES_ENTRIES, JSON.stringify(filtered));
+  },
+
+  // ==================== QUIZ ====================
+
+  /**
+   * Get quiz best scores (categoryId -> bestScore)
+   */
+  async getQuizScores(): Promise<Record<string, number>> {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEYS.QUIZ_SCORES);
+      if (!json) return {};
+      return JSON.parse(json);
+    } catch {
+      return {};
+    }
+  },
+
+  /**
+   * Save quiz score if it's better than the previous best
+   */
+  async saveQuizScore(categoryId: string, score: number, total: number): Promise<void> {
+    const scores = await this.getQuizScores();
+    const percentage = Math.round((score / total) * 100);
+    const currentBest = scores[categoryId] || 0;
+    if (percentage > currentBest) {
+      scores[categoryId] = percentage;
+      await AsyncStorage.setItem(STORAGE_KEYS.QUIZ_SCORES, JSON.stringify(scores));
     }
   },
 
