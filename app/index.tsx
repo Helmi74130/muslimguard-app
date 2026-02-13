@@ -31,8 +31,8 @@ export default function Index() {
     return <Redirect href="/parent/(tabs)/dashboard" />;
   }
 
-  // Default to child mode (home screen)
-  return <Redirect href="/child/home" />;
+  // Default to child mode (browser dashboard)
+  return <Redirect href="/child/browser" />;
 }
 
 const styles = StyleSheet.create({

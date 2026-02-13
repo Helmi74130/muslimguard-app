@@ -122,6 +122,13 @@ const QUICK_LINKS = [
     colorIndex: 5,
     isInternal: true,
   },
+  {
+    label: t.links.weather,
+    url: 'weather',
+    icon: 'weather-partly-cloudy' as const,
+    colorIndex: 0,
+    isInternal: true,
+  },
 ];
 
 export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps) {
@@ -130,19 +137,22 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
   const [whitelistDomains, setWhitelistDomains] = useState<string[]>([]);
   const [showBgPicker, setShowBgPicker] = useState(false);
   const [selectedBgId, setSelectedBgId] = useState<string>(DEFAULT_BACKGROUND_ID);
+  const [browserEnabled, setBrowserEnabled] = useState(true);
 
-  // Load strict mode status and whitelist
+  // Load strict mode status, whitelist, and browser setting
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [strictMode, whitelist, bgId] = await Promise.all([
+        const [strictMode, whitelist, bgId, settings] = await Promise.all([
           BlockingService.isStrictModeEnabled(),
           BlockingService.getWhitelistDomains(),
           StorageService.getChildBackground(),
+          StorageService.getSettings(),
         ]);
         setStrictModeEnabled(strictMode);
         setWhitelistDomains(whitelist);
         setSelectedBgId(bgId);
+        setBrowserEnabled(settings.browserEnabled);
       } catch (error) {
         console.error('Error loading data:', error);
       }
@@ -182,65 +192,67 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
         <Text style={[styles.homeSubtitle, dark && styles.textLightSecondary]}>{t.homeSubtitle}</Text>
       </View>
 
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <MaterialCommunityIcons
-            name="magnify"
-            size={24}
-            color={KidColors.safeGreen}
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.searchInput}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmitEditing={handleSearch}
-            placeholder={t.searchPlaceholder}
-            placeholderTextColor={KidColors.searchPlaceholder}
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="search"
-          />
-          {searchQuery.length > 0 && (
-            <Pressable onPress={handleSearch} style={styles.searchButton}>
-              <MaterialCommunityIcons
-                name="arrow-right-circle"
-                size={32}
-                color={Colors.primary}
-              />
-            </Pressable>
-          )}
-        </View>
-
-        {/* Badges row */}
-        <View style={styles.badgesRow}>
-          {/* Safe search badge */}
-          <View style={styles.safeBadge}>
+      {/* Search Bar (hidden when browser disabled) */}
+      {browserEnabled && (
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBar}>
             <MaterialCommunityIcons
-              name="shield-check"
-              size={14}
+              name="magnify"
+              size={24}
               color={KidColors.safeGreen}
+              style={styles.searchIcon}
             />
-            <Text style={styles.safeBadgeText}>{t.safeSearch}</Text>
+            <TextInput
+              style={styles.searchInput}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmitEditing={handleSearch}
+              placeholder={t.searchPlaceholder}
+              placeholderTextColor={KidColors.searchPlaceholder}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="search"
+            />
+            {searchQuery.length > 0 && (
+              <Pressable onPress={handleSearch} style={styles.searchButton}>
+                <MaterialCommunityIcons
+                  name="arrow-right-circle"
+                  size={32}
+                  color={Colors.primary}
+                />
+              </Pressable>
+            )}
           </View>
 
-          {/* Strict mode badge */}
-          {strictModeEnabled && (
-            <View style={styles.strictBadge}>
+          {/* Badges row */}
+          <View style={styles.badgesRow}>
+            {/* Safe search badge */}
+            <View style={styles.safeBadge}>
               <MaterialCommunityIcons
-                name="shield-lock"
+                name="shield-check"
                 size={14}
-                color={Colors.primary}
+                color={KidColors.safeGreen}
               />
-              <Text style={styles.strictBadgeText}>{t.strictMode}</Text>
+              <Text style={styles.safeBadgeText}>{t.safeSearch}</Text>
             </View>
-          )}
+
+            {/* Strict mode badge */}
+            {strictModeEnabled && (
+              <View style={styles.strictBadge}>
+                <MaterialCommunityIcons
+                  name="shield-lock"
+                  size={14}
+                  color={Colors.primary}
+                />
+                <Text style={styles.strictBadgeText}>{t.strictMode}</Text>
+              </View>
+            )}
+          </View>
         </View>
-      </View>
+      )}
 
       {/* Allowed Sites (Strict Mode) */}
-      {strictModeEnabled && whitelistDomains.length > 0 && (
+      {browserEnabled && strictModeEnabled && whitelistDomains.length > 0 && (
         <View style={styles.allowedSitesSection}>
           <View style={styles.allowedSitesHeader}>
             <MaterialCommunityIcons

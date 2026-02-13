@@ -25,8 +25,86 @@ export const READING_MODE_PRELOAD_SCRIPT = `
     '  width: 0 !important; height: 0 !important;',
     '  overflow: hidden !important;',
     '}',
+    '/* Hide Google search tabs (Images, Videos, News, Books, Tools, etc.) */',
+    'div[role="navigation"] { display: none !important; }',
+    'a[href*="tbm="], a[href*="udm="] { display: none !important; }',
+    '#hdtb, #hdtbMenus, .hdtb-mitem, .MUFPAc, .T47uwc, .IUOThf {',
+    '  display: none !important;',
+    '}',
+    '[jscontroller] > div > div > div > a[href*="/search"] {',
+    '  display: none !important;',
+    '}',
   ].join('\\n');
   (document.head || document.documentElement).appendChild(style);
+
+  // Post-load: hide remaining Google filter elements by text/structure
+  if (window.location.hostname.indexOf('google.') !== -1) {
+    function hideGoogleFilters() {
+      // Hide the entire search filter/tabs bar
+      var selectors = [
+        '#hdtb', '#hdtbMenus', '#hdtb-msb', '#hdtb-tls',
+        '.nfdoRb', '.crJ18e', '.sBbkle',
+      ];
+      selectors.forEach(function(sel) {
+        var els = document.querySelectorAll(sel);
+        for (var i = 0; i < els.length; i++) {
+          els[i].style.setProperty('display', 'none', 'important');
+        }
+      });
+
+      // Hide any remaining links that look like search filter tabs
+      var allLinks = document.querySelectorAll('a[href*="/search"]');
+      for (var i = 0; i < allLinks.length; i++) {
+        var link = allLinks[i];
+        var text = (link.textContent || '').trim().toLowerCase();
+        var filterTexts = ['images', 'vidéos', 'videos', 'actualités', 'news',
+          'livres', 'books', 'shopping', 'maps', 'outils', 'tools', 'flights', 'finance'];
+        for (var j = 0; j < filterTexts.length; j++) {
+          if (text === filterTexts[j]) {
+            // Hide the link and its parent container
+            link.style.setProperty('display', 'none', 'important');
+            if (link.parentElement && link.parentElement.tagName !== 'BODY') {
+              link.parentElement.style.setProperty('display', 'none', 'important');
+            }
+            break;
+          }
+        }
+      }
+
+      // Hide "Outils de recherche" / "Search tools" button
+      var allButtons = document.querySelectorAll('div, span, button, g-header-menu, g-scrolling-carousel');
+      for (var i = 0; i < allButtons.length; i++) {
+        var el = allButtons[i];
+        var txt = (el.textContent || '').trim().toLowerCase();
+        if (txt === 'outils de recherche' || txt === 'search tools' || txt === 'outils') {
+          el.style.setProperty('display', 'none', 'important');
+        }
+      }
+    }
+
+    // Run immediately, then observe for dynamic changes
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', hideGoogleFilters);
+    } else {
+      hideGoogleFilters();
+    }
+    // Also run after short delay for dynamic content
+    setTimeout(hideGoogleFilters, 500);
+    setTimeout(hideGoogleFilters, 1500);
+
+    // MutationObserver to catch late-loaded elements
+    var obs = new MutationObserver(function() { hideGoogleFilters(); });
+    var tryObserve = function() {
+      if (document.body) {
+        obs.observe(document.body, { childList: true, subtree: true });
+      } else {
+        setTimeout(tryObserve, 100);
+      }
+    };
+    tryObserve();
+    // Stop observing after 10s to save resources
+    setTimeout(function() { obs.disconnect(); }, 10000);
+  }
 })();
 true;
 `;

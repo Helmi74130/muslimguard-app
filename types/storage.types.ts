@@ -34,6 +34,7 @@ export interface AppSettings {
   kioskHideStatusBar: boolean;
   strictModeEnabled: boolean; // Whitelist mode - only allow approved sites
   readingModeEnabled: boolean; // Reading mode - strip images/videos, show text only
+  browserEnabled: boolean; // Show/hide browser access in child mode
   childBackground: string; // Background ID for child home screen
 }
 
@@ -56,6 +57,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   kioskHideStatusBar: true,
   strictModeEnabled: false, // Whitelist mode disabled by default
   readingModeEnabled: false, // Reading mode disabled by default
+  browserEnabled: true, // Browser visible by default
   childBackground: 'default', // Default background
 };
 
@@ -171,6 +173,9 @@ export const STORAGE_KEYS = {
 
   // Quiz
   QUIZ_SCORES: 'quiz.scores',
+
+  // Weather cache
+  WEATHER_CACHE: 'cache.weatherData',
 
   // Subscription & Account
   SUBSCRIPTION_STATE: 'subscription.state',

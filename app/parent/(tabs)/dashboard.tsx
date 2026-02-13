@@ -94,7 +94,7 @@ export default function DashboardScreen() {
   const handleChildMode = useCallback(() => {
     switchToChildMode();
     logout();
-    // Navigate to root which redirects to /child/home with a fresh stack
+    // Navigate to root which redirects to /child/browser with a fresh stack
     router.replace('/');
   }, [switchToChildMode, logout]);
 

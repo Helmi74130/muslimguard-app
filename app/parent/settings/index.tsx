@@ -64,16 +64,23 @@ function SettingItem({
 export default function SettingsScreen() {
   const { isLoggedIn, isPremium, user } = useSubscription();
   const [readingModeEnabled, setReadingModeEnabled] = useState(false);
+  const [browserEnabled, setBrowserEnabled] = useState(true);
 
   useEffect(() => {
     StorageService.getSettings().then((settings) => {
       setReadingModeEnabled(settings.readingModeEnabled);
+      setBrowserEnabled(settings.browserEnabled);
     });
   }, []);
 
   const handleToggleReadingMode = useCallback(async (enabled: boolean) => {
     await StorageService.updateSettings({ readingModeEnabled: enabled });
     setReadingModeEnabled(enabled);
+  }, []);
+
+  const handleToggleBrowser = useCallback(async (enabled: boolean) => {
+    await StorageService.updateSettings({ browserEnabled: enabled });
+    setBrowserEnabled(enabled);
   }, []);
 
   const handleResetApp = () => {
@@ -204,6 +211,26 @@ export default function SettingsScreen() {
               onValueChange={handleToggleReadingMode}
               trackColor={{ false: Colors.light.border, true: Colors.primary + '60' }}
               thumbColor={readingModeEnabled ? Colors.primary : Colors.light.textSecondary}
+            />
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.settingItem}>
+            <View style={[styles.settingIconContainer, { backgroundColor: Colors.primary + '15' }]}>
+              <MaterialCommunityIcons name="web" size={22} color={Colors.primary} />
+            </View>
+            <View style={styles.settingContent}>
+              <Text style={styles.settingTitle}>{translations.browserToggle.title}</Text>
+              <Text style={styles.settingSubtitle}>
+                {browserEnabled
+                  ? translations.browserToggle.enabled
+                  : translations.browserToggle.disabled}
+              </Text>
+            </View>
+            <Switch
+              value={browserEnabled}
+              onValueChange={handleToggleBrowser}
+              trackColor={{ false: Colors.light.border, true: Colors.primary + '60' }}
+              thumbColor={browserEnabled ? Colors.primary : Colors.light.textSecondary}
             />
           </View>
         </Card>

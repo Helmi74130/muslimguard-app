@@ -126,6 +126,7 @@ export const translations = {
       soundMixer: 'Sons',
       notes: 'Notes',
       quiz: 'Quiz',
+      weather: 'Météo',
     },
     error: {
       title: 'Oups !',
@@ -410,6 +411,13 @@ export const translations = {
       3: 'Nasser Al Qatami',
       5: 'Hani Ar Rifai',
     },
+  },
+
+  // Browser toggle
+  browserToggle: {
+    title: 'Navigateur',
+    enabled: 'Activé - Accessible depuis l\'écran enfant',
+    disabled: 'Désactivé - Caché de l\'écran enfant',
   },
 
   // Reading Mode

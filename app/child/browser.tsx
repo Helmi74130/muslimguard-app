@@ -22,6 +22,7 @@ import { BrowserHomePage } from '@/components/browser/browser-home-page';
 import { BlockingService, BlockReason } from '@/services/blocking.service';
 import { PrayerService } from '@/services/prayer.service';
 import { StorageService } from '@/services/storage.service';
+import { KioskService } from '@/services/kiosk.service';
 import { Colors, KidColors, Spacing, BorderRadius } from '@/constants/theme';
 import { translations } from '@/constants/translations';
 import { READING_MODE_SCRIPT, READING_MODE_PRELOAD_SCRIPT } from '@/constants/reading-mode-script';
@@ -104,6 +105,10 @@ export default function BrowserScreen() {
 
     loadData();
     const interval = setInterval(loadData, 30000);
+
+    // Activate kiosk mode if enabled
+    KioskService.activateKiosk().catch(() => {});
+
     return () => clearInterval(interval);
   }, []);
 
@@ -238,6 +243,15 @@ export default function BrowserScreen() {
         return true;
       }
 
+      // Block Google Images/Videos when reading mode is active
+      if (readingMode && /google\.\w+\/search/.test(url)) {
+        const params = new URL(url).searchParams;
+        const tbm = params.get('tbm');
+        if (tbm === 'isch' || tbm === 'vid') {
+          return false;
+        }
+      }
+
       const blockResult = shouldBlock(url);
 
       if (blockResult.blocked && blockResult.reason && blockResult.blockedBy) {
@@ -300,31 +314,6 @@ export default function BrowserScreen() {
   };
 
   // Navigate from toolbar (detects search query vs URL)
-  const handleNavigate = (input: string) => {
-    const isSearchQuery = !input.includes('.') && !input.startsWith('http');
-    const finalUrl = isSearchQuery
-      ? `https://www.google.com/search?q=${encodeURIComponent(input)}&safe=active`
-      : BlockingService.normalizeUrl(input);
-
-    const blockResult = shouldBlock(finalUrl);
-    if (blockResult.blocked && blockResult.reason && blockResult.blockedBy) {
-      BlockingService.logBlockedAttempt(finalUrl, blockResult.reason, blockResult.blockedBy).catch(console.error);
-      // Also log to history as blocked entry with reason
-      BlockingService.logNavigation(finalUrl, finalUrl, true, blockResult.reason, blockResult.blockedBy).catch(console.error);
-      router.push({
-        pathname: '/child/blocked',
-        params: {
-          url: finalUrl,
-          reason: blockResult.reason,
-          blockedBy: blockResult.blockedBy,
-        },
-      });
-      return;
-    }
-
-    setCurrentUrl(finalUrl);
-    setShowHomePage(false);
-  };
 
   // Navigate from home page (search or quick link)
   const handleHomeNavigate = (url: string) => {
@@ -472,14 +461,12 @@ export default function BrowserScreen() {
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       <BrowserToolbar
-        currentUrl={showHomePage ? '' : currentUrl}
         canGoBack={canGoBack}
         canGoForward={canGoForward}
         isLoading={isLoading}
         onGoBack={handleGoBack}
         onGoForward={handleGoForward}
         onReload={handleReload}
-        onNavigate={handleNavigate}
         onParentAccess={handleParentAccess}
         onHomePress={handleHomePress}
         isOnHomePage={showHomePage}

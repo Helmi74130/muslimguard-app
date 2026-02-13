@@ -16,7 +16,6 @@ export default function ChildLayout() {
         animation: 'fade',
       }}
     >
-      <Stack.Screen name="home" />
       <Stack.Screen name="browser" />
       <Stack.Screen name="calculator" />
       <Stack.Screen name="allah-names" />

@@ -30,7 +30,7 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
   {
     id: 'prophets',
     label: 'Les Prophètes',
-    icon: 'account-group',
+    icon: 'family-tree',
     color: '#1565C0',
     colorLight: '#E3F2FD',
     questions: [
