@@ -103,8 +103,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.sm,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -123,7 +121,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: KidColors.navBg,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -131,7 +129,7 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   navCircleActive: {
-    backgroundColor: KidColors.homeButtonBg,
+    backgroundColor: '#FFFFFF',
   },
   navSpacer: {
     flex: 1,

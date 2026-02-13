@@ -11,11 +11,15 @@ import {
   SafeAreaView,
   Pressable,
   Dimensions,
+  Modal,
+  Image,
+  ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Canvas, Path, Skia, SkPath } from '@shopify/react-native-skia';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
+import { COLORING_PAGES, ColoringPage } from '@/constants/coloring-pages';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -53,6 +57,17 @@ export default function DrawingScreen() {
   const [paths, setPaths] = useState<DrawPath[]>([]);
   const [isEraser, setIsEraser] = useState(false);
   const currentPathRef = useRef<SkPath | null>(null);
+  const [selectedColoring, setSelectedColoring] = useState<ColoringPage | null>(null);
+  const [showColoringSheet, setShowColoringSheet] = useState(false);
+
+  const hasColoringPages = COLORING_PAGES.length > 0;
+
+  const handleSelectColoring = (page: ColoringPage | null) => {
+    setSelectedColoring(page);
+    setPaths([]);
+    currentPathRef.current = null;
+    setShowColoringSheet(false);
+  };
 
   const handleTouchStart = useCallback((x: number, y: number) => {
     const path = Skia.Path.Make();
@@ -115,31 +130,45 @@ export default function DrawingScreen() {
       </View>
 
       {/* Canvas */}
-      <View
-        style={styles.canvasContainer}
-        onTouchStart={(e) => {
-          const { locationX, locationY } = e.nativeEvent;
-          handleTouchStart(locationX, locationY);
-        }}
-        onTouchMove={(e) => {
-          const { locationX, locationY } = e.nativeEvent;
-          handleTouchMove(locationX, locationY);
-        }}
-        onTouchEnd={handleTouchEnd}
-      >
-        <Canvas style={styles.canvas}>
-          {paths.map((p, index) => (
-            <Path
-              key={index}
-              path={p.path}
-              color={p.color}
-              style="stroke"
-              strokeWidth={p.strokeWidth}
-              strokeCap="round"
-              strokeJoin="round"
+      <View style={styles.canvasContainer}>
+        {/* Background coloring image */}
+        {selectedColoring && (
+          <View style={styles.coloringBgContainer} pointerEvents="none">
+            <Image
+              source={selectedColoring.source}
+              style={styles.coloringBgImage}
+              resizeMode="contain"
             />
-          ))}
-        </Canvas>
+          </View>
+        )}
+
+        {/* Touch canvas overlay */}
+        <View
+          style={selectedColoring ? styles.canvasOverlay : styles.canvas}
+          onTouchStart={(e) => {
+            const { locationX, locationY } = e.nativeEvent;
+            handleTouchStart(locationX, locationY);
+          }}
+          onTouchMove={(e) => {
+            const { locationX, locationY } = e.nativeEvent;
+            handleTouchMove(locationX, locationY);
+          }}
+          onTouchEnd={handleTouchEnd}
+        >
+          <Canvas style={styles.canvas}>
+            {paths.map((p, index) => (
+              <Path
+                key={index}
+                path={p.path}
+                color={p.color}
+                style="stroke"
+                strokeWidth={p.strokeWidth}
+                strokeCap="round"
+                strokeJoin="round"
+              />
+            ))}
+          </Canvas>
+        </View>
       </View>
 
       {/* Toolbar */}
@@ -202,6 +231,39 @@ export default function DrawingScreen() {
           </Pressable>
         </View>
 
+        {/* Coloring pages button */}
+        {hasColoringPages && (
+          <View style={styles.coloringButtonRow}>
+            <Pressable
+              style={[
+                styles.coloringButton,
+                selectedColoring && styles.coloringButtonActive,
+              ]}
+              onPress={() => setShowColoringSheet(true)}
+            >
+              <MaterialCommunityIcons
+                name="image-outline"
+                size={20}
+                color={selectedColoring ? '#FFFFFF' : Colors.primary}
+              />
+              <Text style={[
+                styles.coloringButtonText,
+                selectedColoring && styles.coloringButtonTextActive,
+              ]}>
+                {selectedColoring ? selectedColoring.label : 'Coloriages'}
+              </Text>
+            </Pressable>
+            {selectedColoring && (
+              <Pressable
+                style={styles.coloringClearButton}
+                onPress={() => handleSelectColoring(null)}
+              >
+                <MaterialCommunityIcons name="close" size={16} color="#94A3B8" />
+              </Pressable>
+            )}
+          </View>
+        )}
+
         {/* Color palette */}
         <View style={styles.paletteRow}>
           {PALETTE.map((item) => (
@@ -228,6 +290,53 @@ export default function DrawingScreen() {
           ))}
         </View>
       </View>
+
+      {/* Coloring pages bottom sheet */}
+      <Modal
+        visible={showColoringSheet}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowColoringSheet(false)}
+      >
+        <Pressable
+          style={styles.sheetOverlay}
+          onPress={() => setShowColoringSheet(false)}
+        />
+        <View style={styles.sheetContainer}>
+          <View style={styles.sheetHandle} />
+          <Text style={styles.sheetTitle}>Choisir un coloriage</Text>
+          <ScrollView
+            contentContainerStyle={styles.sheetGrid}
+            showsVerticalScrollIndicator={false}
+          >
+            {COLORING_PAGES.map((page) => (
+              <Pressable
+                key={page.id}
+                style={[
+                  styles.sheetItem,
+                  selectedColoring?.id === page.id && styles.sheetItemSelected,
+                ]}
+                onPress={() => handleSelectColoring(page)}
+              >
+                <Image
+                  source={page.source}
+                  style={styles.sheetItemImage}
+                  resizeMode="contain"
+                />
+                <Text
+                  style={[
+                    styles.sheetItemLabel,
+                    selectedColoring?.id === page.id && styles.sheetItemLabelSelected,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {page.label}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -347,5 +456,122 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     transform: [{ scale: 1.15 }],
+  },
+
+  // Background coloring image
+  coloringBgContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.md,
+  },
+  coloringBgImage: {
+    width: '90%',
+    height: '90%',
+    opacity: 0.25,
+  },
+  canvasOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+
+  // Coloring pages button
+  coloringButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  coloringButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.xs + 2,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: '#DBEAFE',
+    gap: Spacing.xs,
+  },
+  coloringButtonActive: {
+    backgroundColor: Colors.primary,
+  },
+  coloringButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  coloringButtonTextActive: {
+    color: '#FFFFFF',
+  },
+  coloringClearButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Bottom sheet
+  sheetOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  sheetContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xl,
+    maxHeight: SCREEN_HEIGHT * 0.45,
+  },
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#D1D5DB',
+    alignSelf: 'center',
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  sheetTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.primary,
+    textAlign: 'center',
+    marginBottom: Spacing.md,
+  },
+  sheetGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    paddingBottom: Spacing.md,
+  },
+  sheetItem: {
+    width: (SCREEN_WIDTH - Spacing.lg * 2 - Spacing.sm * 2) / 3,
+    alignItems: 'center',
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  sheetItemSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: '#DBEAFE',
+  },
+  sheetItemImage: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: BorderRadius.md,
+  },
+  sheetItemLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#64748B',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  sheetItemLabelSelected: {
+    color: Colors.primary,
+    fontWeight: '600',
   },
 });

@@ -77,7 +77,7 @@ export const BorderRadius = {
 // Kid-friendly browser color palette
 export const KidColors = {
   homeBg: '#F0F7FF',
-  toolbarBg: '#FFFFFF',
+  toolbarBg: '#DBEAFE',
   searchBg: '#F0F4FF',
   searchBorder: '#D0DCEE',
   searchFocusBorder: '#7EB6FF',
