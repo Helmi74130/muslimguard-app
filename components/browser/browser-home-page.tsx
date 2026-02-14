@@ -129,6 +129,13 @@ const QUICK_LINKS = [
     colorIndex: 0,
     isInternal: true,
   },
+  {
+    label: t.links.videos,
+    url: 'videos',
+    icon: 'play-box-multiple' as const,
+    colorIndex: 1,
+    isInternal: true,
+  },
 ];
 
 export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps) {

@@ -33,7 +33,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'icon',
     icon: 'moon-waning-crescent',
     iconColor: '#FFD700',
-    size: 48,
+    size: 180,
   },
   {
     id: 'star',
@@ -41,7 +41,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'icon',
     icon: 'star',
     iconColor: '#FFD700',
-    size: 44,
+    size: 180,
   },
   {
     id: 'mosque',
@@ -49,7 +49,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'icon',
     icon: 'mosque',
     iconColor: '#1E6B4F',
-    size: 48,
+    size: 180,
   },
   {
     id: 'heart',
@@ -57,7 +57,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'icon',
     icon: 'heart',
     iconColor: '#E91E63',
-    size: 44,
+    size: 180,
   },
   {
     id: 'sparkles',
@@ -65,7 +65,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'icon',
     icon: 'creation',
     iconColor: '#FF9800',
-    size: 44,
+    size: 180,
   },
   {
     id: 'crown',
@@ -73,7 +73,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'icon',
     icon: 'crown',
     iconColor: '#FFD700',
-    size: 48,
+    size: 180,
   },
   {
     id: 'flower',
@@ -81,7 +81,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'icon',
     icon: 'flower-tulip',
     iconColor: '#E91E63',
-    size: 44,
+    size: 180,
   },
   {
     id: 'diamond',
@@ -89,7 +89,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'icon',
     icon: 'diamond-stone',
     iconColor: '#00BCD4',
-    size: 44,
+    size: 180,
   },
   {
     id: 'sunglasses',
@@ -97,7 +97,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'icon',
     icon: 'sunglasses',
     iconColor: '#1B1B1B',
-    size: 52,
+    size: 180,
   },
   {
     id: 'hat',
@@ -105,7 +105,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'icon',
     icon: 'hat-fedora',
     iconColor: '#5D4037',
-    size: 52,
+    size: 180,
   },
   {
     id: 'mustache',
@@ -113,7 +113,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'icon',
     icon: 'mustache',
     iconColor: '#3E2723',
-    size: 52,
+    size: 180,
   },
   {
     id: 'bow-tie',
@@ -121,7 +121,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'icon',
     icon: 'bow-tie',
     iconColor: '#D32F2F',
-    size: 44,
+    size: 180,
   },
 
   // --- PNG stickers (add your own) ---
@@ -130,42 +130,42 @@ export const CAMERA_STICKERS: CameraSticker[] = [
      name: 'Alhamdulillah',
      type: 'image',
      image: require('../assets/camera-stickers/alhamdulillah.png'),
-     size: 80,
+     size: 280,
    },
    {
      id: 'beard',
      name: 'Barbe',
      type: 'image',
      image: require('../assets/camera-stickers/beard.png'),
-     size: 80,
+     size: 280,
    },
    {
      id: 'sunglasses2',
      name: 'Lunettes',
      type: 'image',
      image: require('../assets/camera-stickers/sunglasses2.png'),
-     size: 80,
+     size: 280,
    },
    {
      id: 'cat1',
      name: 'Chat1',
      type: 'image',
      image: require('../assets/camera-stickers/cat1.png'),
-     size: 80,
+     size: 280,
    },
    {
      id: 'cat2',
      name: 'Chat2',
      type: 'image',
      image: require('../assets/camera-stickers/cat2.png'),
-     size: 80,
+     size: 280,
    },
    {
      id: 'cat3',
      name: 'Chat3',
      type: 'image',
      image: require('../assets/camera-stickers/cat3.png'),
-     size: 80,
+     size: 280,
    },
    {
      id: 'tracedepas',
@@ -179,6 +179,6 @@ export const CAMERA_STICKERS: CameraSticker[] = [
      name: 'Barbe2',
      type: 'image',
      image: require('../assets/camera-stickers/beard2.png'),
-     size: 80,
+     size: 220,
    },
 ];

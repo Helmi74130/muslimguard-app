@@ -540,7 +540,9 @@ export const StorageService = {
   // ==================== QUIZ ====================
 
   /**
-   * Get quiz best scores (categoryId -> bestScore)
+   * Get quiz best scores (key -> bestScore)
+   * Keys are "categoryId_difficulty" (e.g. "prophets_easy")
+   * Also supports legacy keys without difficulty for backward compatibility
    */
   async getQuizScores(): Promise<Record<string, number>> {
     try {
@@ -554,13 +556,15 @@ export const StorageService = {
 
   /**
    * Save quiz score if it's better than the previous best
+   * Uses composite key "categoryId_difficulty"
    */
-  async saveQuizScore(categoryId: string, score: number, total: number): Promise<void> {
+  async saveQuizScore(categoryId: string, score: number, total: number, difficulty?: string): Promise<void> {
     const scores = await this.getQuizScores();
     const percentage = Math.round((score / total) * 100);
-    const currentBest = scores[categoryId] || 0;
+    const key = difficulty ? `${categoryId}_${difficulty}` : categoryId;
+    const currentBest = scores[key] || 0;
     if (percentage > currentBest) {
-      scores[categoryId] = percentage;
+      scores[key] = percentage;
       await AsyncStorage.setItem(STORAGE_KEYS.QUIZ_SCORES, JSON.stringify(scores));
     }
   },

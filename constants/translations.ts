@@ -127,6 +127,7 @@ export const translations = {
       notes: 'Notes',
       quiz: 'Quiz',
       weather: 'Météo',
+      videos: 'Vidéos',
     },
     error: {
       title: 'Oups !',
@@ -452,6 +453,21 @@ export const translations = {
     invalidUrl: 'Adresse web invalide',
     locationRequired: 'Veuillez sélectionner une ville',
     pinRequired: 'Veuillez entrer votre code PIN',
+  },
+
+  // Videos section
+  videos: {
+    title: 'Vidéos',
+    subtitle: 'Vidéos éducatives sélectionnées pour toi',
+    allCategories: 'Tout',
+    noVideos: 'Aucune vidéo disponible',
+    noVideosDesc: 'De nouvelles vidéos seront bientôt ajoutées, in sha Allah.',
+    loadError: 'Impossible de charger les vidéos',
+    loadErrorDesc: 'Vérifie ta connexion Internet et réessaye.',
+    retry: 'Réessayer',
+    muted: 'Son désactivé',
+    nowPlaying: 'En lecture',
+    sameCategory: 'Dans la même catégorie',
   },
 
   // Confirmations

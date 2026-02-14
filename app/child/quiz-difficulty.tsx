@@ -1,6 +1,6 @@
 /**
- * Quiz Categories Screen - MuslimGuard
- * Kid-friendly category selection with best scores
+ * Quiz Difficulty Selection Screen - MuslimGuard
+ * Kid-friendly difficulty picker with scores per level
  */
 
 import React, { useState, useCallback } from 'react';
@@ -10,14 +10,15 @@ import {
   StyleSheet,
   SafeAreaView,
   Pressable,
-  ScrollView,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
-import { QUIZ_CATEGORIES } from '@/constants/quiz-data';
+import { QUIZ_CATEGORIES, DIFFICULTY_CONFIG, QuizDifficulty } from '@/constants/quiz-data';
 import { StorageService } from '@/services/storage.service';
+
+const DIFFICULTIES: QuizDifficulty[] = ['easy', 'normal', 'hard'];
 
 function getStars(percentage: number): number {
   if (percentage >= 100) return 3;
@@ -26,7 +27,9 @@ function getStars(percentage: number): number {
   return 0;
 }
 
-export default function QuizScreen() {
+export default function QuizDifficultyScreen() {
+  const { categoryId } = useLocalSearchParams<{ categoryId: string }>();
+  const category = QUIZ_CATEGORIES.find(c => c.id === categoryId);
   const [scores, setScores] = useState<Record<string, number>>({});
 
   useFocusEffect(
@@ -40,6 +43,16 @@ export default function QuizScreen() {
     setScores(data);
   };
 
+  if (!category) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>Catégorie introuvable</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -48,47 +61,50 @@ export default function QuizScreen() {
           <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
         </Pressable>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Quiz Islam</Text>
-          <Text style={styles.headerSubtitle}>Teste tes connaissances !</Text>
+          <Text style={styles.headerTitle}>{category.label}</Text>
+          <Text style={styles.headerSubtitle}>Choisis ton niveau</Text>
         </View>
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {QUIZ_CATEGORIES.map((cat) => {
-          // Best score across all difficulties for this category
-          const diffScores = ['easy', 'normal', 'hard'].map(d => scores[`${cat.id}_${d}`] || 0);
-          const legacyScore = scores[cat.id] || 0;
-          const bestScore = Math.max(...diffScores, legacyScore);
+      {/* Category icon */}
+      <View style={styles.categoryIconContainer}>
+        <View style={[styles.categoryIconCircle, { backgroundColor: category.colorLight }]}>
+          <MaterialCommunityIcons name={category.icon as any} size={48} color={category.color} />
+        </View>
+      </View>
+
+      {/* Difficulty cards */}
+      <View style={styles.content}>
+        {DIFFICULTIES.map((diff) => {
+          const config = DIFFICULTY_CONFIG[diff];
+          const questionsCount = category.questions.filter(q => q.difficulty === diff).length;
+          const scoreKey = `${categoryId}_${diff}`;
+          const bestScore = scores[scoreKey] || 0;
           const stars = getStars(bestScore);
           const hasPlayed = bestScore > 0;
 
           return (
             <Pressable
-              key={cat.id}
+              key={diff}
               style={({ pressed }) => [
-                styles.categoryCard,
-                pressed && styles.categoryCardPressed,
+                styles.difficultyCard,
+                pressed && styles.difficultyCardPressed,
+                { borderLeftColor: config.color, borderLeftWidth: 4 },
               ]}
-              onPress={() => router.push(`/child/quiz-difficulty?categoryId=${cat.id}` as any)}
+              onPress={() => router.push(`/child/quiz-play?categoryId=${categoryId}&difficulty=${diff}` as any)}
             >
               {/* Icon */}
-              <View style={[styles.categoryIcon, { backgroundColor: cat.colorLight }]}>
-                <MaterialCommunityIcons
-                  name={cat.icon as any}
-                  size={32}
-                  color={cat.color}
-                />
+              <View style={[styles.diffIcon, { backgroundColor: config.colorLight }]}>
+                <MaterialCommunityIcons name={config.icon as any} size={28} color={config.color} />
               </View>
 
               {/* Info */}
-              <View style={styles.categoryInfo}>
-                <Text style={styles.categoryLabel}>{cat.label}</Text>
-                <Text style={styles.categoryCount}>
-                  {cat.questions.length} question{cat.questions.length > 1 ? 's' : ''}
+              <View style={styles.diffInfo}>
+                <Text style={styles.diffLabel}>{config.label}</Text>
+                <Text style={styles.diffCount}>
+                  {questionsCount} question{questionsCount > 1 ? 's' : ''}
+                  {diff === 'hard' ? ' • ⏱ 15s' : ''}
                 </Text>
                 {/* Stars */}
                 {hasPlayed && (
@@ -97,7 +113,7 @@ export default function QuizScreen() {
                       <MaterialCommunityIcons
                         key={i}
                         name={i <= stars ? 'star' : 'star-outline'}
-                        size={18}
+                        size={16}
                         color={i <= stars ? '#FBBF24' : '#D1D5DB'}
                       />
                     ))}
@@ -107,15 +123,11 @@ export default function QuizScreen() {
               </View>
 
               {/* Arrow */}
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={24}
-                color={Colors.light.textSecondary}
-              />
+              <MaterialCommunityIcons name="chevron-right" size={24} color={Colors.light.textSecondary} />
             </Pressable>
           );
         })}
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -124,6 +136,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F0F4FF',
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: Colors.light.textSecondary,
   },
   header: {
     flexDirection: 'row',
@@ -158,45 +179,54 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
     marginTop: 2,
   },
-  content: {
-    padding: Spacing.md,
-    paddingBottom: Spacing.xxl,
+  categoryIconContainer: {
+    alignItems: 'center',
+    marginVertical: Spacing.lg,
   },
-  // Category card
-  categoryCard: {
+  categoryIconCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  content: {
+    paddingHorizontal: Spacing.md,
+    gap: Spacing.sm,
+  },
+  difficultyCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: BorderRadius.xl,
     padding: Spacing.md,
-    marginBottom: Spacing.sm,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 3,
   },
-  categoryCardPressed: {
+  difficultyCardPressed: {
     opacity: 0.8,
     transform: [{ scale: 0.98 }],
   },
-  categoryIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+  diffIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
   },
-  categoryInfo: {
+  diffInfo: {
     flex: 1,
   },
-  categoryLabel: {
+  diffLabel: {
     fontSize: 17,
     fontWeight: '700',
     color: Colors.light.text,
   },
-  categoryCount: {
+  diffCount: {
     fontSize: 13,
     color: Colors.light.textSecondary,
     marginTop: 2,

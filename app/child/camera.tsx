@@ -73,7 +73,12 @@ function DraggableSticker({
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gesture) => {
+        // Only capture the gesture if the finger moved enough (threshold of 8px).
+        // This prevents stealing taps from the +/−/× control buttons on real devices
+        // where fingers always move slightly during a tap.
+        return Math.abs(gesture.dx) > 8 || Math.abs(gesture.dy) > 8;
+      },
       onPanResponderMove: (_, gesture) => {
         const newX = posRef.current.x + gesture.dx;
         const newY = posRef.current.y + gesture.dy;
@@ -140,14 +145,14 @@ function DraggableSticker({
       {/* Resize & remove buttons (hidden during capture) */}
       {!hideControls && (
         <View style={styles.stickerControlsRow}>
-          <Pressable style={styles.stickerControlBtn} onPress={shrink} hitSlop={6}>
-            <MaterialCommunityIcons name="minus-circle" size={18} color="#FFF" />
+          <Pressable style={styles.stickerControlBtn} onPress={shrink} hitSlop={12}>
+            <MaterialCommunityIcons name="minus-circle" size={22} color="#FFF" />
           </Pressable>
-          <Pressable style={styles.stickerControlBtn} onPress={grow} hitSlop={6}>
-            <MaterialCommunityIcons name="plus-circle" size={18} color="#FFF" />
+          <Pressable style={styles.stickerControlBtn} onPress={grow} hitSlop={12}>
+            <MaterialCommunityIcons name="plus-circle" size={22} color="#FFF" />
           </Pressable>
-          <Pressable style={styles.stickerControlBtn} onPress={() => onRemove(placed.id)} hitSlop={6}>
-            <MaterialCommunityIcons name="close-circle" size={18} color="#FF4444" />
+          <Pressable style={styles.stickerControlBtn} onPress={() => onRemove(placed.id)} hitSlop={12}>
+            <MaterialCommunityIcons name="close-circle" size={22} color="#FF4444" />
           </Pressable>
         </View>
       )}
@@ -737,14 +742,18 @@ const styles = StyleSheet.create({
   },
   stickerControlsRow: {
     position: 'absolute',
-    top: -10,
-    right: -10,
+    top: -14,
+    right: -14,
     flexDirection: 'row',
-    gap: 4,
+    gap: 6,
   },
   stickerControlBtn: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    borderRadius: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   // Saved feedback

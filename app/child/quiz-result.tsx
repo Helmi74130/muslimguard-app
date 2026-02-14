@@ -14,7 +14,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
-import { QUIZ_CATEGORIES } from '@/constants/quiz-data';
+import { QUIZ_CATEGORIES, DIFFICULTY_CONFIG, QuizDifficulty } from '@/constants/quiz-data';
 
 function getStars(score: number, total: number): number {
   const pct = (score / total) * 100;
@@ -43,10 +43,11 @@ function getEmoji(stars: number): string {
 }
 
 export default function QuizResultScreen() {
-  const { score: scoreStr, total: totalStr, categoryId } = useLocalSearchParams<{
+  const { score: scoreStr, total: totalStr, categoryId, difficulty } = useLocalSearchParams<{
     score: string;
     total: string;
     categoryId: string;
+    difficulty: string;
   }>();
 
   const score = parseInt(scoreStr || '0', 10);
@@ -54,6 +55,8 @@ export default function QuizResultScreen() {
   const stars = getStars(score, total);
   const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
   const category = QUIZ_CATEGORIES.find(c => c.id === categoryId);
+  const diff = (difficulty || 'easy') as QuizDifficulty;
+  const diffConfig = DIFFICULTY_CONFIG[diff];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -86,13 +89,19 @@ export default function QuizResultScreen() {
           ))}
         </View>
 
-        {/* Category info */}
-        {category && (
-          <View style={[styles.categoryBadge, { backgroundColor: category.colorLight }]}>
-            <MaterialCommunityIcons name={category.icon as any} size={16} color={category.color} />
-            <Text style={[styles.categoryBadgeText, { color: category.color }]}>{category.label}</Text>
+        {/* Category + difficulty info */}
+        <View style={styles.badgeRow}>
+          {category && (
+            <View style={[styles.categoryBadge, { backgroundColor: category.colorLight }]}>
+              <MaterialCommunityIcons name={category.icon as any} size={16} color={category.color} />
+              <Text style={[styles.categoryBadgeText, { color: category.color }]}>{category.label}</Text>
+            </View>
+          )}
+          <View style={[styles.categoryBadge, { backgroundColor: diffConfig.colorLight }]}>
+            <MaterialCommunityIcons name={diffConfig.icon as any} size={14} color={diffConfig.color} />
+            <Text style={[styles.categoryBadgeText, { color: diffConfig.color }]}>{diffConfig.label}</Text>
           </View>
-        )}
+        </View>
       </View>
 
       {/* Buttons */}
@@ -100,7 +109,7 @@ export default function QuizResultScreen() {
         <Pressable
           style={styles.replayButton}
           onPress={() => {
-            router.replace(`/child/quiz-play?categoryId=${categoryId}` as any);
+            router.replace(`/child/quiz-play?categoryId=${categoryId}&difficulty=${diff}` as any);
           }}
         >
           <MaterialCommunityIcons name="replay" size={22} color="#FFFFFF" />
@@ -109,10 +118,10 @@ export default function QuizResultScreen() {
 
         <Pressable
           style={styles.backButton}
-          onPress={() => router.replace('/child/quiz' as any)}
+          onPress={() => router.replace(`/child/quiz-difficulty?categoryId=${categoryId}` as any)}
         >
           <MaterialCommunityIcons name="view-grid" size={20} color={Colors.primary} />
-          <Text style={styles.backButtonText}>Catégories</Text>
+          <Text style={styles.backButtonText}>Changer de niveau</Text>
         </Pressable>
       </View>
     </SafeAreaView>
@@ -165,7 +174,12 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     marginBottom: Spacing.lg,
   },
-  // Category badge
+  // Badges
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
   categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',

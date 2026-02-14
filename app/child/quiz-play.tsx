@@ -1,9 +1,9 @@
 /**
  * Quiz Play Screen - MuslimGuard
- * Kid-friendly quiz gameplay with animated feedback
+ * Kid-friendly quiz gameplay with animated feedback and timer for hard mode
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
-import { QUIZ_CATEGORIES, QuizQuestion, QUESTIONS_PER_QUIZ } from '@/constants/quiz-data';
+import { QUIZ_CATEGORIES, QuizQuestion, QUESTIONS_PER_QUIZ, DIFFICULTY_CONFIG, QuizDifficulty } from '@/constants/quiz-data';
 import { StorageService } from '@/services/storage.service';
 
 /** Shuffle array (Fisher-Yates) */
@@ -29,23 +29,71 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export default function QuizPlayScreen() {
-  const { categoryId } = useLocalSearchParams<{ categoryId: string }>();
+  const { categoryId, difficulty } = useLocalSearchParams<{ categoryId: string; difficulty: string }>();
   const category = QUIZ_CATEGORIES.find(c => c.id === categoryId);
+  const diff = (difficulty || 'easy') as QuizDifficulty;
+  const diffConfig = DIFFICULTY_CONFIG[diff];
+  const timerSeconds = diffConfig.timerSeconds;
 
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number | null>(timerSeconds);
 
   const feedbackAnim = useRef(new Animated.Value(0)).current;
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (category) {
-      const shuffled = shuffle(category.questions);
+      const filtered = category.questions.filter(q => q.difficulty === diff);
+      const shuffled = shuffle(filtered);
       setQuestions(shuffled.slice(0, QUESTIONS_PER_QUIZ));
     }
-  }, [categoryId]);
+  }, [categoryId, difficulty]);
+
+  // Timer logic for hard mode
+  const clearTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const startTimer = useCallback(() => {
+    if (!timerSeconds) return;
+    setTimeLeft(timerSeconds);
+    clearTimer();
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev === null || prev <= 1) {
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, [timerSeconds, clearTimer]);
+
+  // Start timer when question changes
+  useEffect(() => {
+    if (timerSeconds && questions.length > 0 && !showFeedback) {
+      startTimer();
+    }
+    return clearTimer;
+  }, [currentIndex, questions.length, timerSeconds, startTimer, clearTimer, showFeedback]);
+
+  // Handle time's up
+  useEffect(() => {
+    if (timeLeft === 0 && !showFeedback && questions.length > 0) {
+      handleAnswer(-1); // -1 means time's up, no answer selected
+    }
+  }, [timeLeft, showFeedback, questions.length]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return clearTimer;
+  }, [clearTimer]);
 
   if (!category || questions.length === 0) {
     return (
@@ -65,7 +113,9 @@ export default function QuizPlayScreen() {
   const handleAnswer = (index: number) => {
     if (showFeedback) return;
 
-    setSelectedAnswer(index);
+    clearTimer();
+    const actualAnswer = index === -1 ? null : index;
+    setSelectedAnswer(actualAnswer);
     setShowFeedback(true);
 
     if (index === currentQuestion.correctIndex) {
@@ -79,7 +129,7 @@ export default function QuizPlayScreen() {
       useNativeDriver: true,
     }).start();
 
-    // Auto-advance after delay (longer if explanation exists)
+    // Auto-advance after delay
     const delay = currentQuestion.explanation ? 3000 : 1200;
     setTimeout(() => {
       if (currentIndex + 1 < totalQuestions) {
@@ -90,9 +140,9 @@ export default function QuizPlayScreen() {
       } else {
         // Quiz finished - save score and go to results
         const finalScore = index === currentQuestion.correctIndex ? score + 1 : score;
-        StorageService.saveQuizScore(categoryId!, finalScore, totalQuestions);
+        StorageService.saveQuizScore(categoryId!, finalScore, totalQuestions, diff);
         router.replace(
-          `/child/quiz-result?score=${finalScore}&total=${totalQuestions}&categoryId=${categoryId}` as any
+          `/child/quiz-result?score=${finalScore}&total=${totalQuestions}&categoryId=${categoryId}&difficulty=${diff}` as any
         );
       }
     }, delay);
@@ -122,6 +172,8 @@ export default function QuizPlayScreen() {
     return [styles.choiceText, styles.choiceTextDisabled];
   };
 
+  const timerColor = timeLeft !== null && timeLeft <= 5 ? Colors.error : diffConfig.color;
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -140,11 +192,33 @@ export default function QuizPlayScreen() {
         </Text>
       </View>
 
-      {/* Category badge */}
-      <View style={[styles.categoryBadge, { backgroundColor: category.colorLight }]}>
-        <MaterialCommunityIcons name={category.icon as any} size={16} color={category.color} />
-        <Text style={[styles.categoryBadgeText, { color: category.color }]}>{category.label}</Text>
+      {/* Category + difficulty badge */}
+      <View style={styles.badgeRow}>
+        <View style={[styles.categoryBadge, { backgroundColor: category.colorLight }]}>
+          <MaterialCommunityIcons name={category.icon as any} size={16} color={category.color} />
+          <Text style={[styles.categoryBadgeText, { color: category.color }]}>{category.label}</Text>
+        </View>
+        <View style={[styles.categoryBadge, { backgroundColor: diffConfig.colorLight }]}>
+          <MaterialCommunityIcons name={diffConfig.icon as any} size={14} color={diffConfig.color} />
+          <Text style={[styles.categoryBadgeText, { color: diffConfig.color }]}>{diffConfig.label}</Text>
+        </View>
       </View>
+
+      {/* Timer for hard mode */}
+      {timerSeconds && timeLeft !== null && !showFeedback && (
+        <View style={styles.timerContainer}>
+          <MaterialCommunityIcons name="timer-outline" size={20} color={timerColor} />
+          <Text style={[styles.timerText, { color: timerColor }]}>{timeLeft}s</Text>
+        </View>
+      )}
+
+      {/* Time's up message */}
+      {showFeedback && selectedAnswer === null && (
+        <View style={styles.timesUpContainer}>
+          <MaterialCommunityIcons name="timer-off-outline" size={20} color={Colors.error} />
+          <Text style={styles.timesUpText}>Temps écoulé !</Text>
+        </View>
+      )}
 
       {/* Question */}
       <View style={styles.questionContainer}>
@@ -202,7 +276,7 @@ export default function QuizPlayScreen() {
               styles.feedbackText,
               { color: isCorrect ? Colors.success : Colors.error },
             ]}>
-              {isCorrect ? 'Bravo !' : 'Pas tout à fait...'}
+              {selectedAnswer === null ? 'Temps écoulé !' : isCorrect ? 'Bravo !' : 'Pas tout à fait...'}
             </Text>
           </View>
           {currentQuestion.explanation && (
@@ -272,20 +346,50 @@ const styles = StyleSheet.create({
     minWidth: 36,
     textAlign: 'right',
   },
-  // Category badge
+  // Badges
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
   categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'center',
     gap: 6,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.full,
-    marginTop: Spacing.sm,
   },
   categoryBadgeText: {
     fontSize: 13,
     fontWeight: '600',
+  },
+  // Timer
+  timerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: Spacing.sm,
+  },
+  timerText: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  // Time's up
+  timesUpContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: Spacing.sm,
+  },
+  timesUpText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.error,
   },
   // Question
   questionContainer: {
