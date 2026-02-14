@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { BackHandler } from 'react-native';
 import 'react-native-reanimated';
 
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AppModeProvider, useAppMode } from '@/contexts/app-mode.context';
 import { AuthProvider } from '@/contexts/auth.context';
@@ -145,12 +146,14 @@ function RootLayoutNav() {
 export default function RootLayout() {
   console.log('[DEBUG] RootLayout render');
   return (
-    <AppModeProvider>
-      <AuthProvider>
-        <SubscriptionProvider>
-          <RootLayoutNav />
-        </SubscriptionProvider>
-      </AuthProvider>
-    </AppModeProvider>
+    <SafeAreaProvider>
+      <AppModeProvider>
+        <AuthProvider>
+          <SubscriptionProvider>
+            <RootLayoutNav />
+          </SubscriptionProvider>
+        </AuthProvider>
+      </AppModeProvider>
+    </SafeAreaProvider>
   );
 }

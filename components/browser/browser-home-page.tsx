@@ -95,6 +95,13 @@ const QUICK_LINKS = [
     isInternal: true,
   },
   {
+    label: t.links.gallery,
+    url: 'gallery',
+    icon: 'image-multiple' as const,
+    colorIndex: 2,
+    isInternal: true,
+  },
+  {
     label: t.links.prayerTimes,
     url: 'prayer-times',
     icon: 'mosque' as const,
@@ -320,7 +327,7 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
               ]}>
                 <MaterialCommunityIcons
                   name={link.icon}
-                  size={28}
+                  size={32}
                   color={KidColors.tileIcons[link.colorIndex]}
                 />
               </View>
@@ -562,9 +569,9 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.92 }],
   },
   appIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 16,
+    width: 68,
+    height: 68,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 3,

@@ -8,13 +8,13 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   Pressable,
   Dimensions,
   Modal,
   Image,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Canvas, Path, Skia, SkPath } from '@shopify/react-native-skia';
@@ -22,6 +22,7 @@ import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 import { COLORING_PAGES, ColoringPage } from '@/constants/coloring-pages';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const COLORING_ITEM_SIZE = Math.floor((SCREEN_WIDTH - Spacing.lg * 2 - Spacing.sm * 2) / 3);
 
 // Kid-friendly color palette
 const PALETTE = [
@@ -57,10 +58,14 @@ export default function DrawingScreen() {
   const [paths, setPaths] = useState<DrawPath[]>([]);
   const [isEraser, setIsEraser] = useState(false);
   const currentPathRef = useRef<SkPath | null>(null);
+  const canvasSizeRef = useRef({ width: 0, height: 0 });
   const [selectedColoring, setSelectedColoring] = useState<ColoringPage | null>(null);
   const [showColoringSheet, setShowColoringSheet] = useState(false);
 
   const hasColoringPages = COLORING_PAGES.length > 0;
+
+  const clamp = (val: number, min: number, max: number) =>
+    Math.max(min, Math.min(max, val));
 
   const handleSelectColoring = (page: ColoringPage | null) => {
     setSelectedColoring(page);
@@ -145,13 +150,28 @@ export default function DrawingScreen() {
         {/* Touch canvas overlay */}
         <View
           style={selectedColoring ? styles.canvasOverlay : styles.canvas}
+          onLayout={(e) => {
+            const { width, height } = e.nativeEvent.layout;
+            canvasSizeRef.current = { width, height };
+          }}
           onTouchStart={(e) => {
             const { locationX, locationY } = e.nativeEvent;
-            handleTouchStart(locationX, locationY);
+            const { width, height } = canvasSizeRef.current;
+            if (width === 0) return;
+            handleTouchStart(clamp(locationX, 0, width), clamp(locationY, 0, height));
           }}
           onTouchMove={(e) => {
             const { locationX, locationY } = e.nativeEvent;
-            handleTouchMove(locationX, locationY);
+            const { width, height } = canvasSizeRef.current;
+            if (width === 0) return;
+            const x = clamp(locationX, 0, width);
+            const y = clamp(locationY, 0, height);
+            // If finger is outside bounds, stop the stroke
+            if (locationX < -10 || locationX > width + 10 || locationY < -10 || locationY > height + 10) {
+              handleTouchEnd();
+              return;
+            }
+            handleTouchMove(x, y);
           }}
           onTouchEnd={handleTouchEnd}
         >
@@ -543,25 +563,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.sm,
+    justifyContent: 'center',
     paddingBottom: Spacing.md,
   },
   sheetItem: {
-    width: (SCREEN_WIDTH - Spacing.lg * 2 - Spacing.sm * 2) / 3,
+    width: COLORING_ITEM_SIZE,
+    height: COLORING_ITEM_SIZE + 20,
     alignItems: 'center',
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.lg,
+    padding: Spacing.xs,
+    borderRadius: BorderRadius.md,
     backgroundColor: '#F8FAFC',
     borderWidth: 2,
     borderColor: 'transparent',
+    overflow: 'hidden',
   },
   sheetItemSelected: {
     borderColor: Colors.primary,
     backgroundColor: '#DBEAFE',
   },
   sheetItemImage: {
-    width: '100%',
-    aspectRatio: 1,
-    borderRadius: BorderRadius.md,
+    width: COLORING_ITEM_SIZE - Spacing.xs * 2 - 4,
+    height: COLORING_ITEM_SIZE - Spacing.xs * 2 - 4,
+    borderRadius: BorderRadius.sm,
   },
   sheetItemLabel: {
     fontSize: 11,

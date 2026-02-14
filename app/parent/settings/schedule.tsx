@@ -15,7 +15,6 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Switch,
@@ -23,6 +22,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const t = translations.schedule;
 

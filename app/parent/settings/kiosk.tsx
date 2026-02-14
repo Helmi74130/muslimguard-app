@@ -9,11 +9,11 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   Switch,
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Card } from '@/components/ui/card';

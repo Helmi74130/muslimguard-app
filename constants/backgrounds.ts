@@ -158,6 +158,27 @@ export const BACKGROUNDS: BackgroundOption[] = [
      source: require('../assets/backgrounds/quran.jpg'),
      preview: '#C8A96E',
    },
+   {
+     id: 'Tracedepas',
+     label: 'Trace de pas',
+     type: 'image',
+     source: require('../assets/backgrounds/pas.jpeg'),
+     preview: '#C8A96E',
+   },
+   {
+     id: 'pont',
+     label: 'Pont',
+     type: 'image',
+     source: require('../assets/backgrounds/pont.jpeg'),
+     preview: '#C8A96E',
+   },
+   {
+     id: 'drap',
+     label: 'Drap',
+     type: 'image',
+     source: require('../assets/backgrounds/drap.jpeg'),
+     preview: '#C8A96E',
+   },
 ];
 
 export const DEFAULT_BACKGROUND_ID = 'default';

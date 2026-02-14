@@ -28,4 +28,8 @@ export const COLORING_PAGES: ColoringPage[] = [
   // { id: 'letter-b', label: 'Lettre B', source: require('../assets/coloring/letter-b.png') },
   // { id: 'star', label: 'Étoile', source: require('../assets/coloring/star.png') },
    { id: 'mosque', label: 'Mosquée', source: require('../assets/coloring/mosque.jpg') },
+   { id: 'fille', label: 'Fille', source: require('../assets/coloring/fille.jpg') },
+   { id: 'cook', label: 'Cuisinier', source: require('../assets/coloring/cook.jpg') },
+   { id: 'Maman', label: 'Maman', source: require('../assets/coloring/oummi.jpg') },
+   { id: 'the', label: 'Thé', source: require('../assets/coloring/the.jpg') },
 ];

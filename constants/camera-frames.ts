@@ -62,4 +62,5 @@ export const CAMERA_FRAMES: CameraFrame[] = [
     borderColor: '#BE185D',
     overlay: require('../assets/camera-frames/flowerleftbottom.png'),
   },
+  
 ];

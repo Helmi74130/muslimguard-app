@@ -23,6 +23,7 @@ export default function ChildLayout() {
       <Stack.Screen name="arabic-tracing" />
       <Stack.Screen name="calligraphy" />
       <Stack.Screen name="camera" />
+      <Stack.Screen name="gallery" />
       <Stack.Screen
         name="blocked"
         options={{

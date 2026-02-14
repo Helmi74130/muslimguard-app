@@ -122,6 +122,7 @@ export const translations = {
       calculator: 'Calculatrice',
       calligraphy: 'Calligraphie',
       camera: 'Caméra',
+      gallery: 'Galerie',
       prayerTimes: 'Horaires',
       soundMixer: 'Sons',
       notes: 'Notes',

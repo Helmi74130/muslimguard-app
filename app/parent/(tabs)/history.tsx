@@ -9,10 +9,10 @@ import {
   Text,
   StyleSheet,
   SectionList,
-  SafeAreaView,
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Card } from '@/components/ui/card';
 import { StorageService } from '@/services/storage.service';

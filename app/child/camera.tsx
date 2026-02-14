@@ -8,7 +8,7 @@
  * and captured.
  */
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -170,6 +170,7 @@ export default function CameraScreen() {
   const [showStickers, setShowStickers] = useState(false);
   const [placedStickers, setPlacedStickers] = useState<PlacedSticker[]>([]);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [recentPhotos, setRecentPhotos] = useState<MediaLibrary.Asset[]>([]);
   const cameraRef = useRef<CameraView>(null);
   const captureViewShotRef = useRef<ViewShot>(null);
   const onPhotoReadyRef = useRef<(() => void) | null>(null);
@@ -177,6 +178,24 @@ export default function CameraScreen() {
 
   // Track sticker transforms (position + scale) in a ref to avoid re-renders
   const stickerTransformsRef = useRef<Map<string, StickerTransform>>(new Map());
+
+  const loadRecentPhotos = useCallback(async () => {
+    try {
+      if (!mediaPermission?.granted) return;
+      const result = await MediaLibrary.getAssetsAsync({
+        mediaType: MediaLibrary.MediaType.photo,
+        sortBy: [MediaLibrary.SortBy.creationTime],
+        first: 5,
+      });
+      setRecentPhotos(result.assets);
+    } catch (error) {
+      console.error('Error loading recent photos:', error);
+    }
+  }, [mediaPermission?.granted]);
+
+  useEffect(() => {
+    loadRecentPhotos();
+  }, [loadRecentPhotos]);
 
   const currentFrame: CameraFrame = CAMERA_FRAMES[frameIndex];
 
@@ -356,8 +375,9 @@ export default function CameraScreen() {
       setCapturedPhoto(null);
       onPhotoReadyRef.current = null;
       setCapturing(false);
+      loadRecentPhotos();
     }
-  }, [capturing, mediaPermission, requestMediaPermission, currentFrame, placedStickers.length]);
+  }, [capturing, mediaPermission, requestMediaPermission, currentFrame, placedStickers.length, loadRecentPhotos]);
 
   // Permission not yet determined
   if (!cameraPermission) {
@@ -550,9 +570,30 @@ export default function CameraScreen() {
         </View>
       )}
 
-      {/* Capture button */}
+      {/* Capture button + recent photos */}
       <View style={styles.captureRow}>
-        <View style={styles.captureSpacing} />
+        <View style={styles.captureSpacing}>
+          {recentPhotos.length > 0 && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.recentPhotosContent}
+            >
+              {recentPhotos.map((asset) => (
+                <Pressable
+                  key={asset.id}
+                  style={({ pressed }) => [
+                    styles.recentThumb,
+                    pressed && { opacity: 0.7 },
+                  ]}
+                  onPress={() => router.push('/child/gallery')}
+                >
+                  <Image source={{ uri: asset.uri }} style={styles.recentThumbImage} />
+                </Pressable>
+              ))}
+            </ScrollView>
+          )}
+        </View>
         <Pressable
           style={({ pressed }) => [
             styles.captureButton,
@@ -902,5 +943,24 @@ const styles = StyleSheet.create({
     height: 54,
     borderRadius: 27,
     backgroundColor: '#FFF',
+  },
+
+  // Recent photos thumbnails
+  recentPhotosContent: {
+    alignItems: 'center',
+    paddingHorizontal: Spacing.sm,
+    gap: 6,
+  },
+  recentThumb: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.4)',
+  },
+  recentThumbImage: {
+    width: '100%',
+    height: '100%',
   },
 });

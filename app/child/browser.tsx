@@ -6,12 +6,12 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import {
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   View,
   Text,
   Pressable,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import type { WebViewErrorEvent } from 'react-native-webview/lib/WebViewTypes';

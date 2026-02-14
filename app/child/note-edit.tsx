@@ -8,7 +8,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   Pressable,
   TextInput,
   KeyboardAvoidingView,
@@ -16,6 +15,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
