@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as MediaLibrary from 'expo-media-library';
 import { Colors, Spacing, BorderRadius, KidColors } from '@/constants/theme';
 import { translations } from '@/constants/translations';
 import { BlockingService } from '@/services/blocking.service';
@@ -28,6 +29,8 @@ import {
   getBackgroundById,
   isBackgroundDark,
   DEFAULT_BACKGROUND_ID,
+  CUSTOM_PHOTO_BACKGROUND_ID,
+  createCustomPhotoBackground,
 } from '@/constants/backgrounds';
 
 const t = translations.kidBrowser;
@@ -143,6 +146,41 @@ const QUICK_LINKS = [
     colorIndex: 1,
     isInternal: true,
   },
+  {
+    label: t.links.breathing,
+    url: 'breathing',
+    icon: 'meditation' as const,
+    colorIndex: 2,
+    isInternal: true,
+  },
+  {
+    label: t.links.pedometer,
+    url: 'pedometer',
+    icon: 'shoe-sneaker' as const,
+    colorIndex: 3,
+    isInternal: true,
+  },
+  {
+    label: t.links.stopwatch,
+    url: 'stopwatch',
+    icon: 'timer-outline' as const,
+    colorIndex: 4,
+    isInternal: true,
+  },
+  {
+    label: t.links.emotions,
+    url: 'emotions',
+    icon: 'weather-partly-cloudy' as const,
+    colorIndex: 5,
+    isInternal: true,
+  },
+  {
+    label: t.links.ablutions,
+    url: 'ablutions',
+    icon: 'hand-wash' as const,
+    colorIndex: 0,
+    isInternal: true,
+  },
 ];
 
 export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps) {
@@ -152,21 +190,26 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
   const [showBgPicker, setShowBgPicker] = useState(false);
   const [selectedBgId, setSelectedBgId] = useState<string>(DEFAULT_BACKGROUND_ID);
   const [browserEnabled, setBrowserEnabled] = useState(true);
+  const [customPhotoUri, setCustomPhotoUri] = useState<string | null>(null);
+  const [galleryPhotos, setGalleryPhotos] = useState<MediaLibrary.Asset[]>([]);
+  const [showGalleryPicker, setShowGalleryPicker] = useState(false);
 
   // Load strict mode status, whitelist, and browser setting
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [strictMode, whitelist, bgId, settings] = await Promise.all([
+        const [strictMode, whitelist, bgId, settings, customUri] = await Promise.all([
           BlockingService.isStrictModeEnabled(),
           BlockingService.getWhitelistDomains(),
           StorageService.getChildBackground(),
           StorageService.getSettings(),
+          StorageService.getChildBackgroundUri(),
         ]);
         setStrictModeEnabled(strictMode);
         setWhitelistDomains(whitelist);
         setSelectedBgId(bgId);
         setBrowserEnabled(settings.browserEnabled);
+        setCustomPhotoUri(customUri);
       } catch (error) {
         console.error('Error loading data:', error);
       }
@@ -175,13 +218,40 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
     loadData();
   }, []);
 
-  const selectedBg = getBackgroundById(selectedBgId);
+  const loadGalleryPhotos = async () => {
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') return;
+      const result = await MediaLibrary.getAssetsAsync({
+        mediaType: MediaLibrary.MediaType.photo,
+        sortBy: [MediaLibrary.SortBy.creationTime],
+        first: 12,
+      });
+      setGalleryPhotos(result.assets);
+    } catch (error) {
+      console.error('Error loading gallery photos:', error);
+    }
+  };
+
+  const selectedBg = selectedBgId === CUSTOM_PHOTO_BACKGROUND_ID && customPhotoUri
+    ? createCustomPhotoBackground(customPhotoUri)
+    : getBackgroundById(selectedBgId);
   const dark = isBackgroundDark(selectedBg);
 
   const selectBackground = async (bg: BackgroundOption) => {
     setSelectedBgId(bg.id);
     setShowBgPicker(false);
+    setShowGalleryPicker(false);
     await StorageService.setChildBackground(bg.id);
+  };
+
+  const selectCustomPhoto = async (asset: MediaLibrary.Asset) => {
+    setCustomPhotoUri(asset.uri);
+    setSelectedBgId(CUSTOM_PHOTO_BACKGROUND_ID);
+    setShowGalleryPicker(false);
+    setShowBgPicker(false);
+    await StorageService.setChildBackground(CUSTOM_PHOTO_BACKGROUND_ID);
+    await StorageService.setChildBackgroundUri(asset.uri);
   };
 
   const handleSearch = () => {
@@ -344,59 +414,106 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
         visible={showBgPicker}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowBgPicker(false)}
+        onRequestClose={() => { setShowBgPicker(false); setShowGalleryPicker(false); }}
       >
         <Pressable
           style={styles.modalOverlay}
-          onPress={() => setShowBgPicker(false)}
+          onPress={() => { setShowBgPicker(false); setShowGalleryPicker(false); }}
         >
           <Pressable style={styles.modalContent} onPress={() => {}}>
-            <Text style={styles.modalTitle}>{translations.childHome.selectBackground}</Text>
-            <View style={styles.bgGrid}>
-              {BACKGROUNDS.map((bg) => {
-                const isSelected = bg.id === selectedBgId;
-                return (
-                  <Pressable
-                    key={bg.id}
-                    style={styles.bgOption}
-                    onPress={() => selectBackground(bg)}
-                  >
-                    <View
-                      style={[
-                        styles.bgPreview,
-                        { backgroundColor: bg.preview },
-                        isSelected && styles.bgPreviewSelected,
-                      ]}
-                    >
-                      {bg.type === 'image' && bg.source && (
-                        <Image
-                          source={bg.source}
-                          style={styles.bgPreviewImage}
-                        />
-                      )}
-                      {isSelected && (
-                        <View style={styles.bgCheck}>
-                          <MaterialCommunityIcons
-                            name="check"
-                            size={16}
-                            color="#FFFFFF"
-                          />
-                        </View>
-                      )}
-                    </View>
-                    <Text
-                      style={[
-                        styles.bgLabel,
-                        isSelected && styles.bgLabelSelected,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {bg.label}
-                    </Text>
+            {showGalleryPicker ? (
+              <>
+                <View style={styles.galleryPickerHeader}>
+                  <Pressable onPress={() => setShowGalleryPicker(false)}>
+                    <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.light.text} />
                   </Pressable>
-                );
-              })}
-            </View>
+                  <Text style={styles.modalTitle}>Choisir une photo</Text>
+                  <View style={{ width: 24 }} />
+                </View>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  <View style={styles.galleryGrid}>
+                    {galleryPhotos.map((asset) => {
+                      const isSelected = selectedBgId === CUSTOM_PHOTO_BACKGROUND_ID && customPhotoUri === asset.uri;
+                      return (
+                        <Pressable
+                          key={asset.id}
+                          style={styles.galleryPhotoOption}
+                          onPress={() => selectCustomPhoto(asset)}
+                        >
+                          <Image source={{ uri: asset.uri }} style={styles.galleryPhotoImage} />
+                          {isSelected && (
+                            <View style={styles.bgCheck}>
+                              <MaterialCommunityIcons name="check" size={16} color="#FFFFFF" />
+                            </View>
+                          )}
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                  {galleryPhotos.length === 0 && (
+                    <Text style={styles.galleryEmptyText}>Aucune photo disponible</Text>
+                  )}
+                </ScrollView>
+              </>
+            ) : (
+              <>
+                <Text style={styles.modalTitle}>{translations.childHome.selectBackground}</Text>
+                {/* Use a photo button */}
+                <Pressable
+                  style={styles.usePhotoButton}
+                  onPress={() => { loadGalleryPhotos(); setShowGalleryPicker(true); }}
+                >
+                  <MaterialCommunityIcons name="image" size={20} color={Colors.primary} />
+                  <Text style={styles.usePhotoButtonText}>Utiliser une photo</Text>
+                  <MaterialCommunityIcons name="chevron-right" size={20} color={Colors.primary} />
+                </Pressable>
+                <View style={styles.bgGrid}>
+                  {BACKGROUNDS.map((bg) => {
+                    const isSelected = bg.id === selectedBgId;
+                    return (
+                      <Pressable
+                        key={bg.id}
+                        style={styles.bgOption}
+                        onPress={() => selectBackground(bg)}
+                      >
+                        <View
+                          style={[
+                            styles.bgPreview,
+                            { backgroundColor: bg.preview },
+                            isSelected && styles.bgPreviewSelected,
+                          ]}
+                        >
+                          {bg.type === 'image' && bg.source && (
+                            <Image
+                              source={bg.source}
+                              style={styles.bgPreviewImage}
+                            />
+                          )}
+                          {isSelected && (
+                            <View style={styles.bgCheck}>
+                              <MaterialCommunityIcons
+                                name="check"
+                                size={16}
+                                color="#FFFFFF"
+                              />
+                            </View>
+                          )}
+                        </View>
+                        <Text
+                          style={[
+                            styles.bgLabel,
+                            isSelected && styles.bgLabelSelected,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {bg.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </>
+            )}
           </Pressable>
         </Pressable>
       </Modal>
@@ -697,6 +814,51 @@ const styles = StyleSheet.create({
   bgLabelSelected: {
     color: Colors.primary,
     fontWeight: '600' as const,
+  },
+
+  // Gallery photo picker
+  usePhotoButton: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: Spacing.sm,
+    backgroundColor: Colors.primary + '10',
+    paddingVertical: 12,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.lg,
+  },
+  usePhotoButtonText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: Colors.primary,
+  },
+  galleryPickerHeader: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    marginBottom: Spacing.lg,
+  },
+  galleryGrid: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    gap: Spacing.sm,
+  },
+  galleryPhotoOption: {
+    width: 90,
+    height: 90,
+    borderRadius: 12,
+    overflow: 'hidden' as const,
+  },
+  galleryPhotoImage: {
+    width: '100%' as any,
+    height: '100%' as any,
+  },
+  galleryEmptyText: {
+    fontSize: 14,
+    color: Colors.light.textSecondary,
+    textAlign: 'center' as const,
+    paddingVertical: Spacing.xl,
   },
 });
 

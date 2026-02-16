@@ -23,7 +23,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { CameraView, useCameraPermissions, CameraType } from 'expo-camera';
+import { CameraView, useCameraPermissions, useMicrophonePermissions, CameraType } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import ViewShot from 'react-native-view-shot';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
@@ -162,11 +162,15 @@ function DraggableSticker({
 
 export default function CameraScreen() {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [micPermission, requestMicPermission] = useMicrophonePermissions();
   const [mediaPermission, requestMediaPermission] = MediaLibrary.usePermissions();
   const [facing, setFacing] = useState<CameraType>('back');
+  const [mode, setMode] = useState<'picture' | 'video'>('picture');
   const [frameIndex, setFrameIndex] = useState(0);
   const [capturing, setCapturing] = useState(false);
   const [lastPhoto, setLastPhoto] = useState<string | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
   const [showStickers, setShowStickers] = useState(false);
   const [placedStickers, setPlacedStickers] = useState<PlacedSticker[]>([]);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
@@ -175,6 +179,8 @@ export default function CameraScreen() {
   const captureViewShotRef = useRef<ViewShot>(null);
   const onPhotoReadyRef = useRef<(() => void) | null>(null);
   let stickerCounter = useRef(0);
+
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Track sticker transforms (position + scale) in a ref to avoid re-renders
   const stickerTransformsRef = useRef<Map<string, StickerTransform>>(new Map());
@@ -379,6 +385,76 @@ export default function CameraScreen() {
     }
   }, [capturing, mediaPermission, requestMediaPermission, currentFrame, placedStickers.length, loadRecentPhotos]);
 
+  const MAX_VIDEO_DURATION = 60; // seconds
+
+  const startRecording = useCallback(async () => {
+    if (recording || !cameraRef.current) return;
+
+    // Request microphone permission for video recording
+    if (!micPermission?.granted) {
+      const micResult = await requestMicPermission();
+      if (!micResult.granted) {
+        Alert.alert('Permission requise', 'Autorise l\'accès au microphone pour enregistrer des vidéos.');
+        return;
+      }
+    }
+
+    if (!mediaPermission?.granted) {
+      const result = await requestMediaPermission();
+      if (!result.granted) {
+        Alert.alert('Permission requise', 'Autorise l\'accès à la galerie pour sauvegarder les vidéos.');
+        return;
+      }
+    }
+
+    setRecording(true);
+    setRecordingDuration(0);
+    recordingTimerRef.current = setInterval(() => {
+      setRecordingDuration((prev) => {
+        if (prev >= MAX_VIDEO_DURATION - 1) {
+          // Auto-stop at max duration
+          cameraRef.current?.stopRecording();
+          return prev + 1;
+        }
+        return prev + 1;
+      });
+    }, 1000);
+
+    try {
+      const video = await cameraRef.current.recordAsync();
+      if (video?.uri) {
+        await MediaLibrary.saveToLibraryAsync(video.uri);
+        setLastPhoto(video.uri); // reuse saved feedback
+        setTimeout(() => setLastPhoto(null), 2000);
+        loadRecentPhotos();
+      }
+    } catch (error) {
+      console.error('Recording error:', error);
+      Alert.alert('Erreur', 'Impossible d\'enregistrer la vidéo.');
+    } finally {
+      setRecording(false);
+      setRecordingDuration(0);
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
+      }
+    }
+  }, [recording, micPermission, requestMicPermission, mediaPermission, requestMediaPermission, loadRecentPhotos]);
+
+  const stopRecording = useCallback(() => {
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+    cameraRef.current?.stopRecording();
+  }, []);
+
+  const formatDuration = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
   // Permission not yet determined
   if (!cameraPermission) {
     return (
@@ -414,7 +490,7 @@ export default function CameraScreen() {
         <Pressable style={styles.headerBtn} onPress={() => router.back()}>
           <MaterialCommunityIcons name="arrow-left" size={24} color="#FFF" />
         </Pressable>
-        <Text style={styles.title}>Caméra</Text>
+        <Text style={styles.title}>{mode === 'picture' ? 'Photo' : 'Vidéo'}</Text>
         <Pressable style={styles.headerBtn} onPress={toggleFacing}>
           <MaterialCommunityIcons name="camera-flip" size={24} color="#FFF" />
         </Pressable>
@@ -427,13 +503,14 @@ export default function CameraScreen() {
           style={styles.camera}
           facing={facing}
           mirror={facing === 'front'}
+          mode={mode}
         />
 
-        {/* Frame overlay (live) */}
-        {renderFrameOverlay()}
+        {/* Frame overlay (live) — photo mode only */}
+        {mode === 'picture' && renderFrameOverlay()}
 
-        {/* Draggable stickers (interactive, live) */}
-        {placedStickers.map((placed) => (
+        {/* Draggable stickers (interactive, live) — photo mode only */}
+        {mode === 'picture' && placedStickers.map((placed) => (
           <DraggableSticker
             key={placed.id}
             placed={placed}
@@ -442,6 +519,16 @@ export default function CameraScreen() {
             hideControls={capturing}
           />
         ))}
+
+        {/* Recording timer overlay */}
+        {recording && (
+          <View style={styles.recordingOverlay}>
+            <View style={styles.recordingBadge}>
+              <View style={styles.recordingDot} />
+              <Text style={styles.recordingTime}>{formatDuration(recordingDuration)}</Text>
+            </View>
+          </View>
+        )}
       </View>
 
       {/*
@@ -474,65 +561,69 @@ export default function CameraScreen() {
       {lastPhoto && (
         <View style={styles.savedFeedback}>
           <MaterialCommunityIcons name="check-circle" size={20} color="#4CAF50" />
-          <Text style={styles.savedText}>Photo sauvegardée !</Text>
+          <Text style={styles.savedText}>
+            {mode === 'picture' ? 'Photo sauvegardée !' : 'Vidéo sauvegardée !'}
+          </Text>
         </View>
       )}
 
-      {/* Toolbar: Frames + Sticker toggle */}
-      <View style={styles.toolbarRow}>
-        {/* Frame selector */}
-        <View style={styles.frameSelectorRow}>
-          <Pressable style={styles.frameArrow} onPress={handlePrevFrame}>
-            <MaterialCommunityIcons name="chevron-left" size={24} color="#FFF" />
-          </Pressable>
-          <View style={styles.frameIndicators}>
-            {CAMERA_FRAMES.map((frame, index) => (
-              <Pressable
-                key={frame.id}
-                style={[
-                  styles.frameChip,
-                  frameIndex === index && [
-                    styles.frameChipActive,
-                    { backgroundColor: frame.borderColor === 'transparent' ? Colors.primary : frame.borderColor },
-                  ],
-                ]}
-                onPress={() => setFrameIndex(index)}
-              >
-                <MaterialCommunityIcons
-                  name={frame.icon as any}
-                  size={16}
-                  color={frameIndex === index ? '#FFF' : '#94A3B8'}
-                />
-              </Pressable>
-            ))}
-          </View>
-          <Pressable style={styles.frameArrow} onPress={handleNextFrame}>
-            <MaterialCommunityIcons name="chevron-right" size={24} color="#FFF" />
-          </Pressable>
-        </View>
-
-        {/* Sticker toggle + clear */}
-        <View style={styles.stickerActions}>
-          <Pressable
-            style={[styles.stickerToggle, showStickers && styles.stickerToggleActive]}
-            onPress={() => setShowStickers(!showStickers)}
-          >
-            <MaterialCommunityIcons
-              name="sticker-emoji"
-              size={22}
-              color={showStickers ? '#FFF' : '#94A3B8'}
-            />
-          </Pressable>
-          {placedStickers.length > 0 && (
-            <Pressable style={styles.clearStickersBtn} onPress={clearStickers}>
-              <MaterialCommunityIcons name="delete-outline" size={20} color="#FF6B6B" />
+      {/* Toolbar: Frames + Sticker toggle (photo mode only) */}
+      {mode === 'picture' && (
+        <View style={styles.toolbarRow}>
+          {/* Frame selector */}
+          <View style={styles.frameSelectorRow}>
+            <Pressable style={styles.frameArrow} onPress={handlePrevFrame}>
+              <MaterialCommunityIcons name="chevron-left" size={24} color="#FFF" />
             </Pressable>
-          )}
-        </View>
-      </View>
+            <View style={styles.frameIndicators}>
+              {CAMERA_FRAMES.map((frame, index) => (
+                <Pressable
+                  key={frame.id}
+                  style={[
+                    styles.frameChip,
+                    frameIndex === index && [
+                      styles.frameChipActive,
+                      { backgroundColor: frame.borderColor === 'transparent' ? Colors.primary : frame.borderColor },
+                    ],
+                  ]}
+                  onPress={() => setFrameIndex(index)}
+                >
+                  <MaterialCommunityIcons
+                    name={frame.icon as any}
+                    size={16}
+                    color={frameIndex === index ? '#FFF' : '#94A3B8'}
+                  />
+                </Pressable>
+              ))}
+            </View>
+            <Pressable style={styles.frameArrow} onPress={handleNextFrame}>
+              <MaterialCommunityIcons name="chevron-right" size={24} color="#FFF" />
+            </Pressable>
+          </View>
 
-      {/* Sticker picker tray */}
-      {showStickers && (
+          {/* Sticker toggle + clear */}
+          <View style={styles.stickerActions}>
+            <Pressable
+              style={[styles.stickerToggle, showStickers && styles.stickerToggleActive]}
+              onPress={() => setShowStickers(!showStickers)}
+            >
+              <MaterialCommunityIcons
+                name="sticker-emoji"
+                size={22}
+                color={showStickers ? '#FFF' : '#94A3B8'}
+              />
+            </Pressable>
+            {placedStickers.length > 0 && (
+              <Pressable style={styles.clearStickersBtn} onPress={clearStickers}>
+                <MaterialCommunityIcons name="delete-outline" size={20} color="#FF6B6B" />
+              </Pressable>
+            )}
+          </View>
+        </View>
+      )}
+
+      {/* Sticker picker tray (photo mode only) */}
+      {mode === 'picture' && showStickers && (
         <View style={styles.stickerTray}>
           <ScrollView
             horizontal
@@ -570,7 +661,25 @@ export default function CameraScreen() {
         </View>
       )}
 
-      {/* Capture button + recent photos */}
+      {/* Mode toggle (Photo / Video) */}
+      <View style={styles.modeToggleRow}>
+        <Pressable
+          style={[styles.modeBtn, mode === 'picture' && styles.modeBtnActive]}
+          onPress={() => { if (!recording) setMode('picture'); }}
+        >
+          <MaterialCommunityIcons name="camera" size={18} color={mode === 'picture' ? '#FFF' : '#94A3B8'} />
+          <Text style={[styles.modeBtnText, mode === 'picture' && styles.modeBtnTextActive]}>Photo</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.modeBtn, mode === 'video' && styles.modeBtnActive]}
+          onPress={() => { if (!recording) setMode('video'); }}
+        >
+          <MaterialCommunityIcons name="video" size={18} color={mode === 'video' ? '#FFF' : '#94A3B8'} />
+          <Text style={[styles.modeBtnText, mode === 'video' && styles.modeBtnTextActive]}>Vidéo</Text>
+        </Pressable>
+      </View>
+
+      {/* Capture / Record button + recent photos */}
       <View style={styles.captureRow}>
         <View style={styles.captureSpacing}>
           {recentPhotos.length > 0 && (
@@ -594,20 +703,37 @@ export default function CameraScreen() {
             </ScrollView>
           )}
         </View>
-        <Pressable
-          style={({ pressed }) => [
-            styles.captureButton,
-            pressed && styles.captureButtonPressed,
-          ]}
-          onPress={takePhoto}
-          disabled={capturing}
-        >
-          {capturing ? (
-            <ActivityIndicator size="small" color={Colors.primary} />
-          ) : (
-            <View style={styles.captureInner} />
-          )}
-        </Pressable>
+        {mode === 'picture' ? (
+          <Pressable
+            style={({ pressed }) => [
+              styles.captureButton,
+              pressed && styles.captureButtonPressed,
+            ]}
+            onPress={takePhoto}
+            disabled={capturing}
+          >
+            {capturing ? (
+              <ActivityIndicator size="small" color={Colors.primary} />
+            ) : (
+              <View style={styles.captureInner} />
+            )}
+          </Pressable>
+        ) : (
+          <Pressable
+            style={({ pressed }) => [
+              styles.captureButton,
+              recording && styles.recordingButton,
+              pressed && styles.captureButtonPressed,
+            ]}
+            onPress={recording ? stopRecording : startRecording}
+          >
+            {recording ? (
+              <View style={styles.stopInner} />
+            ) : (
+              <View style={styles.recordInner} />
+            )}
+          </Pressable>
+        )}
         <View style={styles.captureSpacing} />
       </View>
     </View>
@@ -943,6 +1069,80 @@ const styles = StyleSheet.create({
     height: 54,
     borderRadius: 27,
     backgroundColor: '#FFF',
+  },
+
+  // Recording overlay
+  recordingOverlay: {
+    position: 'absolute',
+    top: Spacing.md,
+    alignSelf: 'center',
+    zIndex: 10,
+  },
+  recordingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: BorderRadius.full,
+  },
+  recordingDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#FF3B30',
+  },
+  recordingTime: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
+
+  // Mode toggle
+  modeToggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: Spacing.xs,
+  },
+  modeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: BorderRadius.full,
+  },
+  modeBtnActive: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  modeBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#94A3B8',
+  },
+  modeBtnTextActive: {
+    color: '#FFF',
+  },
+
+  // Video record button
+  recordingButton: {
+    borderColor: '#FF3B30',
+  },
+  recordInner: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: '#FF3B30',
+  },
+  stopInner: {
+    width: 24,
+    height: 24,
+    borderRadius: 4,
+    backgroundColor: '#FF3B30',
   },
 
   // Recent photos thumbnails

@@ -139,6 +139,41 @@ export interface NoteEntry {
 // Maximum number of notes allowed
 export const MAX_NOTES = 50;
 
+// Pedometer data
+export interface PedometerData {
+  dailySteps: number;
+  totalSteps: number;
+  dailyGoal: number;
+  currentStreak: number;
+  longestStreak: number;
+  bestDailySteps: number;
+  unlockedBadges: string[];
+  lastActiveDate: string; // YYYY-MM-DD
+  goalReachedToday: boolean;
+}
+
+export const DEFAULT_PEDOMETER_DATA: PedometerData = {
+  dailySteps: 0,
+  totalSteps: 0,
+  dailyGoal: 2000,
+  currentStreak: 0,
+  longestStreak: 0,
+  bestDailySteps: 0,
+  unlockedBadges: [],
+  lastActiveDate: '',
+  goalReachedToday: false,
+};
+
+// Emotion weather entry
+export interface EmotionEntry {
+  id: string;
+  emotionId: string;
+  timestamp: number;
+}
+
+// Maximum emotion entries kept (30 days)
+export const MAX_EMOTION_ENTRIES = 200;
+
 // Storage keys enum for type safety
 export const STORAGE_KEYS = {
   // Settings
@@ -167,6 +202,7 @@ export const STORAGE_KEYS = {
 
   // Child preferences
   CHILD_BACKGROUND: 'child.background',
+  CHILD_BACKGROUND_URI: 'child.background.customUri',
 
   // Notes
   NOTES_ENTRIES: 'notes.entries',
@@ -179,6 +215,12 @@ export const STORAGE_KEYS = {
 
   // Subscription & Account
   SUBSCRIPTION_STATE: 'subscription.state',
+
+  // Pedometer
+  PEDOMETER_DATA: 'pedometer.data',
+
+  // Emotions
+  EMOTION_ENTRIES: 'emotion.entries',
 } as const;
 
 // Prayer time names

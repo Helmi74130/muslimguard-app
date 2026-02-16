@@ -1,6 +1,6 @@
 /**
  * Gallery - MuslimGuard
- * Browse photos taken with the camera from the device's media library
+ * Browse photos and videos from the device's media library
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Video, ResizeMode } from 'expo-av';
 import * as MediaLibrary from 'expo-media-library';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 
@@ -38,7 +39,7 @@ export default function GalleryScreen() {
   const loadPhotos = useCallback(async (cursor?: string) => {
     try {
       const result = await MediaLibrary.getAssetsAsync({
-        mediaType: MediaLibrary.MediaType.photo,
+        mediaType: [MediaLibrary.MediaType.photo, MediaLibrary.MediaType.video],
         sortBy: [MediaLibrary.SortBy.creationTime],
         first: PAGE_SIZE,
         after: cursor,
@@ -104,6 +105,16 @@ export default function GalleryScreen() {
       onPress={() => setSelectedAsset(item)}
     >
       <Image source={{ uri: item.uri }} style={styles.tileImage} />
+      {item.mediaType === 'video' && (
+        <View style={styles.videoBadge}>
+          <MaterialCommunityIcons name="play" size={16} color="#FFF" />
+          {item.duration > 0 && (
+            <Text style={styles.videoDuration}>
+              {Math.floor(item.duration / 60)}:{String(Math.floor(item.duration % 60)).padStart(2, '0')}
+            </Text>
+          )}
+        </View>
+      )}
     </Pressable>
   );
 
@@ -124,7 +135,7 @@ export default function GalleryScreen() {
       {assets.length > 0 && (
         <View style={styles.countBar}>
           <Text style={styles.countText}>
-            {assets.length} photo{assets.length > 1 ? 's' : ''}
+            {assets.length} fichier{assets.length > 1 ? 's' : ''}
           </Text>
         </View>
       )}
@@ -138,9 +149,9 @@ export default function GalleryScreen() {
       ) : assets.length === 0 ? (
         <View style={styles.centerContainer}>
           <MaterialCommunityIcons name="camera-plus" size={64} color="#94A3B8" />
-          <Text style={styles.emptyTitle}>Aucune photo</Text>
+          <Text style={styles.emptyTitle}>Aucune photo ou vidéo</Text>
           <Text style={styles.emptyText}>
-            Prends des photos avec la caméra et elles apparaîtront ici !
+            Prends des photos ou vidéos avec la caméra et elles apparaîtront ici !
           </Text>
           <Pressable
             style={styles.cameraButton}
@@ -189,13 +200,21 @@ export default function GalleryScreen() {
           >
             <MaterialCommunityIcons name="close" size={28} color="#FFF" />
           </Pressable>
-          {selectedAsset && (
+          {selectedAsset && selectedAsset.mediaType === 'video' ? (
+            <Video
+              source={{ uri: selectedAsset.uri }}
+              style={styles.viewerImage}
+              resizeMode={ResizeMode.CONTAIN}
+              useNativeControls
+              shouldPlay
+            />
+          ) : selectedAsset ? (
             <Image
               source={{ uri: selectedAsset.uri }}
               style={styles.viewerImage}
               resizeMode="contain"
             />
-          )}
+          ) : null}
           {selectedAsset && (
             <View style={styles.viewerInfo}>
               <Text style={styles.viewerDate}>
@@ -286,6 +305,25 @@ const styles = StyleSheet.create({
   tileImage: {
     width: '100%',
     height: '100%',
+  },
+
+  // Video badge
+  videoBadge: {
+    position: 'absolute',
+    bottom: 4,
+    right: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    borderRadius: 4,
+  },
+  videoDuration: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: '600',
   },
 
   // Loading / Empty

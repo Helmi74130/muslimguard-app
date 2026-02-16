@@ -13,10 +13,14 @@ import {
   BlockedAttempt,
   PinLockoutState,
   NoteEntry,
+  PedometerData,
+  EmotionEntry,
   MAX_NOTES,
+  MAX_EMOTION_ENTRIES,
   DEFAULT_SETTINGS,
   DEFAULT_SCHEDULE,
   DEFAULT_LOCKOUT_STATE,
+  DEFAULT_PEDOMETER_DATA,
   STORAGE_KEYS,
 } from '@/types/storage.types';
 import {
@@ -312,6 +316,24 @@ export const StorageService = {
     await AsyncStorage.setItem(STORAGE_KEYS.CHILD_BACKGROUND, backgroundId);
   },
 
+  /**
+   * Get custom photo URI for background
+   */
+  async getChildBackgroundUri(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem(STORAGE_KEYS.CHILD_BACKGROUND_URI);
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Set custom photo URI for background
+   */
+  async setChildBackgroundUri(uri: string): Promise<void> {
+    await AsyncStorage.setItem(STORAGE_KEYS.CHILD_BACKGROUND_URI, uri);
+  },
+
   // ==================== SCHEDULE ====================
 
   /**
@@ -567,6 +589,46 @@ export const StorageService = {
       scores[key] = percentage;
       await AsyncStorage.setItem(STORAGE_KEYS.QUIZ_SCORES, JSON.stringify(scores));
     }
+  },
+
+  // ==================== PEDOMETER ====================
+
+  async getPedometerData(): Promise<PedometerData> {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEYS.PEDOMETER_DATA);
+      if (!json) return DEFAULT_PEDOMETER_DATA;
+      return { ...DEFAULT_PEDOMETER_DATA, ...JSON.parse(json) };
+    } catch {
+      return DEFAULT_PEDOMETER_DATA;
+    }
+  },
+
+  async setPedometerData(data: PedometerData): Promise<void> {
+    await AsyncStorage.setItem(STORAGE_KEYS.PEDOMETER_DATA, JSON.stringify(data));
+  },
+
+  // ==================== EMOTIONS ====================
+
+  async getEmotionEntries(): Promise<EmotionEntry[]> {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEYS.EMOTION_ENTRIES);
+      if (!json) return [];
+      return JSON.parse(json);
+    } catch {
+      return [];
+    }
+  },
+
+  async addEmotionEntry(emotionId: string): Promise<void> {
+    const entries = await this.getEmotionEntries();
+    const newEntry: EmotionEntry = {
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      emotionId,
+      timestamp: Date.now(),
+    };
+    entries.unshift(newEntry);
+    const trimmed = entries.slice(0, MAX_EMOTION_ENTRIES);
+    await AsyncStorage.setItem(STORAGE_KEYS.EMOTION_ENTRIES, JSON.stringify(trimmed));
   },
 
   // ==================== UTILITY ====================

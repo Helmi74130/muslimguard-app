@@ -133,6 +133,7 @@ export default function QuizPlayScreen() {
     const delay = currentQuestion.explanation ? 3000 : 1200;
     setTimeout(() => {
       if (currentIndex + 1 < totalQuestions) {
+        setTimeLeft(timerSeconds); // Reset timer BEFORE showFeedback goes false
         setCurrentIndex(i => i + 1);
         setSelectedAnswer(null);
         setShowFeedback(false);

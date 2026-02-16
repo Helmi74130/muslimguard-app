@@ -129,6 +129,11 @@ export const translations = {
       quiz: 'Quiz',
       weather: 'Météo',
       videos: 'Vidéos',
+      breathing: 'Respiration',
+      pedometer: 'Podomètre',
+      stopwatch: 'Chrono',
+      emotions: 'Mes émotions',
+      ablutions: 'Ablutions',
     },
     error: {
       title: 'Oups !',
@@ -469,6 +474,28 @@ export const translations = {
     muted: 'Son désactivé',
     nowPlaying: 'En lecture',
     sameCategory: 'Dans la même catégorie',
+  },
+
+  // Pedometer
+  pedometer: {
+    title: 'Podomètre',
+    todaySteps: 'pas aujourd\'hui',
+    goal: 'Objectif',
+    streak: 'Série',
+    days: 'jours',
+    day: 'jour',
+    distance: 'Distance',
+    calories: 'Calories',
+    level: 'Niveau',
+    badges: 'Badges',
+    locked: 'Verrouillé',
+    goalReached: 'Objectif atteint !',
+    noSensor: 'Capteur de pas non disponible sur cet appareil',
+    best: 'Record',
+    permissionTitle: 'Autorisation nécessaire',
+    permissionDesc: 'Le podomètre a besoin d\'accéder au capteur de pas de ton téléphone pour compter tes pas et débloquer des badges.',
+    permissionButton: 'Autoriser',
+    permissionDenied: 'Permission refusée. Active "Activité physique" dans les paramètres pour utiliser le podomètre.',
   },
 
   // Confirmations

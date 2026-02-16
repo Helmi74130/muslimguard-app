@@ -30,6 +30,14 @@ export const COLORING_PAGES: ColoringPage[] = [
    { id: 'mosque', label: 'Mosquée', source: require('../assets/coloring/mosque.jpg') },
    { id: 'fille', label: 'Fille', source: require('../assets/coloring/fille.jpg') },
    { id: 'cook', label: 'Cuisinier', source: require('../assets/coloring/cook.jpg') },
-   { id: 'Maman', label: 'Maman', source: require('../assets/coloring/oummi.jpg') },
+   { id: 'maman', label: 'Maman', source: require('../assets/coloring/oummi.jpg') },
+   { id: 'coran', label: 'Coran', source: require('../assets/coloring/coran.jpeg') },
    { id: 'the', label: 'Thé', source: require('../assets/coloring/the.jpg') },
+   { id: 'kaaba', label: 'Kaaba', source: require('../assets/coloring/kaaba.jpeg') },
+   { id: 'livre', label: 'Livre', source: require('../assets/coloring/livre.jpeg') },
+   { id: 'livre2', label: 'Livre 2', source: require('../assets/coloring/livre2.jpeg') },
+   { id: 'tapis', label: 'Tapis', source: require('../assets/coloring/tapis.jpeg') },
+   { id: 'vache', label: 'Vache', source: require('../assets/coloring/vache.jpeg') },
+   { id: 'mosquemedine', label: 'Mosquée Médine', source: require('../assets/coloring/mosquemedine.jpeg') },
+   
 ];

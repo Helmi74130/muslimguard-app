@@ -11,11 +11,14 @@ import {
   Pressable,
   Dimensions,
   Image,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Canvas, Path, Skia, SkPath } from '@shopify/react-native-skia';
+import ViewShot from 'react-native-view-shot';
+import * as MediaLibrary from 'expo-media-library';
 import * as Speech from 'expo-speech';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 import { CALLIGRAPHY_MODELS, CalligraphyModel } from '@/constants/calligraphy-models';
@@ -50,6 +53,8 @@ export default function CalligraphyScreen() {
   const [inkColor, setInkColor] = useState(INK_COLORS[0].color);
   const [brushSize, setBrushSize] = useState(BRUSH_SIZES[1].size);
   const currentPathRef = useRef<SkPath | null>(null);
+  const [saving, setSaving] = useState(false);
+  const viewShotRef = useRef<ViewShot>(null);
 
   const model: CalligraphyModel = CALLIGRAPHY_MODELS[currentIndex];
   const progress = `${currentIndex + 1} / ${CALLIGRAPHY_MODELS.length}`;
@@ -58,6 +63,26 @@ export default function CalligraphyScreen() {
     Speech.stop();
     Speech.speak(model.arabic, { language: 'ar', rate: 0.6, pitch: 0.8 });
   }, [model.arabic]);
+
+  const handleSave = useCallback(async () => {
+    if (paths.length === 0 || saving) return;
+    setSaving(true);
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission requise', 'Autorise l\'accès à la galerie pour sauvegarder.');
+        setSaving(false);
+        return;
+      }
+      const uri = await (viewShotRef.current as any).capture();
+      await MediaLibrary.saveToLibraryAsync(uri);
+      Alert.alert('Sauvegardé !', 'Ta calligraphie a été enregistrée dans la galerie.');
+    } catch {
+      Alert.alert('Erreur', 'Impossible de sauvegarder la calligraphie.');
+    } finally {
+      setSaving(false);
+    }
+  }, [paths.length, saving]);
 
   const handleTouchStart = useCallback((x: number, y: number) => {
     const path = Skia.Path.Make();
@@ -120,9 +145,22 @@ export default function CalligraphyScreen() {
           <Text style={styles.title}>Calligraphie</Text>
           <Text style={styles.progress}>{progress}</Text>
         </View>
-        <Pressable style={styles.headerBtn} onPress={handleClear}>
-          <MaterialCommunityIcons name="eraser-variant" size={22} color="#DC2626" />
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            style={[styles.headerBtn, paths.length > 0 && styles.saveButtonActive]}
+            onPress={handleSave}
+            disabled={paths.length === 0 || saving}
+          >
+            <MaterialCommunityIcons
+              name="content-save"
+              size={22}
+              color={paths.length > 0 ? '#22C55E' : '#CBD5E1'}
+            />
+          </Pressable>
+          <Pressable style={styles.headerBtn} onPress={handleClear}>
+            <MaterialCommunityIcons name="eraser-variant" size={22} color="#DC2626" />
+          </Pressable>
+        </View>
       </View>
 
       {/* Model info */}
@@ -137,7 +175,7 @@ export default function CalligraphyScreen() {
       </View>
 
       {/* Canvas */}
-      <View style={styles.canvasWrapper}>
+      <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 1 }} style={styles.canvasWrapper}>
         {/* Guide: image or text fallback */}
         <View style={styles.guideContainer} pointerEvents="none">
           {model.image ? (
@@ -188,7 +226,7 @@ export default function CalligraphyScreen() {
             <Text style={styles.hintText}>Trace par-dessus le modèle</Text>
           </View>
         )}
-      </View>
+      </ViewShot>
 
       {/* Brush size + Ink color */}
       <View style={styles.toolbarRow}>
@@ -310,6 +348,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  saveButtonActive: {
+    backgroundColor: '#ECFDF5',
   },
   headerCenter: {
     alignItems: 'center',

@@ -182,6 +182,20 @@ export const BACKGROUNDS: BackgroundOption[] = [
 ];
 
 export const DEFAULT_BACKGROUND_ID = 'default';
+export const CUSTOM_PHOTO_BACKGROUND_ID = 'custom-photo';
+
+/**
+ * Create a BackgroundOption for a custom gallery photo
+ */
+export function createCustomPhotoBackground(uri: string): BackgroundOption {
+  return {
+    id: CUSTOM_PHOTO_BACKGROUND_ID,
+    label: 'Ma photo',
+    type: 'image',
+    source: { uri },
+    preview: '#64748B',
+  };
+}
 
 /**
  * Get a background option by ID, fallback to default

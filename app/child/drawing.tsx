@@ -13,11 +13,14 @@ import {
   Modal,
   Image,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Canvas, Path, Skia, SkPath } from '@shopify/react-native-skia';
+import ViewShot from 'react-native-view-shot';
+import * as MediaLibrary from 'expo-media-library';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 import { COLORING_PAGES, ColoringPage } from '@/constants/coloring-pages';
 
@@ -61,6 +64,28 @@ export default function DrawingScreen() {
   const canvasSizeRef = useRef({ width: 0, height: 0 });
   const [selectedColoring, setSelectedColoring] = useState<ColoringPage | null>(null);
   const [showColoringSheet, setShowColoringSheet] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const viewShotRef = useRef<ViewShot>(null);
+
+  const handleSave = useCallback(async () => {
+    if (paths.length === 0 || saving) return;
+    setSaving(true);
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission requise', 'Autorise l\'accès à la galerie pour sauvegarder.');
+        setSaving(false);
+        return;
+      }
+      const uri = await (viewShotRef.current as any).capture();
+      await MediaLibrary.saveToLibraryAsync(uri);
+      Alert.alert('Sauvegardé !', 'Ton coloriage a été enregistré dans la galerie.');
+    } catch {
+      Alert.alert('Erreur', 'Impossible de sauvegarder le coloriage.');
+    } finally {
+      setSaving(false);
+    }
+  }, [paths.length, saving]);
 
   const hasColoringPages = COLORING_PAGES.length > 0;
 
@@ -128,6 +153,17 @@ export default function DrawingScreen() {
           <Pressable style={styles.headerButton} onPress={handleUndo}>
             <MaterialCommunityIcons name="undo" size={22} color={Colors.primary} />
           </Pressable>
+          <Pressable
+            style={[styles.headerButton, paths.length > 0 && styles.saveButtonActive]}
+            onPress={handleSave}
+            disabled={paths.length === 0 || saving}
+          >
+            <MaterialCommunityIcons
+              name="content-save"
+              size={22}
+              color={paths.length > 0 ? '#22C55E' : '#CBD5E1'}
+            />
+          </Pressable>
           <Pressable style={styles.headerButton} onPress={handleClear}>
             <MaterialCommunityIcons name="delete-outline" size={22} color="#DC2626" />
           </Pressable>
@@ -135,7 +171,7 @@ export default function DrawingScreen() {
       </View>
 
       {/* Canvas */}
-      <View style={styles.canvasContainer}>
+      <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 1 }} style={styles.canvasContainer}>
         {/* Background coloring image */}
         {selectedColoring && (
           <View style={styles.coloringBgContainer} pointerEvents="none">
@@ -189,7 +225,7 @@ export default function DrawingScreen() {
             ))}
           </Canvas>
         </View>
-      </View>
+      </ViewShot>
 
       {/* Toolbar */}
       <View style={styles.toolbar}>
@@ -386,6 +422,9 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     gap: Spacing.sm,
+  },
+  saveButtonActive: {
+    backgroundColor: '#ECFDF5',
   },
   title: {
     fontSize: 20,

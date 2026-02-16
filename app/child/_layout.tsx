@@ -24,6 +24,10 @@ export default function ChildLayout() {
       <Stack.Screen name="calligraphy" />
       <Stack.Screen name="camera" />
       <Stack.Screen name="gallery" />
+      <Stack.Screen name="pedometer" />
+      <Stack.Screen name="stopwatch" />
+      <Stack.Screen name="emotions" />
+      <Stack.Screen name="ablutions" />
       <Stack.Screen
         name="blocked"
         options={{
