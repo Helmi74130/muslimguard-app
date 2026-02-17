@@ -195,9 +195,18 @@ export function SecureWebView({
     }
 
     // Check keywords (applies even in strict mode for extra safety)
+    // Uses word boundary (\b) at the start to avoid false positives
     for (const keyword of cached.blockedKeywords) {
-      if (urlLower.includes(keyword.toLowerCase())) {
-        return { blocked: true, reason: 'keyword', blockedBy: keyword };
+      try {
+        const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp('\\b' + escaped, 'i');
+        if (regex.test(urlLower)) {
+          return { blocked: true, reason: 'keyword', blockedBy: keyword };
+        }
+      } catch {
+        if (urlLower.includes(keyword.toLowerCase())) {
+          return { blocked: true, reason: 'keyword', blockedBy: keyword };
+        }
       }
     }
 
@@ -229,6 +238,11 @@ export function SecureWebView({
           BlockingService.logNavigation(url, url, true, blockResult.reason, blockResult.blockedBy).catch(console.error);
         }
 
+        // Force WebView to stop loading and go back (Android workaround:
+        // returning false doesn't always prevent navigation on Android)
+        webViewRef.current?.stopLoading();
+        webViewRef.current?.goBack();
+
         // Notify parent component
         onBlocked?.(
           url,
@@ -250,6 +264,14 @@ export function SecureWebView({
       const { url, title } = navState;
 
       if (url && url !== 'about:blank') {
+        // Safety net: if WebView somehow navigated to a blocked URL, force it back
+        const blockResult = shouldBlock(url);
+        if (blockResult.blocked) {
+          webViewRef.current?.stopLoading();
+          webViewRef.current?.goBack();
+          return;
+        }
+
         setCurrentUrl(url);
 
         // Log to history (async, fire and forget)
@@ -259,7 +281,7 @@ export function SecureWebView({
         onNavigationChange?.(url, title || url);
       }
     },
-    [onNavigationChange]
+    [onNavigationChange, shouldBlock]
   );
 
   const handleLoadStart = useCallback(() => {

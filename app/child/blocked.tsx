@@ -71,7 +71,14 @@ export default function BlockedScreen() {
   }, [reason]);
 
   const handleGoBack = () => {
-    router.back();
+    // Use router.back() to return to browser screen
+    // The browser's handleNavigationStateChange will catch
+    // if the WebView is still on a blocked URL and force it back
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/child/browser');
+    }
   };
 
   const handleParentAccess = () => {

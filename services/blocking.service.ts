@@ -1,12 +1,16 @@
 /**
  * Blocking Service for MuslimGuard
  * Handles URL and keyword blocking logic for the secure browser
+ * Uses category-based blocking: default categories + custom parent items
  */
 
 import {
-  DEFAULT_BLOCKED_DOMAINS,
-  DEFAULT_BLOCKED_KEYWORDS,
+  BLOCK_CATEGORIES,
+  ALL_CATEGORY_IDS,
+  getDomainsForCategories,
+  getKeywordsForCategories,
 } from '@/constants/default-blocklist';
+import type { BlockCategoryId } from '@/constants/default-blocklist';
 import { StorageService } from './storage.service';
 
 // Block result types
@@ -118,14 +122,30 @@ export const BlockingService = {
     }
 
     // 2. Check keyword blocklist (applies even in strict mode for extra safety)
+    // Uses word boundary (\b) at the start to avoid false positives:
+    // \bsex matches "sex", "sexual" but NOT "essex"
+    // \bbet matches "bet", "betting" but NOT "alphabet"
     const blockedKeywords = await this.getBlockedKeywords();
     for (const keyword of blockedKeywords) {
-      if (urlLower.includes(keyword.toLowerCase())) {
-        return {
-          blocked: true,
-          reason: 'keyword',
-          blockedBy: keyword,
-        };
+      try {
+        const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp('\\b' + escaped, 'i');
+        if (regex.test(urlLower)) {
+          return {
+            blocked: true,
+            reason: 'keyword',
+            blockedBy: keyword,
+          };
+        }
+      } catch {
+        // Fallback to includes if regex construction fails
+        if (urlLower.includes(keyword.toLowerCase())) {
+          return {
+            blocked: true,
+            reason: 'keyword',
+            blockedBy: keyword,
+          };
+        }
       }
     }
 
@@ -133,47 +153,121 @@ export const BlockingService = {
     return { blocked: false };
   },
 
+  // ==================== CATEGORY MANAGEMENT ====================
+
   /**
-   * Get all blocked domains (user list only - starts empty)
+   * Get enabled category IDs
+   */
+  async getEnabledCategories(): Promise<BlockCategoryId[]> {
+    const disabled = await StorageService.getDisabledCategories();
+    return ALL_CATEGORY_IDS.filter(id => !disabled.includes(id));
+  },
+
+  /**
+   * Get disabled category IDs
+   */
+  async getDisabledCategories(): Promise<BlockCategoryId[]> {
+    const disabled = await StorageService.getDisabledCategories();
+    return disabled as BlockCategoryId[];
+  },
+
+  /**
+   * Check if a specific category is enabled
+   */
+  async isCategoryEnabled(categoryId: BlockCategoryId): Promise<boolean> {
+    const disabled = await StorageService.getDisabledCategories();
+    return !disabled.includes(categoryId);
+  },
+
+  /**
+   * Enable or disable a category
+   */
+  async setCategoryEnabled(categoryId: BlockCategoryId, enabled: boolean): Promise<void> {
+    const disabled = await StorageService.getDisabledCategories();
+    if (enabled) {
+      const newDisabled = disabled.filter(id => id !== categoryId);
+      await StorageService.setDisabledCategories(newDisabled);
+    } else {
+      if (!disabled.includes(categoryId)) {
+        await StorageService.setDisabledCategories([...disabled, categoryId]);
+      }
+    }
+  },
+
+  /**
+   * Get category summary for UI (name, counts, enabled status)
+   */
+  async getCategorySummary(): Promise<Array<{
+    id: BlockCategoryId;
+    nameFr: string;
+    descriptionFr: string;
+    icon: string;
+    domainCount: number;
+    keywordCount: number;
+    enabled: boolean;
+  }>> {
+    const disabled = await StorageService.getDisabledCategories();
+    return BLOCK_CATEGORIES.map(cat => ({
+      id: cat.id,
+      nameFr: cat.nameFr,
+      descriptionFr: cat.descriptionFr,
+      icon: cat.icon,
+      domainCount: cat.domains.length,
+      keywordCount: cat.keywords.length,
+      enabled: !disabled.includes(cat.id),
+    }));
+  },
+
+  // ==================== COMBINED LISTS (for browser) ====================
+
+  /**
+   * Get all blocked domains (enabled categories + custom)
+   * Used by browser for blocking checks
    */
   async getBlockedDomains(): Promise<string[]> {
-    return StorageService.getBlockedDomains();
+    const [enabled, custom] = await Promise.all([
+      this.getEnabledCategories(),
+      StorageService.getCustomDomains(),
+    ]);
+    const categoryDomains = getDomainsForCategories(enabled);
+    return [...new Set([...categoryDomains, ...custom])];
   },
 
   /**
-   * Get all blocked keywords (user list only - starts empty)
+   * Get all blocked keywords (enabled categories + custom)
+   * Used by browser for blocking checks
    */
   async getBlockedKeywords(): Promise<string[]> {
-    return StorageService.getBlockedKeywords();
+    const [enabled, custom] = await Promise.all([
+      this.getEnabledCategories(),
+      StorageService.getCustomKeywords(),
+    ]);
+    const categoryKeywords = getKeywordsForCategories(enabled);
+    return [...new Set([...categoryKeywords, ...custom])];
+  },
+
+  // ==================== CUSTOM ITEMS (parent-added) ====================
+
+  /**
+   * Get custom domains added by parent
+   */
+  async getCustomDomains(): Promise<string[]> {
+    return StorageService.getCustomDomains();
   },
 
   /**
-   * Load default blocked domains
+   * Get custom keywords added by parent
    */
-  async loadDefaultDomains(): Promise<void> {
-    const current = await StorageService.getBlockedDomains();
-    // Merge with existing to avoid duplicates
-    const merged = [...new Set([...DEFAULT_BLOCKED_DOMAINS, ...current])];
-    await StorageService.setBlockedDomains(merged);
+  async getCustomKeywords(): Promise<string[]> {
+    return StorageService.getCustomKeywords();
   },
 
   /**
-   * Load default blocked keywords
+   * Add a custom domain
    */
-  async loadDefaultKeywords(): Promise<void> {
-    const current = await StorageService.getBlockedKeywords();
-    // Merge with existing to avoid duplicates
-    const merged = [...new Set([...DEFAULT_BLOCKED_KEYWORDS, ...current])];
-    await StorageService.setBlockedKeywords(merged);
-  },
-
-  /**
-   * Add a domain to blocklist
-   */
-  async addBlockedDomain(domain: string): Promise<{ success: boolean; error?: string }> {
+  async addCustomDomain(domain: string): Promise<{ success: boolean; error?: string }> {
     const normalized = domain.toLowerCase().trim();
 
-    // Validate domain format
     if (!normalized || normalized.length < 3) {
       return { success: false, error: 'Invalid domain' };
     }
@@ -182,87 +276,93 @@ export const BlockingService = {
     let cleanDomain = normalized
       .replace(/^https?:\/\//, '')
       .replace(/^www\./, '')
-      .split('/')[0]; // Remove path
+      .split('/')[0];
 
-    // Check if already blocked
-    const current = await this.getBlockedDomains();
+    const current = await StorageService.getCustomDomains();
     if (current.includes(cleanDomain)) {
       return { success: false, error: 'Domain already blocked' };
     }
 
-    // Persist the full list (defaults + new or existing + new)
-    // Add to beginning for better UX
-    const newList = [cleanDomain, ...current];
-    await StorageService.setBlockedDomains(newList);
-
+    await StorageService.setCustomDomains([cleanDomain, ...current]);
     return { success: true };
   },
 
   /**
-   * Remove a domain from blocklist
+   * Remove a custom domain
    */
-  async removeBlockedDomain(domain: string): Promise<void> {
-    const current = await this.getBlockedDomains();
+  async removeCustomDomain(domain: string): Promise<void> {
+    const current = await StorageService.getCustomDomains();
     const normalized = domain.toLowerCase().trim();
-    const newList = current.filter((d) => d !== normalized);
-    await StorageService.setBlockedDomains(newList);
+    await StorageService.setCustomDomains(current.filter(d => d !== normalized));
   },
 
   /**
-   * Add a keyword to blocklist
+   * Add a custom keyword
    */
-  async addBlockedKeyword(keyword: string): Promise<{ success: boolean; error?: string }> {
+  async addCustomKeyword(keyword: string): Promise<{ success: boolean; error?: string }> {
     const normalized = keyword.toLowerCase().trim();
 
-    // Validate keyword
     if (!normalized || normalized.length < 3) {
       return { success: false, error: 'Keyword must be at least 3 characters' };
     }
 
-    // Check if already blocked
-    const current = await this.getBlockedKeywords();
+    const current = await StorageService.getCustomKeywords();
     if (current.includes(normalized)) {
       return { success: false, error: 'Keyword already blocked' };
     }
 
-    // Persist the full list (defaults + new or existing + new)
-    // Add to beginning for better UX
-    const newList = [normalized, ...current];
-    await StorageService.setBlockedKeywords(newList);
-
+    await StorageService.setCustomKeywords([normalized, ...current]);
     return { success: true };
   },
 
   /**
-   * Remove a keyword from blocklist
+   * Remove a custom keyword
+   */
+  async removeCustomKeyword(keyword: string): Promise<void> {
+    const current = await StorageService.getCustomKeywords();
+    const normalized = keyword.toLowerCase().trim();
+    await StorageService.setCustomKeywords(current.filter(k => k !== normalized));
+  },
+
+  // ==================== LEGACY COMPAT (kept for dashboard/other screens) ====================
+
+  /**
+   * Add a domain to blocklist (redirects to custom)
+   */
+  async addBlockedDomain(domain: string): Promise<{ success: boolean; error?: string }> {
+    return this.addCustomDomain(domain);
+  },
+
+  /**
+   * Remove a domain from blocklist (removes from custom)
+   */
+  async removeBlockedDomain(domain: string): Promise<void> {
+    return this.removeCustomDomain(domain);
+  },
+
+  /**
+   * Add a keyword to blocklist (redirects to custom)
+   */
+  async addBlockedKeyword(keyword: string): Promise<{ success: boolean; error?: string }> {
+    return this.addCustomKeyword(keyword);
+  },
+
+  /**
+   * Remove a keyword from blocklist (removes from custom)
    */
   async removeBlockedKeyword(keyword: string): Promise<void> {
-    const current = await this.getBlockedKeywords();
-    const normalized = keyword.toLowerCase().trim();
-    const newList = current.filter((k) => k !== normalized);
-    await StorageService.setBlockedKeywords(newList);
+    return this.removeCustomKeyword(keyword);
   },
 
   /**
-   * Reset blocklist to defaults
+   * Reset to defaults (re-enable all categories, clear custom items)
    */
   async resetToDefaults(): Promise<void> {
-    await StorageService.setBlockedDomains(DEFAULT_BLOCKED_DOMAINS);
-    await StorageService.setBlockedKeywords(DEFAULT_BLOCKED_KEYWORDS);
-  },
-
-  /**
-   * Clear all blocked domains (empty list)
-   */
-  async clearBlockedDomains(): Promise<void> {
-    await StorageService.setBlockedDomains([]);
-  },
-
-  /**
-   * Clear all blocked keywords (empty list)
-   */
-  async clearBlockedKeywords(): Promise<void> {
-    await StorageService.setBlockedKeywords([]);
+    await Promise.all([
+      StorageService.setDisabledCategories([]),
+      StorageService.setCustomDomains([]),
+      StorageService.setCustomKeywords([]),
+    ]);
   },
 
   // ==================== STRICT MODE (WHITELIST) ====================
@@ -322,18 +422,15 @@ export const BlockingService = {
   async addWhitelistDomain(domain: string): Promise<{ success: boolean; error?: string }> {
     const normalized = domain.toLowerCase().trim();
 
-    // Validate domain format
     if (!normalized || normalized.length < 3) {
       return { success: false, error: 'Domaine invalide' };
     }
 
-    // Remove protocol if present
     let cleanDomain = normalized
       .replace(/^https?:\/\//, '')
       .replace(/^www\./, '')
-      .split('/')[0]; // Remove path
+      .split('/')[0];
 
-    // Check if already whitelisted
     const current = await this.getWhitelistDomains();
     if (current.includes(cleanDomain)) {
       return { success: false, error: 'Ce site est déjà autorisé' };
@@ -359,7 +456,7 @@ export const BlockingService = {
   },
 
   /**
-   * Get count of blocked domains
+   * Get total count of blocked domains (categories + custom)
    */
   async getBlockedDomainsCount(): Promise<number> {
     const domains = await this.getBlockedDomains();
@@ -367,7 +464,7 @@ export const BlockingService = {
   },
 
   /**
-   * Get count of blocked keywords
+   * Get total count of blocked keywords (categories + custom)
    */
   async getBlockedKeywordsCount(): Promise<number> {
     const keywords = await this.getBlockedKeywords();

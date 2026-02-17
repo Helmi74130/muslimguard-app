@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
   quickLinksGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     gap: Spacing.md,
   },
   appItem: {

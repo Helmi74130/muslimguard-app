@@ -17,6 +17,7 @@ export interface Video {
   thumbnailUrl: string | null;
   hasSound: boolean;
   order: number;
+  isCustom?: boolean;
 }
 
 // API response types

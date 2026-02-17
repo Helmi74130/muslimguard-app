@@ -3,30 +3,32 @@
  * AsyncStorage + SecureStore wrapper for local data storage
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as SecureStore from 'expo-secure-store';
 import {
   AppSettings,
-  BlocklistData,
-  ScheduleData,
-  HistoryEntry,
   BlockedAttempt,
-  PinLockoutState,
-  NoteEntry,
-  PedometerData,
-  EmotionEntry,
-  MAX_NOTES,
-  MAX_EMOTION_ENTRIES,
-  DEFAULT_SETTINGS,
-  DEFAULT_SCHEDULE,
+  BlocklistData,
   DEFAULT_LOCKOUT_STATE,
   DEFAULT_PEDOMETER_DATA,
+  DEFAULT_SCHEDULE,
+  DEFAULT_SETTINGS,
+  EmotionEntry,
+  HistoryEntry,
+  LocalVideo,
+  MAX_CUSTOM_VIDEOS,
+  MAX_EMOTION_ENTRIES,
+  MAX_NOTES,
+  NoteEntry,
+  PedometerData,
+  PinLockoutState,
+  ScheduleData,
   STORAGE_KEYS,
 } from '@/types/storage.types';
 import {
-  LocalSubscriptionState,
   DEFAULT_SUBSCRIPTION_STATE,
+  LocalSubscriptionState,
 } from '@/types/subscription.types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 /**
  * Storage Service - Provides typed access to all app data
@@ -249,6 +251,68 @@ export const StorageService = {
       domains: await this.getBlockedDomains(),
       keywords: await this.getBlockedKeywords(),
     };
+  },
+
+  // ==================== BLOCKLIST CATEGORIES ====================
+
+  /**
+   * Get disabled category IDs (all enabled by default)
+   */
+  async getDisabledCategories(): Promise<string[]> {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEYS.BLOCKLIST_DISABLED_CATEGORIES);
+      if (!json) return [];
+      return JSON.parse(json);
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Set disabled category IDs
+   */
+  async setDisabledCategories(categoryIds: string[]): Promise<void> {
+    await AsyncStorage.setItem(STORAGE_KEYS.BLOCKLIST_DISABLED_CATEGORIES, JSON.stringify(categoryIds));
+  },
+
+  /**
+   * Get custom domains added by parent
+   */
+  async getCustomDomains(): Promise<string[]> {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEYS.BLOCKLIST_CUSTOM_DOMAINS);
+      if (!json) return [];
+      return JSON.parse(json);
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Set custom domains
+   */
+  async setCustomDomains(domains: string[]): Promise<void> {
+    await AsyncStorage.setItem(STORAGE_KEYS.BLOCKLIST_CUSTOM_DOMAINS, JSON.stringify(domains));
+  },
+
+  /**
+   * Get custom keywords added by parent
+   */
+  async getCustomKeywords(): Promise<string[]> {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEYS.BLOCKLIST_CUSTOM_KEYWORDS);
+      if (!json) return [];
+      return JSON.parse(json);
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Set custom keywords
+   */
+  async setCustomKeywords(keywords: string[]): Promise<void> {
+    await AsyncStorage.setItem(STORAGE_KEYS.BLOCKLIST_CUSTOM_KEYWORDS, JSON.stringify(keywords));
   },
 
   // ==================== WHITELIST (STRICT MODE) ====================
@@ -629,6 +693,107 @@ export const StorageService = {
     entries.unshift(newEntry);
     const trimmed = entries.slice(0, MAX_EMOTION_ENTRIES);
     await AsyncStorage.setItem(STORAGE_KEYS.EMOTION_ENTRIES, JSON.stringify(trimmed));
+  },
+
+  // ==================== FAVORITE VIDEOS ====================
+
+  /**
+   * Get favorite video IDs
+   */
+  async getFavoriteVideos(): Promise<number[]> {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_VIDEOS);
+      if (!json) return [];
+      return JSON.parse(json);
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Add a video to favorites
+   */
+  async addFavoriteVideo(videoId: number): Promise<void> {
+    const favorites = await this.getFavoriteVideos();
+    if (!favorites.includes(videoId)) {
+      favorites.push(videoId);
+      await AsyncStorage.setItem(STORAGE_KEYS.FAVORITE_VIDEOS, JSON.stringify(favorites));
+    }
+  },
+
+  /**
+   * Remove a video from favorites
+   */
+  async removeFavoriteVideo(videoId: number): Promise<void> {
+    const favorites = await this.getFavoriteVideos();
+    const filtered = favorites.filter(id => id !== videoId);
+    await AsyncStorage.setItem(STORAGE_KEYS.FAVORITE_VIDEOS, JSON.stringify(filtered));
+  },
+
+  /**
+   * Toggle favorite status for a video
+   */
+  async toggleFavoriteVideo(videoId: number): Promise<boolean> {
+    const favorites = await this.getFavoriteVideos();
+    const isFavorite = favorites.includes(videoId);
+
+    if (isFavorite) {
+      await this.removeFavoriteVideo(videoId);
+      return false;
+    } else {
+      await this.addFavoriteVideo(videoId);
+      return true;
+    }
+  },
+
+
+  // ==================== CUSTOM VIDEOS ====================
+
+  /**
+   * Get custom videos added by parents
+   */
+  async getCustomVideos(): Promise<LocalVideo[]> {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEYS.CUSTOM_VIDEOS);
+      if (!json) return [];
+      return JSON.parse(json);
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Add a custom video
+   */
+  async addCustomVideo(video: LocalVideo): Promise<{ success: boolean; error?: string }> {
+    try {
+      const videos = await this.getCustomVideos();
+
+      // Check limit
+      if (videos.length >= MAX_CUSTOM_VIDEOS) {
+        return { success: false, error: 'limit_reached' };
+      }
+
+      // Check for duplicates
+      if (videos.some(v => v.youtubeId === video.youtubeId)) {
+        return { success: false, error: 'duplicate' };
+      }
+
+      videos.unshift(video); // Add to beginning
+      await AsyncStorage.setItem(STORAGE_KEYS.CUSTOM_VIDEOS, JSON.stringify(videos));
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'storage_error' };
+    }
+  },
+
+  /**
+   * Remove a custom video
+   */
+  async removeCustomVideo(videoId: string): Promise<void> {
+    const videos = await this.getCustomVideos();
+    const filtered = videos.filter(v => v.id !== videoId);
+    await AsyncStorage.setItem(STORAGE_KEYS.CUSTOM_VIDEOS, JSON.stringify(filtered));
   },
 
   // ==================== UTILITY ====================

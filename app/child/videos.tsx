@@ -6,32 +6,36 @@
  * Below the player, suggested videos from the same category are shown.
  */
 
-import React, { useState, useCallback, useRef } from 'react';
+import { BorderRadius, Colors, KidColors, Spacing } from '@/constants/theme';
+import { translations } from '@/constants/translations';
+import { StorageService } from '@/services/storage.service';
+import { VideoService } from '@/services/video.service';
+import { Video, VideoCategory } from '@/types/video.types';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import { router } from 'expo-router';
+import React, { useCallback, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
   ActivityIndicator,
-  FlatList,
-  Image,
   Dimensions,
+  Image,
+  Pressable,
   ScrollView,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import YoutubeIframe from 'react-native-youtube-iframe';
-import { Colors, Spacing, BorderRadius, KidColors } from '@/constants/theme';
-import { translations } from '@/constants/translations';
-import { VideoService } from '@/services/video.service';
-import { VideoCategory, Video } from '@/types/video.types';
 
 const t = translations.videos;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const PLAYER_HEIGHT = (SCREEN_WIDTH - Spacing.lg * 2) * (9 / 16); // 16:9 ratio
 const THUMB_WIDTH = (SCREEN_WIDTH - Spacing.lg * 2 - Spacing.md) / 2;
+
+// Special category IDs
+const FAVORITES_CATEGORY_ID = -1;
+const CUSTOM_VIDEOS_CATEGORY_ID = -2;
 
 export default function VideosScreen() {
   const [categories, setCategories] = useState<VideoCategory[]>([]);
@@ -42,11 +46,25 @@ export default function VideosScreen() {
   const [loadingVideos, setLoadingVideos] = useState(false);
   const [error, setError] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const scrollRef = useRef<ScrollView>(null);
+
+  // Helper to generate a stable negative ID from a string
+  const getStableId = (str: string): number => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return -Math.abs(hash || -1); // Ensure it's always negative and non-zero
+  };
 
   useFocusEffect(
     useCallback(() => {
       loadCategories();
+      loadFavorites();
+
       return () => {
         // Stop playback when leaving the screen
         setPlaying(false);
@@ -61,13 +79,46 @@ export default function VideosScreen() {
     try {
       const cats = await VideoService.getCategories();
       setCategories(cats);
-      // Load all videos initially
-      const allVideos = await VideoService.getVideos();
-      setVideos(allVideos);
+
+      // Load all videos (backend + custom)
+      const allBackendVideos = await VideoService.getVideos();
+      const customVideos = await StorageService.getCustomVideos();
+
+      // Convert custom videos to Video type
+      const mappedCustomVideos: Video[] = customVideos.map(cv => ({
+        id: getStableId(cv.id), // Use stable hash
+        youtubeId: cv.youtubeId,
+        title: cv.title,
+        thumbnailUrl: null,
+        hasSound: cv.hasSound,
+        order: 9999,
+        isCustom: true, // Marker property
+      }));
+
+      // Combine arrays
+      setVideos([...mappedCustomVideos, ...allBackendVideos]);
     } catch {
       setError(true);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadFavorites = async () => {
+    try {
+      const favorites = await StorageService.getFavoriteVideos();
+      setFavoriteIds(favorites);
+    } catch (error) {
+      console.error('Error loading favorites:', error);
+    }
+  };
+
+  const toggleFavorite = async (videoId: number) => {
+    try {
+      const isFavorite = await StorageService.toggleFavoriteVideo(videoId);
+      await loadFavorites();
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
     }
   };
 
@@ -77,10 +128,47 @@ export default function VideosScreen() {
     setPlaying(false);
     setLoadingVideos(true);
     try {
-      const vids = await VideoService.getVideos(
-        categoryId ?? undefined
-      );
-      setVideos(vids);
+      // Special case for favorites
+      if (categoryId === FAVORITES_CATEGORY_ID) {
+        const allBackendVideos = await VideoService.getVideos();
+        // We only support favorites for backend videos currently
+        const favoriteVideos = allBackendVideos.filter(v => favoriteIds.includes(v.id));
+        setVideos(favoriteVideos);
+      }
+      // Special case for custom videos
+      else if (categoryId === CUSTOM_VIDEOS_CATEGORY_ID) {
+        const customVideos = await StorageService.getCustomVideos();
+        const mappedCustomVideos: Video[] = customVideos.map(cv => ({
+          id: getStableId(cv.id),
+          youtubeId: cv.youtubeId,
+          title: cv.title,
+          thumbnailUrl: null,
+          hasSound: cv.hasSound,
+          order: 9999,
+          isCustom: true,
+        }));
+        setVideos(mappedCustomVideos);
+      }
+      // Specific backend category
+      else if (categoryId !== null) {
+        const vids = await VideoService.getVideos(categoryId);
+        setVideos(vids);
+      }
+      // All videos (backend + custom)
+      else {
+        const allBackendVideos = await VideoService.getVideos();
+        const customVideos = await StorageService.getCustomVideos();
+        const mappedCustomVideos: Video[] = customVideos.map(cv => ({
+          id: getStableId(cv.id),
+          youtubeId: cv.youtubeId,
+          title: cv.title,
+          thumbnailUrl: null,
+          hasSound: cv.hasSound,
+          order: 9999,
+          isCustom: true,
+        }));
+        setVideos([...mappedCustomVideos, ...allBackendVideos]);
+      }
     } catch {
       // Keep current videos on error
     } finally {
@@ -195,6 +283,53 @@ export default function VideosScreen() {
               ]}
             >
               {t.allCategories}
+            </Text>
+          </Pressable>
+
+          {/* "Favorites" chip */}
+          <Pressable
+            style={[
+              styles.categoryChip,
+              selectedCategory === FAVORITES_CATEGORY_ID && styles.categoryChipActive,
+            ]}
+            onPress={() => selectCategory(FAVORITES_CATEGORY_ID)}
+          >
+            <MaterialCommunityIcons
+              name={selectedCategory === FAVORITES_CATEGORY_ID ? "heart" : "heart-outline"}
+              size={16}
+              color={selectedCategory === FAVORITES_CATEGORY_ID ? '#FFFFFF' : Colors.primary}
+            />
+            <Text
+              style={[
+                styles.categoryChipText,
+                selectedCategory === FAVORITES_CATEGORY_ID && styles.categoryChipTextActive,
+              ]}
+            >
+              {t.favorites}
+              {favoriteIds.length > 0 && ` (${favoriteIds.length})`}
+            </Text>
+          </Pressable>
+
+          {/* "Custom Videos" chip */}
+          <Pressable
+            style={[
+              styles.categoryChip,
+              selectedCategory === CUSTOM_VIDEOS_CATEGORY_ID && styles.categoryChipActive,
+            ]}
+            onPress={() => selectCategory(CUSTOM_VIDEOS_CATEGORY_ID)}
+          >
+            <MaterialCommunityIcons
+              name={selectedCategory === CUSTOM_VIDEOS_CATEGORY_ID ? "folder-play" : "folder-play-outline"}
+              size={16}
+              color={selectedCategory === CUSTOM_VIDEOS_CATEGORY_ID ? '#FFFFFF' : Colors.primary}
+            />
+            <Text
+              style={[
+                styles.categoryChipText,
+                selectedCategory === CUSTOM_VIDEOS_CATEGORY_ID && styles.categoryChipTextActive,
+              ]}
+            >
+              {t.myVideos}
             </Text>
           </Pressable>
 
@@ -323,12 +458,28 @@ export default function VideosScreen() {
             ) : videos.length === 0 ? (
               <View style={styles.centered}>
                 <MaterialCommunityIcons
-                  name="video-off-outline"
+                  name={
+                    selectedCategory === FAVORITES_CATEGORY_ID ? "heart-outline" :
+                      selectedCategory === CUSTOM_VIDEOS_CATEGORY_ID ? "folder-play-outline" :
+                        "video-off-outline"
+                  }
                   size={64}
                   color={Colors.light.textSecondary}
                 />
-                <Text style={styles.errorTitle}>{t.noVideos}</Text>
-                <Text style={styles.errorDesc}>{t.noVideosDesc}</Text>
+                <Text style={styles.errorTitle}>
+                  {
+                    selectedCategory === FAVORITES_CATEGORY_ID ? t.noFavorites :
+                      selectedCategory === CUSTOM_VIDEOS_CATEGORY_ID ? t.noCustomVideos :
+                        t.noVideos
+                  }
+                </Text>
+                <Text style={styles.errorDesc}>
+                  {
+                    selectedCategory === FAVORITES_CATEGORY_ID ? t.noFavoritesDesc :
+                      selectedCategory === CUSTOM_VIDEOS_CATEGORY_ID ? t.noCustomVideosDesc :
+                        t.noVideosDesc
+                  }
+                </Text>
               </View>
             ) : (
               <View style={styles.videoGrid}>
@@ -361,6 +512,22 @@ export default function VideosScreen() {
                             color="#FFFFFF"
                           />
                         </View>
+                      )}
+                      {/* Favorite button - Only for non-custom videos */}
+                      {!video.isCustom && (
+                        <Pressable
+                          style={styles.favoriteButton}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(video.id);
+                          }}
+                        >
+                          <MaterialCommunityIcons
+                            name={favoriteIds.includes(video.id) ? "heart" : "heart-outline"}
+                            size={20}
+                            color={favoriteIds.includes(video.id) ? "#FF4444" : "#FFFFFF"}
+                          />
+                        </Pressable>
                       )}
                     </View>
                     <Text style={styles.videoTitle} numberOfLines={2}>
@@ -665,6 +832,17 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
     width: 24,
     height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  favoriteButton: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: BorderRadius.full,
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -6,6 +6,9 @@
 // App mode
 export type AppMode = 'child' | 'parent';
 
+// Content filter mode for page content scanning
+export type ContentFilterMode = 'off' | 'block' | 'blur';
+
 // City coordinates for prayer times
 export interface CityCoordinates {
   name: string;
@@ -36,6 +39,7 @@ export interface AppSettings {
   readingModeEnabled: boolean; // Reading mode - strip images/videos, show text only
   browserEnabled: boolean; // Show/hide browser access in child mode
   childBackground: string; // Background ID for child home screen
+  contentFilterMode: ContentFilterMode; // Page content keyword scanning
 }
 
 // Default settings
@@ -59,6 +63,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   readingModeEnabled: false, // Reading mode disabled by default
   browserEnabled: true, // Browser visible by default
   childBackground: 'default', // Default background
+  contentFilterMode: 'off', // Content filter disabled by default
 };
 
 // Blocklist data
@@ -174,6 +179,18 @@ export interface EmotionEntry {
 // Maximum emotion entries kept (30 days)
 export const MAX_EMOTION_ENTRIES = 200;
 
+// Local custom video entry (added by parents)
+export interface LocalVideo {
+  id: string;
+  youtubeId: string;
+  title: string;
+  addedAt: number;
+  hasSound: boolean;
+}
+
+// Maximum custom videos allowed
+export const MAX_CUSTOM_VIDEOS = 999;
+
 // Storage keys enum for type safety
 export const STORAGE_KEYS = {
   // Settings
@@ -182,6 +199,9 @@ export const STORAGE_KEYS = {
   // Blocklist
   BLOCKLIST_DOMAINS: 'blocklist.domains',
   BLOCKLIST_KEYWORDS: 'blocklist.keywords',
+  BLOCKLIST_DISABLED_CATEGORIES: 'blocklist.categories.disabled',
+  BLOCKLIST_CUSTOM_DOMAINS: 'blocklist.custom.domains',
+  BLOCKLIST_CUSTOM_KEYWORDS: 'blocklist.custom.keywords',
 
   // Whitelist (strict mode)
   WHITELIST_DOMAINS: 'whitelist.domains',
@@ -221,6 +241,10 @@ export const STORAGE_KEYS = {
 
   // Emotions
   EMOTION_ENTRIES: 'emotion.entries',
+
+  // Videos
+  FAVORITE_VIDEOS: 'videos.favorites',
+  CUSTOM_VIDEOS: 'videos.custom',
 } as const;
 
 // Prayer time names

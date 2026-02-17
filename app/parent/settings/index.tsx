@@ -3,24 +3,24 @@
  * Main settings menu for parent configuration
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { Card } from '@/components/ui/card';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { translations } from '@/constants/translations';
+import { useSubscription } from '@/contexts/subscription.context';
+import { StorageService } from '@/services/storage.service';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
   Alert,
+  ScrollView,
+  StyleSheet,
   Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Card } from '@/components/ui/card';
-import { StorageService } from '@/services/storage.service';
-import { useSubscription } from '@/contexts/subscription.context';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
-import { translations } from '@/constants/translations';
 
 const t = translations.settings;
 
@@ -188,6 +188,13 @@ export default function SettingsScreen() {
           />
           <View style={styles.divider} />
           <SettingItem
+            icon="youtube"
+            title={translations.customVideos.title}
+            subtitle={translations.customVideos.subtitle}
+            onPress={() => router.push('/parent/settings/custom-videos')}
+          />
+          <View style={styles.divider} />
+          <SettingItem
             icon="clock-outline"
             title="Restrictions horaires"
             subtitle="Définir les heures autorisées"
@@ -253,7 +260,7 @@ export default function SettingsScreen() {
             icon="information"
             title={t.about.title}
             subtitle={`${t.about.version} 1.0.0`}
-            onPress={() => {}}
+            onPress={() => { }}
             showArrow={false}
           />
           <View style={styles.divider} />
@@ -261,7 +268,7 @@ export default function SettingsScreen() {
             icon="shield-check"
             title="Confidentialité"
             subtitle={t.about.privacyDescription}
-            onPress={() => {}}
+            onPress={() => { }}
             showArrow={false}
             color={Colors.success}
           />

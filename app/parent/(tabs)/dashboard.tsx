@@ -3,26 +3,26 @@
  * Main parent control interface with stats and quick actions
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { translations } from '@/constants/translations';
 import { useAppMode } from '@/contexts/app-mode.context';
 import { useAuth } from '@/contexts/auth.context';
 import { BlockingService } from '@/services/blocking.service';
+import { NextPrayerInfo, PrayerService } from '@/services/prayer.service';
 import { StorageService } from '@/services/storage.service';
-import { PrayerService, NextPrayerInfo } from '@/services/prayer.service';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
-import { translations } from '@/constants/translations';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const t = translations.dashboard;
 
@@ -91,7 +91,8 @@ export default function DashboardScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleChildMode = useCallback(() => {
+  const handleChildMode = useCallback(async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     switchToChildMode();
     logout();
     // Navigate to root which redirects to /child/browser with a fresh stack
@@ -219,22 +220,30 @@ export default function DashboardScreen() {
         </View>
 
         {/* Return to Child Mode */}
-        <View style={styles.childModeContainer}>
-          <Button
-            title={t.childMode}
-            variant="outline"
-            size="large"
-            fullWidth
-            onPress={handleChildMode}
-            icon={
-              <MaterialCommunityIcons
-                name="account-child"
-                size={20}
-                color={Colors.primary}
-              />
-            }
+        <TouchableOpacity
+          style={styles.premiumChildModeButton}
+          onPress={handleChildMode}
+          activeOpacity={0.9}
+        >
+          <View style={styles.premiumButtonIconContainer}>
+            <MaterialCommunityIcons
+              name="account-child-circle"
+              size={32}
+              color="#FFFFFF"
+            />
+          </View>
+          <View style={styles.premiumButtonTextContainer}>
+            <Text style={styles.premiumButtonTitle}>{t.childMode}</Text>
+            <Text style={styles.premiumButtonSubtitle}>
+              Verrouiller l'accès et retourner en sécurité
+            </Text>
+          </View>
+          <MaterialCommunityIcons
+            name="lock-reset"
+            size={24}
+            color="rgba(255, 255, 255, 0.6)"
           />
-        </View>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -421,7 +430,46 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.light.text,
   },
-  childModeContainer: {
-    marginTop: Spacing.md,
+  premiumChildModeButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.xl,
+    elevation: 8,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  premiumButtonIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  premiumButtonTextContainer: {
+    flex: 1,
+  },
+  premiumButtonTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  premiumButtonSubtitle: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 13,
+    marginTop: 2,
+    fontWeight: '500',
   },
 });

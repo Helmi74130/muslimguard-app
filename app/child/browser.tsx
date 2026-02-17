@@ -26,7 +26,8 @@ import { KioskService } from '@/services/kiosk.service';
 import { Colors, KidColors, Spacing, BorderRadius } from '@/constants/theme';
 import { translations } from '@/constants/translations';
 import { READING_MODE_SCRIPT, READING_MODE_PRELOAD_SCRIPT } from '@/constants/reading-mode-script';
-import { AppSettings, ScheduleData } from '@/types/storage.types';
+import { generateContentFilterScript } from '@/constants/content-filter-script';
+import { AppSettings, ScheduleData, ContentFilterMode } from '@/types/storage.types';
 
 // Cached data for synchronous blocking checks
 interface CachedData {
@@ -37,6 +38,7 @@ interface CachedData {
   whitelistDomains: string[]; // For strict mode
   strictModeEnabled: boolean;
   readingModeEnabled: boolean;
+  contentFilterMode: ContentFilterMode;
   prayerPaused: boolean;
   prayerPausedBy: string | null;
 }
@@ -68,6 +70,7 @@ export default function BrowserScreen() {
     whitelistDomains: [],
     strictModeEnabled: false,
     readingModeEnabled: false,
+    contentFilterMode: 'off',
     prayerPaused: false,
     prayerPausedBy: null,
   });
@@ -94,6 +97,7 @@ export default function BrowserScreen() {
           whitelistDomains: whitelist,
           strictModeEnabled: strictMode,
           readingModeEnabled: settings?.readingModeEnabled ?? false,
+          contentFilterMode: settings?.contentFilterMode ?? 'off',
           prayerPaused: prayerStatus.isPaused,
           prayerPausedBy: prayerStatus.currentPrayer || null,
         };
@@ -224,9 +228,22 @@ export default function BrowserScreen() {
     }
 
     // Check keywords (applies even in strict mode for extra safety)
-    for (const keyword of cached.blockedKeywords) {
-      if (urlLower.includes(keyword.toLowerCase())) {
-        return { blocked: true, reason: 'keyword', blockedBy: keyword };
+    // In blur mode, skip URL keyword blocking - let the page load and
+    // the content filter script will blur matching text on the page.
+    // In off/block mode, block the URL entirely if a keyword is found.
+    if (cached.contentFilterMode !== 'blur') {
+      for (const keyword of cached.blockedKeywords) {
+        try {
+          const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const regex = new RegExp('\\b' + escaped, 'i');
+          if (regex.test(urlLower)) {
+            return { blocked: true, reason: 'keyword', blockedBy: keyword };
+          }
+        } catch {
+          if (urlLower.includes(keyword.toLowerCase())) {
+            return { blocked: true, reason: 'keyword', blockedBy: keyword };
+          }
+        }
       }
     }
 
@@ -260,6 +277,14 @@ export default function BrowserScreen() {
         // Also log to history as blocked entry with reason
         BlockingService.logNavigation(url, url, true, blockResult.reason, blockResult.blockedBy).catch(console.error);
 
+        // Force WebView to stop loading and go back (Android workaround:
+        // returning false from onShouldStartLoadWithRequest doesn't always
+        // prevent the WebView from navigating on Android)
+        webViewRef.current?.stopLoading();
+        if (canGoBack) {
+          webViewRef.current?.goBack();
+        }
+
         // Navigate to blocked screen
         router.push({
           pathname: '/child/blocked',
@@ -283,6 +308,20 @@ export default function BrowserScreen() {
     const { url, title, canGoBack: back, canGoForward: forward } = navState;
 
     if (url && url !== 'about:blank') {
+      // Safety net: if WebView somehow navigated to a blocked URL
+      // (Android doesn't always respect onShouldStartLoadWithRequest returning false),
+      // force it back immediately
+      const blockResult = shouldBlock(url);
+      if (blockResult.blocked) {
+        webViewRef.current?.stopLoading();
+        if (back) {
+          webViewRef.current?.goBack();
+        } else {
+          setShowHomePage(true);
+        }
+        return;
+      }
+
       setCurrentUrl(url);
       setCanGoBack(back);
       setCanGoForward(forward);
@@ -290,7 +329,7 @@ export default function BrowserScreen() {
       // Log to history (async, fire and forget)
       BlockingService.logNavigation(url, title || url, false).catch(console.error);
     }
-  }, []);
+  }, [shouldBlock]);
 
   // Navigation handlers
   const handleGoBack = () => webViewRef.current?.goBack();
@@ -452,6 +491,22 @@ export default function BrowserScreen() {
           ttsSpeakingRef.current = false;
           ttsChunkIndexRef.current = 0;
           break;
+        case 'content-blocked': {
+          // Content filter detected a blocked keyword in page content
+          const blockedKeyword = data.keyword || 'contenu';
+          webViewRef.current?.stopLoading();
+          BlockingService.logBlockedAttempt(currentUrl, 'keyword', blockedKeyword).catch(console.error);
+          BlockingService.logNavigation(currentUrl, currentUrl, true, 'keyword', blockedKeyword).catch(console.error);
+          router.push({
+            pathname: '/child/blocked',
+            params: {
+              url: currentUrl,
+              reason: 'keyword',
+              blockedBy: blockedKeyword,
+            },
+          });
+          break;
+        }
       }
     } catch {}
   }, [splitTTSText, speakChunk]);
@@ -546,6 +601,17 @@ export default function BrowserScreen() {
               // More reliable than injectedJavaScript prop on Android
               if (readingMode) {
                 webViewRef.current?.injectJavaScript(READING_MODE_SCRIPT);
+              }
+              // Inject content filter script if enabled
+              const filterMode = cachedDataRef.current.contentFilterMode;
+              if (filterMode !== 'off' && cachedDataRef.current.blockedKeywords.length > 0) {
+                // Reset flag so script can re-run on new pages
+                webViewRef.current?.injectJavaScript('window.__muslimGuardContentFilter = false; true;');
+                const script = generateContentFilterScript(
+                  cachedDataRef.current.blockedKeywords,
+                  filterMode
+                );
+                webViewRef.current?.injectJavaScript(script);
               }
             }}
             onError={handleError}
