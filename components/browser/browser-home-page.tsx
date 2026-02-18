@@ -139,17 +139,19 @@ const QUICK_LINKS = [
     colorIndex: 0,
     isInternal: true,
   },
+
   {
     label: t.links.videos,
     url: 'videos',
-    icon: 'play-box-multiple' as const,
+    icon: 'youtube' as const,
     colorIndex: 1,
     isInternal: true,
+    customColor: '#FF0000',
   },
   {
     label: t.links.breathing,
     url: 'breathing',
-    icon: 'meditation' as const,
+    icon: 'leaf' as const,
     colorIndex: 2,
     isInternal: true,
   },
@@ -170,7 +172,7 @@ const QUICK_LINKS = [
   {
     label: t.links.emotions,
     url: 'emotions',
-    icon: 'weather-partly-cloudy' as const,
+    icon: 'emoticon-happy-outline' as const,
     colorIndex: 5,
     isInternal: true,
   },
@@ -393,12 +395,16 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
             >
               <View style={[
                 styles.appIcon,
-                { backgroundColor: KidColors.tiles[link.colorIndex] },
+                {
+                  backgroundColor: link.customColor ? '#ffefefff' : KidColors.tiles[link.colorIndex],
+                  borderWidth: link.customColor ? 1 : 0,
+                  borderColor: 'rgba(0,0,0,0.05)'
+                },
               ]}>
                 <MaterialCommunityIcons
                   name={link.icon}
                   size={32}
-                  color={KidColors.tileIcons[link.colorIndex]}
+                  color={link.customColor || KidColors.tileIcons[link.colorIndex]}
                 />
               </View>
               <Text style={[styles.appLabel, dark && styles.textLight]} numberOfLines={1}>

@@ -10,7 +10,6 @@ import { useAppMode } from '@/contexts/app-mode.context';
 import { useAuth } from '@/contexts/auth.context';
 import { useSubscription } from '@/contexts/subscription.context';
 import { BlockingService } from '@/services/blocking.service';
-import { NextPrayerInfo, PrayerService } from '@/services/prayer.service';
 import { StorageService } from '@/services/storage.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -27,26 +26,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const t = translations.dashboard;
 
-/**
- * Format minutes into hours and minutes (e.g., 572 min → 9h32)
- */
-function formatTimeRemaining(minutes: number): string {
-  if (minutes < 60) {
-    return `${minutes} min`;
-  }
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  if (mins === 0) {
-    return `${hours}h`;
-  }
-  return `${hours}h${mins.toString().padStart(2, '0')}`;
-}
 
 interface DashboardStats {
   blockedToday: number;
-  sitesBlocked: number;
   totalVisits: number;
-  keywordsActive: number;
 }
 
 export default function DashboardScreen() {
@@ -55,32 +38,23 @@ export default function DashboardScreen() {
   const { isPremium } = useSubscription();
   const [stats, setStats] = useState<DashboardStats>({
     blockedToday: 0,
-    sitesBlocked: 0,
     totalVisits: 0,
-    keywordsActive: 0,
   });
-  const [nextPrayer, setNextPrayer] = useState<NextPrayerInfo | null>(null);
 
   // Load data
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [blockedToday, blockedDomains, blockedKeywords, history, prayer] =
+        const [blockedToday, history] =
           await Promise.all([
             BlockingService.getTodayBlockedCount(),
-            BlockingService.getBlockedDomainsCount(),
-            BlockingService.getBlockedKeywordsCount(),
             StorageService.getHistory(),
-            PrayerService.getNextPrayer(),
           ]);
 
         setStats({
           blockedToday,
-          sitesBlocked: blockedDomains,
           totalVisits: history.length,
-          keywordsActive: blockedKeywords,
         });
-        setNextPrayer(prayer);
       } catch (error) {
         console.error('Error loading dashboard data:', error);
       }
@@ -131,16 +105,28 @@ export default function DashboardScreen() {
             <Text style={styles.greeting}>{t.greeting}</Text>
             <Text style={styles.headerTitle}>Mode Parent</Text>
           </View>
-          <TouchableOpacity
-            style={styles.settingsButton}
-            onPress={() => router.push('/parent/settings')}
-          >
-            <MaterialCommunityIcons
-              name="cog"
-              size={24}
-              color={Colors.light.text}
-            />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={[styles.settingsButton, { marginRight: Spacing.sm }]}
+              onPress={handleChildMode}
+            >
+              <MaterialCommunityIcons
+                name="account-child-circle"
+                size={24}
+                color={Colors.primary}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.settingsButton}
+              onPress={() => router.push('/parent/settings')}
+            >
+              <MaterialCommunityIcons
+                name="cog"
+                size={24}
+                color={Colors.light.text}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Premium Banner */}
@@ -169,29 +155,6 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         )}
 
-        {/* Next Prayer Banner */}
-        {nextPrayer && (
-          <Card variant="elevated" style={styles.prayerBanner}>
-            <View style={styles.prayerBannerContent}>
-              <View style={styles.prayerIconContainer}>
-                <MaterialCommunityIcons
-                  name="mosque"
-                  size={24}
-                  color={Colors.primary}
-                />
-              </View>
-              <View style={styles.prayerInfo}>
-                <Text style={styles.prayerLabel}>Prochaine prière</Text>
-                <Text style={styles.prayerName}>
-                  {nextPrayer.nameFr} - {nextPrayer.timeFormatted}
-                </Text>
-              </View>
-              <Text style={styles.prayerTime}>
-                Dans {formatTimeRemaining(nextPrayer.minutesRemaining)}
-              </Text>
-            </View>
-          </Card>
-        )}
 
         {/* Stats Grid */}
         <Text style={styles.sectionTitle}>Statistiques</Text>
@@ -203,22 +166,10 @@ export default function DashboardScreen() {
             color={Colors.error}
           />
           <StatCard
-            icon="web-off"
-            value={stats.sitesBlocked}
-            label={t.stats.sitesBlocked}
-            color={Colors.warning}
-          />
-          <StatCard
             icon="eye"
             value={stats.totalVisits}
             label={t.stats.totalVisits}
             color={Colors.primary}
-          />
-          <StatCard
-            icon="text-box-search"
-            value={stats.keywordsActive}
-            label={t.stats.keywordsActive}
-            color={Colors.success}
           />
         </View>
 
@@ -364,6 +315,10 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     backgroundColor: Colors.light.surface,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   premiumBanner: {
     backgroundColor: Colors.warning,
     borderRadius: BorderRadius.lg,
@@ -401,39 +356,6 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 13,
     fontWeight: '500',
-  },
-  prayerBanner: {
-    marginBottom: Spacing.lg,
-  },
-  prayerBannerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  prayerIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.primary + '15',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  prayerInfo: {
-    flex: 1,
-  },
-  prayerLabel: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-  },
-  prayerName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  prayerTime: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.primary,
   },
   sectionTitle: {
     fontSize: 16,

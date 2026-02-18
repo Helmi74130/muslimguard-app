@@ -128,7 +128,7 @@ export const translations = {
       notes: 'Notes',
       quiz: 'Quiz',
       weather: 'Météo',
-      videos: 'Vidéos',
+      videos: 'MuslimTube',
       breathing: 'Respiration',
       pedometer: 'Podomètre',
       stopwatch: 'Chrono',
@@ -467,7 +467,7 @@ export const translations = {
 
   // Videos section
   videos: {
-    title: 'Vidéos',
+    title: 'MuslimTube',
     subtitle: 'Vidéos éducatives sélectionnées pour toi',
     allCategories: 'Tout',
     favorites: 'Favoris',
