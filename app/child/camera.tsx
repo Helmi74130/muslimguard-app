@@ -8,27 +8,27 @@
  * and captured.
  */
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Dimensions,
-  Alert,
-  Image,
-  ActivityIndicator,
-  PanResponder,
-  ScrollView,
-} from 'react-native';
-import { router } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { CameraView, useCameraPermissions, useMicrophonePermissions, CameraType } from 'expo-camera';
-import * as MediaLibrary from 'expo-media-library';
-import ViewShot from 'react-native-view-shot';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 import { CAMERA_FRAMES, CameraFrame } from '@/constants/camera-frames';
 import { CAMERA_STICKERS, CameraSticker } from '@/constants/camera-stickers';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { CameraType, CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
+import * as MediaLibrary from 'expo-media-library';
+import { router } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Image,
+  PanResponder,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import ViewShot from 'react-native-view-shot';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CAMERA_HEIGHT = SCREEN_HEIGHT * 0.6;
@@ -571,35 +571,38 @@ export default function CameraScreen() {
       {mode === 'picture' && (
         <View style={styles.toolbarRow}>
           {/* Frame selector */}
-          <View style={styles.frameSelectorRow}>
-            <Pressable style={styles.frameArrow} onPress={handlePrevFrame}>
-              <MaterialCommunityIcons name="chevron-left" size={24} color="#FFF" />
-            </Pressable>
-            <View style={styles.frameIndicators}>
-              {CAMERA_FRAMES.map((frame, index) => (
-                <Pressable
-                  key={frame.id}
-                  style={[
-                    styles.frameChip,
-                    frameIndex === index && [
-                      styles.frameChipActive,
-                      { backgroundColor: frame.borderColor === 'transparent' ? Colors.primary : frame.borderColor },
-                    ],
-                  ]}
-                  onPress={() => setFrameIndex(index)}
-                >
-                  <MaterialCommunityIcons
-                    name={frame.icon as any}
-                    size={16}
-                    color={frameIndex === index ? '#FFF' : '#94A3B8'}
-                  />
-                </Pressable>
-              ))}
-            </View>
-            <Pressable style={styles.frameArrow} onPress={handleNextFrame}>
-              <MaterialCommunityIcons name="chevron-right" size={24} color="#FFF" />
-            </Pressable>
-          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.framePickerContent}
+            style={styles.framePickerScroll}
+          >
+            {CAMERA_FRAMES.map((frame, index) => (
+              <Pressable
+                key={frame.id}
+                style={[
+                  styles.framePickerItem,
+                  frameIndex === index && { borderColor: frame.borderColor === 'transparent' ? Colors.primary : frame.borderColor },
+                ]}
+                onPress={() => setFrameIndex(index)}
+              >
+                {frame.overlay ? (
+                  <Image source={frame.overlay} style={styles.framePickerPreview} resizeMode="cover" />
+                ) : (
+                  <View style={[styles.framePickerFallback, { backgroundColor: frame.borderColor === 'transparent' ? 'rgba(255,255,255,0.1)' : frame.borderColor + '33' }]}>
+                    <MaterialCommunityIcons
+                      name={frame.icon as any}
+                      size={20}
+                      color={frameIndex === index ? (frame.borderColor === 'transparent' ? Colors.primary : frame.borderColor) : '#94A3B8'}
+                    />
+                  </View>
+                )}
+                {frameIndex === index && (
+                  <View style={[styles.activeFrameIndicator, { backgroundColor: frame.borderColor === 'transparent' ? Colors.primary : frame.borderColor }]} />
+                )}
+              </Pressable>
+            ))}
+          </ScrollView>
 
           {/* Sticker toggle + clear */}
           <View style={styles.stickerActions}>
@@ -952,33 +955,47 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
   },
 
-  // Frame selector
-  frameSelectorRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  // Enhanced Frame Picker
+  framePickerScroll: {
     flex: 1,
+    marginRight: 8,
   },
-  frameArrow: {
-    width: 28,
-    height: 28,
-    justifyContent: 'center',
+  framePickerContent: {
+    paddingHorizontal: 8,
     alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
   },
-  frameIndicators: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  frameChip: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+  framePickerItem: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.1)',
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  frameChipActive: {
-    transform: [{ scale: 1.15 }],
+  framePickerPreview: {
+    width: '100%',
+    height: '100%',
+  },
+  framePickerFallback: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activeFrameIndicator: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: '#FFF',
   },
 
   // Sticker actions

@@ -3,35 +3,35 @@
  * Custom start page with search bar and quick links for children
  */
 
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  Keyboard,
-  Modal,
-  ImageBackground,
-  Image,
-} from 'react-native';
-import { router } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as MediaLibrary from 'expo-media-library';
-import { Colors, Spacing, BorderRadius, KidColors } from '@/constants/theme';
-import { translations } from '@/constants/translations';
-import { BlockingService } from '@/services/blocking.service';
-import { StorageService } from '@/services/storage.service';
 import {
   BACKGROUNDS,
   BackgroundOption,
+  CUSTOM_PHOTO_BACKGROUND_ID,
+  DEFAULT_BACKGROUND_ID,
+  createCustomPhotoBackground,
   getBackgroundById,
   isBackgroundDark,
-  DEFAULT_BACKGROUND_ID,
-  CUSTOM_PHOTO_BACKGROUND_ID,
-  createCustomPhotoBackground,
 } from '@/constants/backgrounds';
+import { BorderRadius, Colors, KidColors, Spacing } from '@/constants/theme';
+import { translations } from '@/constants/translations';
+import { BlockingService } from '@/services/blocking.service';
+import { StorageService } from '@/services/storage.service';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as MediaLibrary from 'expo-media-library';
+import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  Image,
+  ImageBackground,
+  Keyboard,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 const t = translations.kidBrowser;
 
@@ -420,7 +420,7 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
           style={styles.modalOverlay}
           onPress={() => { setShowBgPicker(false); setShowGalleryPicker(false); }}
         >
-          <Pressable style={styles.modalContent} onPress={() => {}}>
+          <Pressable style={styles.modalContent} onPress={() => { }}>
             {showGalleryPicker ? (
               <>
                 <View style={styles.galleryPickerHeader}>
@@ -458,60 +458,78 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
             ) : (
               <>
                 <Text style={styles.modalTitle}>{translations.childHome.selectBackground}</Text>
-                {/* Use a photo button */}
-                <Pressable
-                  style={styles.usePhotoButton}
-                  onPress={() => { loadGalleryPhotos(); setShowGalleryPicker(true); }}
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.modalScrollContent}
                 >
-                  <MaterialCommunityIcons name="image" size={20} color={Colors.primary} />
-                  <Text style={styles.usePhotoButtonText}>Utiliser une photo</Text>
-                  <MaterialCommunityIcons name="chevron-right" size={20} color={Colors.primary} />
-                </Pressable>
-                <View style={styles.bgGrid}>
-                  {BACKGROUNDS.map((bg) => {
-                    const isSelected = bg.id === selectedBgId;
-                    return (
-                      <Pressable
-                        key={bg.id}
-                        style={styles.bgOption}
-                        onPress={() => selectBackground(bg)}
-                      >
-                        <View
-                          style={[
-                            styles.bgPreview,
-                            { backgroundColor: bg.preview },
-                            isSelected && styles.bgPreviewSelected,
-                          ]}
+                  {/* Visual "Use a photo" Card */}
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.photoActionCard,
+                      pressed && styles.tilePressed
+                    ]}
+                    onPress={() => { loadGalleryPhotos(); setShowGalleryPicker(true); }}
+                  >
+                    <View style={styles.photoActionIconContainer}>
+                      <MaterialCommunityIcons name="camera-plus" size={32} color={Colors.primary} />
+                    </View>
+                    <View style={styles.photoActionContent}>
+                      <Text style={styles.photoActionTitle}>Utiliser ma propre photo</Text>
+                      <Text style={styles.photoActionSubtitle}>Choisis une photo de ta galerie</Text>
+                    </View>
+                    <MaterialCommunityIcons name="chevron-right" size={24} color={Colors.primary} />
+                  </Pressable>
+
+                  <View style={styles.divider}>
+                    <Text style={styles.dividerText}>Ou choisis un modèle</Text>
+                  </View>
+
+                  <View style={styles.bgGrid}>
+                    {BACKGROUNDS.map((bg) => {
+                      const isSelected = bg.id === selectedBgId;
+                      return (
+                        <Pressable
+                          key={bg.id}
+                          style={styles.bgOption}
+                          onPress={() => selectBackground(bg)}
                         >
-                          {bg.type === 'image' && bg.source && (
-                            <Image
-                              source={bg.source}
-                              style={styles.bgPreviewImage}
-                            />
-                          )}
-                          {isSelected && (
-                            <View style={styles.bgCheck}>
-                              <MaterialCommunityIcons
-                                name="check"
-                                size={16}
-                                color="#FFFFFF"
+                          <View
+                            style={[
+                              styles.bgPreview,
+                              { backgroundColor: bg.preview },
+                              isSelected && styles.bgPreviewSelected,
+                            ]}
+                          >
+                            {bg.type === 'image' && bg.source && (
+                              <Image
+                                source={bg.source}
+                                style={styles.bgPreviewImage}
                               />
-                            </View>
-                          )}
-                        </View>
-                        <Text
-                          style={[
-                            styles.bgLabel,
-                            isSelected && styles.bgLabelSelected,
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {bg.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
+                            )}
+                            {isSelected && (
+                              <View style={styles.bgCheck}>
+                                <MaterialCommunityIcons
+                                  name="check"
+                                  size={16}
+                                  color="#FFFFFF"
+                                />
+                              </View>
+                            )}
+                          </View>
+                          <Text
+                            style={[
+                              styles.bgLabel,
+                              isSelected && styles.bgLabelSelected,
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {bg.label}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </ScrollView>
               </>
             )}
           </Pressable>
@@ -757,6 +775,9 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xxl,
     maxHeight: '60%' as any,
   },
+  modalScrollContent: {
+    paddingBottom: Spacing.xl,
+  },
   modalTitle: {
     fontSize: 18,
     fontWeight: '700' as const,
@@ -816,22 +837,56 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
   },
 
-  // Gallery photo picker
-  usePhotoButton: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    gap: Spacing.sm,
+  // Enhanced Photo Action Card
+  photoActionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors.primary + '10',
-    paddingVertical: 12,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.lg,
+    padding: 16,
+    borderRadius: 20,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: Colors.primary + '20',
+    borderStyle: 'dashed',
   },
-  usePhotoButtonText: {
+  photoActionIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 15,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  photoActionContent: {
     flex: 1,
-    fontSize: 15,
-    fontWeight: '600' as const,
+    marginLeft: 16,
+  },
+  photoActionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
     color: Colors.primary,
+    marginBottom: 2,
+  },
+  photoActionSubtitle: {
+    fontSize: 13,
+    color: Colors.light.textSecondary,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  dividerText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.light.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   galleryPickerHeader: {
     flexDirection: 'row' as const,

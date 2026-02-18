@@ -4,21 +4,21 @@
  * Shows all daily prayers with countdown for the next one
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { translations as t } from '@/constants/translations';
+import { NextPrayerInfo, PrayerService, PrayerTimeInfo } from '@/services/prayer.service';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
+  ActivityIndicator,
   Pressable,
   ScrollView,
-  ActivityIndicator,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
-import { PrayerService, PrayerTimeInfo, NextPrayerInfo } from '@/services/prayer.service';
-import { translations as t } from '@/constants/translations';
 
 // Prayer icons and colors for each prayer
 const PRAYER_CONFIG: Record<string, {
@@ -180,21 +180,21 @@ export default function PrayerTimesScreen() {
                 style={[
                   styles.prayerCard,
                   isNext && styles.prayerCardActive,
-                  prayer.isPassed && !prayer.isCurrent && styles.prayerCardPassed,
+                  prayer.isPassed && styles.prayerCardPassed,
                 ]}
               >
                 <View style={[styles.prayerIconBg, { backgroundColor: config.bgLight }]}>
                   <MaterialCommunityIcons
                     name={config.icon}
                     size={26}
-                    color={prayer.isPassed && !prayer.isCurrent ? Colors.light.textSecondary : config.iconColor}
+                    color={prayer.isPassed ? Colors.light.textSecondary : config.iconColor}
                   />
                 </View>
 
                 <View style={styles.prayerInfo}>
                   <Text style={[
                     styles.prayerName,
-                    prayer.isPassed && !prayer.isCurrent && styles.prayerNamePassed,
+                    prayer.isPassed && styles.prayerNamePassed,
                   ]}>
                     {prayer.nameFr}
                   </Text>
@@ -205,13 +205,13 @@ export default function PrayerTimesScreen() {
 
                 <Text style={[
                   styles.prayerTime,
-                  prayer.isPassed && !prayer.isCurrent && styles.prayerTimePassed,
+                  prayer.isPassed && styles.prayerTimePassed,
                   isNext && styles.prayerTimeActive,
                 ]}>
                   {prayer.timeFormatted}
                 </Text>
 
-                {prayer.isPassed && !prayer.isCurrent && (
+                {prayer.isPassed && (
                   <MaterialCommunityIcons
                     name="check-circle"
                     size={22}
