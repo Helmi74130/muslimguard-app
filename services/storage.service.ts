@@ -451,6 +451,35 @@ export const StorageService = {
    */
   async addHistoryEntry(entry: Omit<HistoryEntry, 'id'>): Promise<void> {
     const history = await this.getHistory();
+
+    // Normalize URL for comparison (remove trailing slash)
+    const normalizeUrl = (url: string) => url.replace(/\/$/, '').toLowerCase();
+    const normalizedNewUrl = normalizeUrl(entry.url);
+
+    // De-duplication: Check if the last entry is for the same normalized URL
+    const lastEntry = history[0];
+    if (lastEntry) {
+      const normalizedLastUrl = normalizeUrl(lastEntry.url);
+
+      if (normalizedLastUrl === normalizedNewUrl) {
+        const timeDiff = Date.now() - lastEntry.timestamp;
+
+        // If same URL within 20 seconds, don't add a new one
+        if (timeDiff < 20000) {
+          // Update title if the new one is more descriptive
+          const isBetterTitle = entry.title &&
+            entry.title !== entry.url &&
+            (lastEntry.title === lastEntry.url || !lastEntry.title);
+
+          if (isBetterTitle) {
+            lastEntry.title = entry.title;
+            await AsyncStorage.setItem(STORAGE_KEYS.HISTORY_ENTRIES, JSON.stringify(history));
+          }
+          return;
+        }
+      }
+    }
+
     const newEntry: HistoryEntry = {
       ...entry,
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,

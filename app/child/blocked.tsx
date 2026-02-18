@@ -3,22 +3,22 @@
  * Displayed when content is blocked
  */
 
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
+import { Colors, KidColors, Spacing } from '@/constants/theme';
 import { translations } from '@/constants/translations';
 import { BlockReason } from '@/services/blocking.service';
-import { PrayerService, PRAYER_NAMES_FR } from '@/services/prayer.service';
+import { PRAYER_NAMES_FR, PrayerService } from '@/services/prayer.service';
 import { PrayerName } from '@/types/storage.types';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const t = translations.blocked;
 
@@ -71,14 +71,9 @@ export default function BlockedScreen() {
   }, [reason]);
 
   const handleGoBack = () => {
-    // Use router.back() to return to browser screen
-    // The browser's handleNavigationStateChange will catch
-    // if the WebView is still on a blocked URL and force it back
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/child/browser');
-    }
+    // Rediriger systématiquement vers l'accueil du navigateur enfant
+    // pour éviter tout risque de boucle sur le site bloqué
+    router.replace('/child/browser');
   };
 
   const handleParentAccess = () => {
@@ -151,70 +146,74 @@ export default function BlockedScreen() {
   const iconColor = REASON_COLORS[reason] || Colors.error;
   const iconName = REASON_ICONS[reason] || 'shield-off';
 
+  // Playful title for children
+  const kidTitle = reason === 'prayer' ? 'Pause Prière !' : 'Oups, pas ici !';
+  const kidSubtitle = reason === 'prayer'
+    ? 'C\'est le moment de parler à Allah ✨'
+    : 'MuslimGuard te protège, essayons un autre site !';
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: reason === 'prayer' ? '#EEF2FF' : '#FFF5F5' }]}>
+      <View style={styles.decoration1} />
+      <View style={styles.decoration2} />
+
       <View style={styles.content}>
-        {/* Icon */}
-        <View style={[styles.iconContainer, { backgroundColor: iconColor + '15' }]}>
-          <MaterialCommunityIcons
-            name={iconName as any}
-            size={64}
-            color={iconColor}
-          />
+        {/* Playful Icon Container */}
+        <View style={[styles.iconOuterCircle, { borderColor: iconColor + '30' }]}>
+          <View style={[styles.iconContainer, { backgroundColor: iconColor + '15' }]}>
+            <MaterialCommunityIcons
+              name={iconName as any}
+              size={72}
+              color={iconColor}
+            />
+          </View>
+          {reason === 'prayer' && (
+            <View style={styles.starBadge}>
+              <MaterialCommunityIcons name="star" size={20} color={KidColors.starYellow} />
+            </View>
+          )}
         </View>
 
-        {/* Title */}
-        <Text style={styles.title}>{t.title}</Text>
-        <Text style={styles.subtitle}>{t.subtitle}</Text>
+        {/* Title & Subtitle */}
+        <Text style={styles.title}>{kidTitle}</Text>
+        <Text style={styles.subtitle}>{kidSubtitle}</Text>
 
-        {/* Reason */}
-        <Card variant="elevated" style={styles.reasonCard}>
+        {/* Reason Card (Glassmorphism style) */}
+        <View style={styles.glassCard}>
           <Text style={styles.reasonText}>{getReasonMessage()}</Text>
-        </Card>
+        </View>
 
         {/* Additional info */}
         {getAdditionalInfo()}
 
-        {/* URL (optional display) */}
+        {/* URL - simplified for children */}
         {url && reason !== 'prayer' && reason !== 'schedule' && (
           <View style={styles.urlContainer}>
-            <Text style={styles.urlLabel}>URL bloquée :</Text>
-            <Text style={styles.urlText} numberOfLines={2}>
-              {url}
+            <MaterialCommunityIcons name="link-variant-off" size={16} color={Colors.light.textSecondary} />
+            <Text style={styles.urlText} numberOfLines={1}>
+              {url.replace(/^https?:\/\//, '').split('/')[0]}
             </Text>
           </View>
         )}
 
         {/* Buttons */}
         <View style={styles.buttonContainer}>
-          <Button
-            title={t.goBack}
+          <TouchableOpacity
+            style={[styles.kidButton, { backgroundColor: iconColor }]}
             onPress={handleGoBack}
-            size="large"
-            fullWidth
-            icon={
-              <MaterialCommunityIcons
-                name="arrow-left"
-                size={20}
-                color="#FFFFFF"
-              />
-            }
-          />
+            activeOpacity={0.8}
+          >
+            <MaterialCommunityIcons name="arrow-left-bold-circle" size={24} color="#FFF" />
+            <Text style={styles.kidButtonText}>{t.goBack}</Text>
+          </TouchableOpacity>
 
-          <Button
-            title={t.contactParent}
-            variant="outline"
+          <TouchableOpacity
+            style={styles.parentLink}
             onPress={handleParentAccess}
-            size="large"
-            fullWidth
-            icon={
-              <MaterialCommunityIcons
-                name="shield-account"
-                size={20}
-                color={Colors.primary}
-              />
-            }
-          />
+          >
+            <MaterialCommunityIcons name="shield-account" size={18} color={Colors.light.textSecondary} />
+            <Text style={styles.parentLinkText}>{t.contactParent}</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
@@ -224,88 +223,176 @@ export default function BlockedScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    overflow: 'hidden',
+  },
+  decoration1: {
+    position: 'absolute',
+    top: -50,
+    right: -50,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  decoration2: {
+    position: 'absolute',
+    bottom: -80,
+    left: -80,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   content: {
     flex: 1,
-    padding: Spacing.lg,
+    padding: Spacing.xl,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1,
+  },
+  iconOuterCircle: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    borderWidth: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
   },
   iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+  },
+  starBadge: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    backgroundColor: '#FFF',
+    padding: 8,
+    borderRadius: 20,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: Colors.light.text,
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#1A202C',
     textAlign: 'center',
     marginBottom: Spacing.sm,
   },
   subtitle: {
-    fontSize: 16,
-    color: Colors.light.textSecondary,
+    fontSize: 17,
+    color: '#4A5568',
     textAlign: 'center',
     marginBottom: Spacing.xl,
+    paddingHorizontal: Spacing.md,
+    lineHeight: 24,
   },
-  reasonCard: {
+  glassCard: {
     width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderRadius: 24,
+    padding: Spacing.lg,
     marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   reasonText: {
-    fontSize: 15,
-    color: Colors.light.text,
+    fontSize: 16,
+    color: '#2D3748',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
+    fontWeight: '500',
   },
   infoCard: {
     width: '100%',
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    padding: Spacing.md,
     marginBottom: Spacing.md,
-    borderColor: Colors.primary + '40',
-    backgroundColor: Colors.primary + '08',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
   },
   infoContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: Spacing.sm,
   },
   infoText: {
-    flex: 1,
     fontSize: 14,
-    color: Colors.light.text,
+    color: '#4A5568',
+    fontWeight: '600',
   },
   prayerName: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
     color: Colors.primary,
     textAlign: 'center',
     marginTop: Spacing.sm,
   },
   urlContainer: {
-    width: '100%',
-    padding: Spacing.md,
-    backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    borderRadius: 20,
     marginBottom: Spacing.xl,
   },
   urlLabel: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
-    marginBottom: Spacing.xs,
+    color: '#718096',
   },
   urlText: {
     fontSize: 13,
-    color: Colors.light.text,
-    fontFamily: 'monospace',
+    color: '#718096',
+    fontWeight: '500',
   },
   buttonContainer: {
     width: '100%',
-    gap: Spacing.md,
-    marginTop: Spacing.lg,
+    gap: Spacing.lg,
+    alignItems: 'center',
+  },
+  kidButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    height: 64,
+    borderRadius: 32,
+    width: '100%',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  kidButtonText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  parentLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 10,
+  },
+  parentLinkText: {
+    fontSize: 14,
+    color: '#718096',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 });

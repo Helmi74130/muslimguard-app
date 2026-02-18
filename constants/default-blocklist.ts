@@ -50,7 +50,7 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       'foreskin', 'prepuce',
       // Acts
       'anal', 'anale', 'cumshot', 'ejaculation', 'orgasm', 'orgasme', 'hardcore',
-      'blowjob', 'fellatio', 'fellation', 'creampie', 'gangbang', 'orgie', 'orgy',
+      'blowjob', 'fellatio', 'fellation', 'creampie', 'gangbang',
       'threesome', 'bukkake', 'sodomy', 'sodomie', 'cunnilingus', 'rimming',
       'analingus', 'deepthroat', 'gorge profonde', 'masturbation', 'masturbate',
       'masturber', 'handjob', 'fingering', 'doigté', 'doubles penetration',
@@ -106,14 +106,14 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
     domains: [],
     keywords: [
       // French insults
-      'salope', 'pute', 'putain', 'putin', 'connard', 'connasse', 'conard',
+      'salope',  'putain', 'putin', 'connard', 'connasse', 'conard',
       'conase', 'abruti', 'debile', 'enfoire', 'enfoirée', 'salaud', 'merde',
       'merdeux', 'merdeuse', 'garce', 'crevard', 'crevure', 'trouduc',
-      'trou du cul', 'fdp', 'fils de pute', 'nique ta mere', 'ntm',
+      'trou du cul', 'fdp', 'fils de pute', 'nique ta mere', 'ntm', 'pute',
       'baise ta mere', 'va te faire foutre', 'va te faire', 'poufiasse', 'pouf',
       'grognasse', 'petasse', 'pétasse', 'cacou', 'branleur', 'branleuse',
       'glandu', 'glandeur', 'imbecile', 'cretin', 'crétin', 'pede', 'pédale',
-      'gouine', 'tarlouze', 'tapette', 'fiotte', 'encule', 'enculé',
+      'gouine', 'tarlouze', 'fiotte', 'encule', 'enculé',
       'bougnoule', 'bicot', 'negre', 'nègre', 'negro', 'rebeu', 'feuj',
       'youtre', 'naze', 'nazi', 'bouffon', 'mongol', 'mongolien', 'tebe',
       'tebé', 'mongole',
@@ -156,12 +156,11 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       'fruit machine', 'real money', 'win cash', 'betting tips',
       // General (FR)
       'paris sportifs', 'pronostics', 'prono', 'pronos',
-      'loto', 'loterie', 'jeu d argent', 'jeux d argent', 'mise', 'miser',
-      'machine a sous', 'jetons', 'croupier', 'ticket de grattage',
-      'fdj', 'pmu', 'casaque', 'tiercé', 'quinté', 'hippique', 'course de chevaux',
+      'loto', 'loterie', 'jeu d argent', 'jeux d argent',
+      'machine a sous','ticket de grattage', 'tiercé', 'quinté', 'hippique', 'course de chevaux',
       // Platforms
       'bet365', '888casino', 'william hill', 'unibet', 'bwin', 'betway', 'pokerstars',
-      'winamax', 'betclic', 'zebet', 'netbet', 'vbet', 'joabet', 'parions sport',
+      'winamax', 'betclic','joabet', 'parions sport',
       'partouche', 'barriere', 'circus casino', 'stake', 'roobet', 'bc.game',
       // Crypto gambling
       'crypto casino', 'bitcoin casino', 'csgo betting', 'skin gambling',
@@ -188,7 +187,7 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
     ],
     keywords: [
       // General (EN)
-      'hookup', 'dating', 'singles', 'flirt', 'affair', 'cheating',
+      'hookup', 'dating', 'cheating',
       'one night stand', 'casual sex', 'blind date', 'sexting',
       // General (FR)
       'flirter', 'drague', 'draguer',
@@ -221,8 +220,8 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       'flaviar.com', 'caskers.com', 'spiritedboutique.com',
     ],
     keywords: [
-      'alcohol', 'alcool', 'liquor', 'liqueur', 'beer', 'biere', 'wine', 'vin',
-      'vodka', 'whiskey', 'whisky', 'rum', 'rhum', 'tequila', 'gin', 'absinthe',
+      'alcohol', 'alcool', 'liquor', 'liqueur', 'beer', 'biere', 'wine',
+      'vodka', 'whiskey', 'whisky','tequila', 'absinthe',
       'champagne', 'cocktail', 'spiritueux', 'spirits', 'brewery', 'brasserie',
       'drunk', 'ivresse', 'ivrogne', 'aperitif', 'apéro', 'distillery', 'distillerie',
     ],
@@ -240,7 +239,7 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
     keywords: [
       // Cannabis
       'weed', 'cannabis', 'marijuana', 'hash', 'hashish',
-      'haschich', 'joint', 'blunt', 'cbd', 'thc', 'ganja',
+      'haschich', 'blunt', 'cbd', 'thc', 'ganja',
       'beuh', 'teuchi', 'edibles', 'space cake',
       // Tobacco & vaping
       'vape', 'vaping', 'vapotage', 'e-cigarette', 'tobacco', 'tabac', 'cigarette',
@@ -248,7 +247,7 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       'juul', 'puff', 'puffs', 'e-liquide',
       // Hard drugs
       'cocaine', 'coke', 'crack', 'heroin', 'heroine', 'meth', 'methamphetamine',
-      'crystal meth', 'mdma', 'ecstasy', 'extasy', 'molly', 'lsd', 'acid',
+      'crystal meth', 'mdma', 'ecstasy', 'extasy', 'molly', 'lsd',
       'acide', 'speed', 'amphetamines', 'ketamine', 'ghb', 'pcp',
       'opioids', 'opioïdes', 'fentanyl', 'morphine', 'opium', 'psychedelic',
       'psilocybin', 'mushrooms', 'champis', 'champignons hallucinogènes',

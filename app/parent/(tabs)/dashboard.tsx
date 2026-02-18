@@ -3,6 +3,7 @@
  * Main parent control interface with stats and quick actions
  */
 
+import { DashboardCharts } from '@/components/dashboard/dashboard-charts';
 import { Card } from '@/components/ui/card';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { translations } from '@/constants/translations';
@@ -11,6 +12,7 @@ import { useAuth } from '@/contexts/auth.context';
 import { useSubscription } from '@/contexts/subscription.context';
 import { BlockingService } from '@/services/blocking.service';
 import { StorageService } from '@/services/storage.service';
+import { HistoryEntry } from '@/types/storage.types';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
@@ -30,6 +32,7 @@ const t = translations.dashboard;
 interface DashboardStats {
   blockedToday: number;
   totalVisits: number;
+  history: HistoryEntry[];
 }
 
 export default function DashboardScreen() {
@@ -39,6 +42,7 @@ export default function DashboardScreen() {
   const [stats, setStats] = useState<DashboardStats>({
     blockedToday: 0,
     totalVisits: 0,
+    history: [],
   });
 
   // Load data
@@ -54,6 +58,7 @@ export default function DashboardScreen() {
         setStats({
           blockedToday,
           totalVisits: history.length,
+          history,
         });
       } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -157,21 +162,9 @@ export default function DashboardScreen() {
 
 
         {/* Stats Grid */}
+        {/* Stats Grid */}
         <Text style={styles.sectionTitle}>Statistiques</Text>
-        <View style={styles.statsGrid}>
-          <StatCard
-            icon="shield-off"
-            value={stats.blockedToday}
-            label={t.stats.blockedToday}
-            color={Colors.error}
-          />
-          <StatCard
-            icon="eye"
-            value={stats.totalVisits}
-            label={t.stats.totalVisits}
-            color={Colors.primary}
-          />
-        </View>
+        <DashboardCharts history={stats.history} />
 
         {/* Quick Actions */}
         <Text style={styles.sectionTitle}>{t.quickActions.title}</Text>
@@ -228,30 +221,6 @@ export default function DashboardScreen() {
   );
 }
 
-// Stat Card Component
-function StatCard({
-  icon,
-  value,
-  label,
-  color,
-}: {
-  icon: string;
-  value: number;
-  label: string;
-  color: string;
-}) {
-  return (
-    <Card variant="elevated" style={styles.statCard}>
-      <View style={[styles.statIconContainer, { backgroundColor: color + '15' }]}>
-        <MaterialCommunityIcons name={icon as any} size={20} color={color} />
-      </View>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel} numberOfLines={2}>
-        {label}
-      </Text>
-    </Card>
-  );
-}
 
 // Quick Action Card Component
 function QuickActionCard({
@@ -362,35 +331,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.light.text,
     marginBottom: Spacing.md,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.md,
-    marginBottom: Spacing.xl,
-  },
-  statCard: {
-    width: '47%',
-    alignItems: 'center',
-    padding: Spacing.md,
-  },
-  statIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  statValue: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: Colors.light.text,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-    textAlign: 'center',
   },
   actionsContainer: {
     gap: Spacing.sm,

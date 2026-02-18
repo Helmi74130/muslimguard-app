@@ -297,6 +297,10 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
               placeholderTextColor={KidColors.searchPlaceholder}
               autoCapitalize="none"
               autoCorrect={false}
+              autoComplete="off"
+              textContentType="none"
+              spellCheck={false}
+              importantForAutofill="no"
               returnKeyType="search"
             />
             {searchQuery.length > 0 && (

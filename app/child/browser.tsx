@@ -3,31 +3,31 @@
  * Kid-friendly secure browsing interface with custom home page
  */
 
-import React, { useRef, useState, useCallback, useEffect } from 'react';
-import {
-  StyleSheet,
-  StatusBar,
-  View,
-  Text,
-  Pressable,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { WebView } from 'react-native-webview';
-import type { WebViewErrorEvent } from 'react-native-webview/lib/WebViewTypes';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Speech from 'expo-speech';
-import { BrowserToolbar } from '@/components/browser/browser-toolbar';
 import { BrowserHomePage } from '@/components/browser/browser-home-page';
+import { BrowserToolbar } from '@/components/browser/browser-toolbar';
+import { generateContentFilterScript } from '@/constants/content-filter-script';
+import { READING_MODE_PRELOAD_SCRIPT, READING_MODE_SCRIPT } from '@/constants/reading-mode-script';
+import { BorderRadius, Colors, KidColors, Spacing } from '@/constants/theme';
+import { translations } from '@/constants/translations';
 import { BlockingService, BlockReason } from '@/services/blocking.service';
+import { KioskService } from '@/services/kiosk.service';
 import { PrayerService } from '@/services/prayer.service';
 import { StorageService } from '@/services/storage.service';
-import { KioskService } from '@/services/kiosk.service';
-import { Colors, KidColors, Spacing, BorderRadius } from '@/constants/theme';
-import { translations } from '@/constants/translations';
-import { READING_MODE_SCRIPT, READING_MODE_PRELOAD_SCRIPT } from '@/constants/reading-mode-script';
-import { generateContentFilterScript } from '@/constants/content-filter-script';
-import { AppSettings, ScheduleData, ContentFilterMode } from '@/types/storage.types';
+import { AppSettings, ContentFilterMode, ScheduleData } from '@/types/storage.types';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import * as Speech from 'expo-speech';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { WebView } from 'react-native-webview';
+import type { WebViewErrorEvent } from 'react-native-webview/lib/WebViewTypes';
 
 // Cached data for synchronous blocking checks
 interface CachedData {
@@ -54,6 +54,7 @@ export default function BrowserScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<{ isNoInternet: boolean } | null>(null);
   const [readingMode, setReadingMode] = useState(false);
+  const isNavigatingToBlockRef = useRef(false);
 
   // TTS state
   const ttsTextRef = useRef<string>('');
@@ -110,8 +111,12 @@ export default function BrowserScreen() {
     loadData();
     const interval = setInterval(loadData, 30000);
 
+    // Clear WebView cache and history on mount to ensure a fresh start
+    webViewRef.current?.clearCache?.(true);
+    webViewRef.current?.clearHistory?.();
+
     // Activate kiosk mode if enabled
-    KioskService.activateKiosk().catch(() => {});
+    KioskService.activateKiosk().catch(() => { });
 
     return () => clearInterval(interval);
   }, []);
@@ -235,7 +240,8 @@ export default function BrowserScreen() {
       for (const keyword of cached.blockedKeywords) {
         try {
           const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const regex = new RegExp('\\b' + escaped, 'i');
+          // Enforce word boundaries on both sides to avoid false positives like "puteaux"
+          const regex = new RegExp('\\b' + escaped + '\\b', 'i');
           if (regex.test(urlLower)) {
             return { blocked: true, reason: 'keyword', blockedBy: keyword };
           }
@@ -272,17 +278,24 @@ export default function BrowserScreen() {
       const blockResult = shouldBlock(url);
 
       if (blockResult.blocked && blockResult.reason && blockResult.blockedBy) {
+        // Prevent multiple simultaneous navigation to blocked screen
+        if (isNavigatingToBlockRef.current) return false;
+        isNavigatingToBlockRef.current = true;
+
         // Log the blocked attempt (async, fire and forget)
         BlockingService.logBlockedAttempt(url, blockResult.reason, blockResult.blockedBy).catch(console.error);
         // Also log to history as blocked entry with reason
         BlockingService.logNavigation(url, url, true, blockResult.reason, blockResult.blockedBy).catch(console.error);
 
-        // Force WebView to stop loading and go back (Android workaround:
-        // returning false from onShouldStartLoadWithRequest doesn't always
-        // prevent the WebView from navigating on Android)
+        // Force WebView to stop loading and move away from the blocked URL
+        // before showing the overlay to prevent reload loops
         webViewRef.current?.stopLoading();
+
         if (canGoBack) {
           webViewRef.current?.goBack();
+        } else {
+          // If we can't go back, we must show the home page to avoid staying on the blocked URL
+          setShowHomePage(true);
         }
 
         // Navigate to blocked screen
@@ -295,12 +308,17 @@ export default function BrowserScreen() {
           },
         });
 
+        // Reset the flag after a short delay to allow future blocks if needed
+        setTimeout(() => {
+          isNavigatingToBlockRef.current = false;
+        }, 1000);
+
         return false;
       }
 
       return true;
     },
-    [shouldBlock]
+    [shouldBlock, canGoBack]
   );
 
   // Handle navigation state change
@@ -326,8 +344,11 @@ export default function BrowserScreen() {
       setCanGoBack(back);
       setCanGoForward(forward);
 
-      // Log to history (async, fire and forget)
-      BlockingService.logNavigation(url, title || url, false).catch(console.error);
+      // Log to history only when loading is complete to avoid duplicates 
+      // and ensure we have the correct page title
+      if (!navState.loading) {
+        BlockingService.logNavigation(url, title || url, false).catch(console.error);
+      }
     }
   }, [shouldBlock]);
 
@@ -508,7 +529,7 @@ export default function BrowserScreen() {
           break;
         }
       }
-    } catch {}
+    } catch { }
   }, [splitTTSText, speakChunk]);
 
   return (
@@ -604,6 +625,32 @@ export default function BrowserScreen() {
               }
               // Inject content filter script if enabled
               const filterMode = cachedDataRef.current.contentFilterMode;
+
+              // Force clear Google local storage/session storage to hide history dropdowns
+              // And inject CSS to hide trending/popular searches
+              const clearStorageScript = `
+                try {
+                  localStorage.clear();
+                  sessionStorage.clear();
+                  
+                  // Hide trending searches elements
+                  const style = document.createElement('style');
+                  style.innerHTML = \`
+                    div[aria-label="Recherches populaires"],
+                    div[aria-label="Trending searches"],
+                    li[data-view-type="1"],
+                    .sbai,
+                    .K4W9ue,
+                    .UU7v9 { 
+                      display: none !important; 
+                    }
+                  \`;
+                  document.head.appendChild(style);
+                } catch (e) {}
+                true;
+              `;
+              webViewRef.current?.injectJavaScript(clearStorageScript);
+
               if (filterMode !== 'off' && cachedDataRef.current.blockedKeywords.length > 0) {
                 // Reset flag so script can re-run on new pages
                 webViewRef.current?.injectJavaScript('window.__muslimGuardContentFilter = false; true;');
@@ -619,6 +666,8 @@ export default function BrowserScreen() {
             injectedJavaScriptBeforeContentLoaded={
               readingMode ? READING_MODE_PRELOAD_SCRIPT : undefined
             }
+            incognito={true}
+            cacheEnabled={false}
             javaScriptEnabled={true}
             domStorageEnabled={true}
             startInLoadingState={true}

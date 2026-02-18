@@ -31,10 +31,9 @@ export function generateContentFilterScript(
   // Escape special regex characters in each keyword
   const escaped = keywords.map(escapeRegex);
 
-  // Build regex pattern: word boundary at start to avoid false positives
-  // \bsex matches "sex", "sexual" but NOT "essex"
-  // \bbet matches "bet", "betting" but NOT "alphabet"
-  const patternSource = '\\b(?:' + escaped.join('|') + ')';
+  // Build regex pattern: word boundary on both sides to avoid false positives
+  // \bsex\b matches "sex" but NOT "essex" or "sexual" (for strict exact matching)
+  const patternSource = '\\b(?:' + escaped.join('|') + ')\\b';
   const patternJson = JSON.stringify(patternSource);
   const modeJson = JSON.stringify(mode);
 
