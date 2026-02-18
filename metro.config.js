@@ -8,7 +8,7 @@ const config = getDefaultConfig(__dirname);
 // Redirect react-native-iap to our wrapper that handles Expo Go gracefully
 config.resolver.extraNodeModules = {
   ...config.resolver.extraNodeModules,
-  'react-native-iap': path.resolve(__dirname, 'services/iap-wrapper.js'),
+  // 'react-native-iap': path.resolve(__dirname, 'services/iap-wrapper.js'),
 };
 
 module.exports = config;

@@ -4,24 +4,25 @@
  * Children can toggle sounds on/off and mix them together
  */
 
-import React, { useState, useRef, useCallback } from 'react';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import { Audio } from 'expo-av';
+import { router } from 'expo-router';
+import React, { useCallback, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
   Dimensions,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const TILE_GAP = 14;
-const TILE_SIZE = (SCREEN_WIDTH - Spacing.lg * 2 - TILE_GAP * 2) / 3;
+const TILE_GAP = 16;
+const TILE_SIZE = (SCREEN_WIDTH - Spacing.lg * 2 - TILE_GAP) / 2;
 
 interface SoundItem {
   id: string;
@@ -54,8 +55,8 @@ const SOUNDS: SoundItem[] = [
     label: 'Oiseaux',
     icon: 'bird',
     file: require('@/assets/sounds/birds.mp3'),
-    color: '#059669',
-    colorLight: '#D1FAE5',
+    color: '#D97706',
+    colorLight: '#FEF3C7',
   },
   {
     id: 'forest',
@@ -89,6 +90,46 @@ const SOUNDS: SoundItem[] = [
     color: '#4338CA',
     colorLight: '#E0E7FF',
   },
+  {
+    id: 'riviere',
+    label: 'Rivière',
+    icon: 'water-percent',
+    file: require('@/assets/sounds/riviere.mp3'),
+    color: '#0369A1',
+    colorLight: '#E0F2FE',
+  },
+  {
+    id: 'nature',
+    label: 'Nature',
+    icon: 'tree',
+    file: require('@/assets/sounds/nature.mp3'),
+    color: '#10B981',
+    colorLight: '#D1FAE5',
+  },
+  {
+    id: 'marche',
+    label: 'Marche',
+    icon: 'shoe-print',
+    file: require('@/assets/sounds/marche.mp3'),
+    color: '#71717A',
+    colorLight: '#F4F4F5',
+  },
+  {
+    id: 'vagues',
+    label: 'Vagues',
+    icon: 'water',
+    file: require('@/assets/sounds/vagues.mp3'),
+    color: '#2563EB',
+    colorLight: '#DBEAFE',
+  },
+  {
+    id: 'ronronnement',
+    label: 'Ronronnement',
+    icon: 'cat',
+    file: require('@/assets/sounds/ronronement.mp3'),
+    color: '#D946EF',
+    colorLight: '#FAE8FF',
+  }
 ];
 
 export default function SoundMixerScreen() {
@@ -175,67 +216,75 @@ export default function SoundMixerScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Sound Grid */}
-      <View style={styles.grid}>
-        {SOUNDS.map((item) => {
-          const isActive = activeSounds.has(item.id);
-          return (
-            <Pressable
-              key={item.id}
-              style={[
-                styles.tile,
-                isActive && { backgroundColor: item.color },
-                !isActive && { backgroundColor: item.colorLight },
-              ]}
-              onPress={() => toggleSound(item)}
-            >
-              <View style={[
-                styles.iconCircle,
-                isActive
-                  ? { backgroundColor: 'rgba(255,255,255,0.25)' }
-                  : { backgroundColor: 'rgba(0,0,0,0.06)' },
-              ]}>
-                <MaterialCommunityIcons
-                  name={item.icon}
-                  size={32}
-                  color={isActive ? '#FFFFFF' : item.color}
-                />
-              </View>
-              <Text style={[
-                styles.tileLabel,
-                isActive && styles.tileLabelActive,
-                !isActive && { color: item.color },
-              ]}>
-                {item.label}
-              </Text>
-              {isActive && (
-                <View style={styles.activeDot} />
-              )}
-            </Pressable>
-          );
-        })}
-      </View>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Sound Grid */}
+        <View style={styles.grid}>
+          {SOUNDS.map((item) => {
+            const isActive = activeSounds.has(item.id);
+            return (
+              <Pressable
+                key={item.id}
+                style={[
+                  styles.tile,
+                  isActive && { backgroundColor: item.color },
+                  !isActive && { backgroundColor: item.colorLight },
+                ]}
+                onPress={() => toggleSound(item)}
+              >
+                <View style={[
+                  styles.iconCircle,
+                  isActive
+                    ? { backgroundColor: 'rgba(255,255,255,0.25)' }
+                    : { backgroundColor: 'rgba(0,0,0,0.06)' },
+                ]}>
+                  <MaterialCommunityIcons
+                    name={item.icon}
+                    size={32}
+                    color={isActive ? '#FFFFFF' : item.color}
+                  />
+                </View>
+                <Text style={[
+                  styles.tileLabel,
+                  isActive && styles.tileLabelActive,
+                  !isActive && { color: item.color },
+                ]}>
+                  {item.label}
+                </Text>
+                {isActive && (
+                  <View style={styles.activeDot} />
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
+      </ScrollView>
 
-      {/* Stop All Button */}
-      {activeCount > 0 && (
-        <Pressable style={styles.stopButton} onPress={stopAll}>
-          <MaterialCommunityIcons name="stop-circle" size={24} color="#FFFFFF" />
-          <Text style={styles.stopButtonText}>Tout arrêter</Text>
-        </Pressable>
-      )}
+      {/* Fixed Bottom Controls */}
+      <View style={styles.bottomControls}>
+        {/* Stop All Button */}
+        {activeCount > 0 && (
+          <Pressable style={styles.stopButton} onPress={stopAll}>
+            <MaterialCommunityIcons name="stop-circle" size={24} color="#FFFFFF" />
+            <Text style={styles.stopButtonText}>Tout arrêter</Text>
+          </Pressable>
+        )}
 
-      {/* Status */}
-      <View style={styles.statusContainer}>
-        <MaterialCommunityIcons
-          name={activeCount > 0 ? 'volume-high' : 'volume-off'}
-          size={20}
-          color={Colors.light.textSecondary}
-        />
-        <Text style={styles.statusText}>
-          {activeCount === 0
-            ? 'Appuie sur un son pour commencer'
-            : `${activeCount} son${activeCount > 1 ? 's' : ''} actif${activeCount > 1 ? 's' : ''}`}
-        </Text>
+        {/* Status */}
+        <View style={styles.statusContainer}>
+          <MaterialCommunityIcons
+            name={activeCount > 0 ? 'volume-high' : 'volume-off'}
+            size={20}
+            color={Colors.light.textSecondary}
+          />
+          <Text style={styles.statusText}>
+            {activeCount === 0
+              ? 'Appuie sur un son pour commencer'
+              : `${activeCount} son${activeCount > 1 ? 's' : ''} actif${activeCount > 1 ? 's' : ''}`}
+          </Text>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -245,6 +294,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F0F4FF',
+  },
+  scrollContent: {
+    paddingBottom: Spacing.lg,
+  },
+  bottomControls: {
+    backgroundColor: '#F0F4FF',
+    paddingBottom: Spacing.lg,
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
   },
   // Header
   header: {

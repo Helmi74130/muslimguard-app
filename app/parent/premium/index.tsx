@@ -3,25 +3,25 @@
  * Shows subscription plans and handles Google Play purchases
  */
 
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, Redirect } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { useSubscription } from '@/contexts/subscription.context';
 import { BillingService } from '@/services/billing.service';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 import { GOOGLE_PLAY_PRODUCTS, ProductInfo } from '@/types/subscription.types';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Redirect, router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Premium features list
 const PREMIUM_FEATURES = [
@@ -42,9 +42,10 @@ export default function PremiumScreen() {
   const [restoring, setRestoring] = useState(false);
 
   // Redirect to login if not logged in
-  if (!isLoggedIn) {
+  // Removed login check to allow viewing plans
+  /* if (!isLoggedIn) {
     return <Redirect href="/parent/account/login" />;
-  }
+  } */
 
   // Redirect to account if already premium
   if (isPremium) {
@@ -256,7 +257,7 @@ export default function PremiumScreen() {
             {/* Annual Plan */}
             <Card
               variant="elevated"
-              style={[styles.planCard, styles.planCardFeatured]}
+              style={[styles.planCard, styles.planCardFeatured] as any}
               onPress={() => !purchasing && handlePurchase('annual')}
             >
               <View style={styles.saveBadge}>

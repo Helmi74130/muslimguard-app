@@ -3,19 +3,19 @@
  * Colorful stopwatch with laps for children
  */
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  FlatList,
   Animated,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 
 // Kid-friendly colors
 const COLORS = {
@@ -89,12 +89,14 @@ export default function StopwatchScreen() {
   }, []);
 
   const addLap = useCallback(() => {
-    const prevLapEnd = laps.length > 0 ? laps[0].time : 0;
-    setLaps(prev => [{
-      number: prev.length + 1,
-      time: elapsed - prevLapEnd,
-    }, ...prev]);
-  }, [elapsed, laps]);
+    setLaps(prev => {
+      const totalTimeSoFar = prev.reduce((sum, lap) => sum + lap.time, 0);
+      return [{
+        number: prev.length + 1,
+        time: elapsed - totalTimeSoFar,
+      }, ...prev];
+    });
+  }, [elapsed]);
 
   // Cleanup interval on unmount
   useEffect(() => {

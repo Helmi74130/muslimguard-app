@@ -6,19 +6,32 @@
  * Metro config redirects to a mock module in development mode.
  */
 
-import { Platform } from 'react-native';
 import { GOOGLE_PLAY_PRODUCTS, ProductInfo, PurchaseResult } from '@/types/subscription.types';
+import { Platform } from 'react-native';
 import { ApiService } from './api.service';
 
-// Import IAP - Metro config redirects this to our wrapper in Expo Go
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const IAP = require('react-native-iap');
+import {
+  endConnection,
+  fetchProducts,
+  finishTransaction,
+  getAvailablePurchases,
+  initConnection,
+  purchaseErrorListener,
+  purchaseUpdatedListener,
+  requestPurchase,
+} from 'react-native-iap';
+
+import * as RNIap from 'react-native-iap';
 
 // Check if we're using the mock module
-const isMockIAP = IAP.__IS_MOCK__ === true;
+// @ts-ignore
+const isMockIAP = (RNIap as any).__IS_MOCK__ === true;
 
 // Product SKUs for Google Play
 const PRODUCT_SKUS = [GOOGLE_PLAY_PRODUCTS.monthly, GOOGLE_PLAY_PRODUCTS.annual];
+
+// Cache for offer tokens (required for Android subscriptions in v14+)
+const offerTokenCache: Record<string, string> = {};
 
 // Store for listeners
 let purchaseUpdateSubscription: any = null;
@@ -57,7 +70,7 @@ export const BillingService = {
     }
 
     try {
-      await IAP.initConnection();
+      await initConnection();
       isConnected = true;
       console.log('[BillingService] Connection initialized');
       return true;
@@ -83,14 +96,14 @@ export const BillingService = {
     this.removeListeners();
 
     // Listen for successful purchases
-    purchaseUpdateSubscription = IAP.purchaseUpdatedListener(
+    purchaseUpdateSubscription = purchaseUpdatedListener(
       async (purchase: any) => {
         console.log('[BillingService] Purchase updated:', purchase.productId);
 
         if (purchase.purchaseToken) {
           try {
             // Finish the transaction (acknowledge)
-            await IAP.finishTransaction({ purchase, isConsumable: false });
+            await finishTransaction({ purchase, isConsumable: false });
             console.log('[BillingService] Transaction finished');
             onPurchaseSuccess(purchase);
           } catch (error) {
@@ -101,7 +114,7 @@ export const BillingService = {
     );
 
     // Listen for purchase errors
-    purchaseErrorSubscription = IAP.purchaseErrorListener((error: any) => {
+    purchaseErrorSubscription = purchaseErrorListener((error: any) => {
       console.error('[BillingService] Purchase error:', error);
       onPurchaseError(error);
     });
@@ -130,7 +143,7 @@ export const BillingService = {
     this.removeListeners();
     if (isConnected && !isMockIAP) {
       try {
-        await IAP.endConnection();
+        await endConnection();
         isConnected = false;
         console.log('[BillingService] Connection ended');
       } catch (error) {
@@ -161,18 +174,55 @@ export const BillingService = {
     }
 
     try {
-      const subscriptions = await IAP.getSubscriptions({ skus: PRODUCT_SKUS });
+      // Create sku items for fetchProducts (react-native-iap v14+)
+      const itemSkus = Platform.select({
+        android: PRODUCT_SKUS
+      });
+
+      if (!itemSkus) return [];
+
+      // Use fetchProducts with type: 'subs' for subscriptions
+      console.log('[BillingService] Fetching subscriptions for SKUs:', itemSkus);
+      const subscriptions = await fetchProducts({
+        skus: itemSkus,
+        type: 'subs' as any // Explicitly request subscriptions
+      });
+
+      if (!subscriptions) {
+        console.log('[BillingService] fetchProducts returned null');
+        return [];
+      }
+
       console.log('[BillingService] Got subscriptions:', subscriptions.length);
 
-      return subscriptions.map((sub: any) => ({
-        productId: sub.productId,
-        title: sub.title || sub.productId,
-        description: sub.description || '',
-        price: sub.localizedPrice || sub.price || '',
-        currency: sub.currency || 'EUR',
-        priceAmountMicros: sub.price || '0',
-        subscriptionPeriod: sub.subscriptionPeriodAndroid || 'P1M',
-      }));
+      return subscriptions.map((sub: any) => {
+        // Handle different product structures between versions
+        const price = sub.localizedPrice || sub.price || '';
+        const currency = sub.currency || 'EUR';
+        // For Android subscriptions, price might be in subscriptionOfferDetails
+        let displayPrice = price;
+
+        if (Platform.OS === 'android' && sub.subscriptionOfferDetails?.length > 0) {
+          const offer = sub.subscriptionOfferDetails[0];
+          if (offer?.pricingPhases?.pricingPhaseList?.length > 0) {
+            displayPrice = offer.pricingPhases.pricingPhaseList[0].formattedPrice;
+          }
+          // Store the offerToken for the purchase update
+          if (offer.offerToken) {
+            offerTokenCache[sub.productId] = offer.offerToken;
+          }
+        }
+
+        return {
+          productId: sub.productId,
+          title: sub.title || sub.productId,
+          description: sub.description || '',
+          price: displayPrice || price,
+          currency: currency,
+          priceAmountMicros: sub.priceAmountMicros || '0', // Adjust if needed
+          subscriptionPeriod: sub.subscriptionPeriod || 'P1M',
+        };
+      });
     } catch (error) {
       console.error('[BillingService] Failed to get products:', error);
       return [];
@@ -200,8 +250,22 @@ export const BillingService = {
 
     try {
       console.log('[BillingService] Requesting subscription:', productId);
-      await IAP.requestSubscription({ sku: productId });
-      // The actual result comes through the purchaseUpdatedListener
+      const offerToken = offerTokenCache[productId];
+
+      await (requestPurchase as any)({
+        request: {
+          google: {
+            skus: [productId],
+            ...(offerToken ? {
+              subscriptionOffers: [{
+                sku: productId,
+                offerToken: offerToken
+              }]
+            } : {})
+          }
+        },
+        type: 'subs'
+      });
       return { success: true };
     } catch (error: any) {
       console.error('[BillingService] Purchase failed:', error);
@@ -240,7 +304,7 @@ export const BillingService = {
     }
 
     try {
-      const purchases = await IAP.getAvailablePurchases();
+      const purchases = await getAvailablePurchases();
       console.log('[BillingService] Available purchases:', purchases.length);
 
       // Filter to only our subscription products

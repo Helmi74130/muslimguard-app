@@ -3,33 +3,33 @@
  * Browse and listen to the Holy Quran with Arabic text and audio
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  StyleSheet,
-  StatusBar,
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  FlatList,
-  ActivityIndicator,
-  Modal,
-  ScrollView,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
-import { Colors, KidColors, Spacing, BorderRadius } from '@/constants/theme';
+import { BorderRadius, Colors, KidColors, Spacing } from '@/constants/theme';
 import { translations } from '@/constants/translations';
 import {
+  DEFAULT_RECITER,
   QuranService,
-  SurahInfo,
-  SurahDetails,
   RECITERS,
   ReciterId,
-  DEFAULT_RECITER,
+  SurahDetails,
+  SurahInfo,
 } from '@/services/quran.service';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
+import { router } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  Modal,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const t = translations.quran;
 
@@ -57,9 +57,20 @@ export default function QuranScreen() {
   const [showReciterModal, setShowReciterModal] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentAyah, setCurrentAyah] = useState<number | null>(null);
+
+  // Refs for audio management
   const soundRef = useRef<Audio.Sound | null>(null);
   const currentAyahRef = useRef<number | null>(null);
   const selectedSurahRef = useRef<SurahDetails | null>(null);
+  const selectedReciterRef = useRef<ReciterId>(DEFAULT_RECITER);
+
+  // Preloading refs
+  const nextSoundRef = useRef<Audio.Sound | null>(null);
+  const preloadedAyahRef = useRef<{
+    surahNo: number;
+    ayahNo: number;
+    reciterId: ReciterId;
+  } | null>(null);
 
   // Keep refs in sync
   useEffect(() => {
@@ -70,6 +81,10 @@ export default function QuranScreen() {
     selectedSurahRef.current = selectedSurah;
   }, [selectedSurah]);
 
+  useEffect(() => {
+    selectedReciterRef.current = selectedReciter;
+  }, [selectedReciter]);
+
   // Load surahs list
   useEffect(() => {
     loadSurahs();
@@ -77,6 +92,9 @@ export default function QuranScreen() {
       // Cleanup audio on unmount
       if (soundRef.current) {
         soundRef.current.unloadAsync();
+      }
+      if (nextSoundRef.current) {
+        nextSoundRef.current.unloadAsync();
       }
     };
   }, []);
@@ -98,6 +116,18 @@ export default function QuranScreen() {
     try {
       setLoading(true);
       setError(null);
+
+      // Initialize audio mode once here
+      try {
+        await Audio.setAudioModeAsync({
+          playsInSilentModeIOS: true,
+          staysActiveInBackground: true,
+          playThroughEarpieceAndroid: false,
+        });
+      } catch (e) {
+        console.log('Error initializing audio mode:', e);
+      }
+
       const data = await QuranService.getAllSurahs();
       const withNumbers = data.map((surah, index) => ({
         ...surah,
@@ -140,38 +170,115 @@ export default function QuranScreen() {
   };
 
   // Audio functions
-  const playAyahAudio = async (ayahNo: number) => {
-    if (!selectedSurah) return;
+  const preloadNext = async (currentSurahNo: number, currentAyahNo: number) => {
+    try {
+      let nextSurahNo = currentSurahNo;
+      let nextAyahNo = currentAyahNo + 1;
+
+      const surah = selectedSurahRef.current;
+      if (surah && nextAyahNo > surah.totalAyah) {
+        if (currentSurahNo < 114) {
+          nextSurahNo = currentSurahNo + 1;
+          nextAyahNo = 1;
+          // Pre-fetch next surah text data to cache it
+          QuranService.getSurah(nextSurahNo).catch(() => { });
+        } else {
+          return; // End of Quran
+        }
+      }
+
+      const reciterId = selectedReciterRef.current;
+
+      // If already preloaded this specific one, skip
+      if (
+        preloadedAyahRef.current?.surahNo === nextSurahNo &&
+        preloadedAyahRef.current?.ayahNo === nextAyahNo &&
+        preloadedAyahRef.current?.reciterId === reciterId
+      ) {
+        return;
+      }
+
+      // Unload previous preload
+      if (nextSoundRef.current) {
+        await nextSoundRef.current.unloadAsync();
+        nextSoundRef.current = null;
+      }
+
+      // Fetch next audio URL
+      const audioData = await QuranService.getAyahAudio(nextSurahNo, nextAyahNo);
+      const reciterData = audioData[reciterId.toString()];
+
+      if (reciterData && reciterData.url) {
+        // Pre-configure the sound with the update handler
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: reciterData.url },
+          { shouldPlay: false, volume: 1.0 },
+          onPlaybackStatusUpdate
+        );
+        nextSoundRef.current = sound;
+        preloadedAyahRef.current = { surahNo: nextSurahNo, ayahNo: nextAyahNo, reciterId };
+      }
+    } catch (err) {
+      // Silent error for preloading
+      console.log('Preload failed:', err);
+    }
+  };
+
+  const playAyahAudio = async (ayahNo: number, surahNo?: number) => {
+    const parentSurah = selectedSurahRef.current;
+    const targetSurahNo = surahNo || (parentSurah ? parentSurah.surahNo : null);
+    if (!targetSurahNo) return;
 
     try {
-      // Stop current audio if playing
-      if (soundRef.current) {
-        await soundRef.current.unloadAsync();
-        soundRef.current = null;
-      }
+      // Store previous sound to unload it after starting the new one
+      const prevSound = soundRef.current;
 
       setCurrentAyah(ayahNo);
       setIsPlaying(true);
 
-      // Get audio URL for the ayah
-      const audioData = await QuranService.getAyahAudio(selectedSurah.surahNo, ayahNo);
-      const reciterData = audioData[selectedReciter.toString()];
+      const reciterId = selectedReciterRef.current;
 
-      if (!reciterData || !reciterData.url) {
-        console.error('No audio URL for reciter:', selectedReciter);
-        setIsPlaying(false);
-        return;
+      // Check if we have this ayah preloaded
+      if (
+        nextSoundRef.current &&
+        preloadedAyahRef.current &&
+        preloadedAyahRef.current.surahNo === targetSurahNo &&
+        preloadedAyahRef.current.ayahNo === ayahNo &&
+        preloadedAyahRef.current.reciterId === reciterId
+      ) {
+        soundRef.current = nextSoundRef.current;
+        nextSoundRef.current = null;
+        preloadedAyahRef.current = null;
+
+        // Play immediately since it's already loaded and callback is set
+        await soundRef.current.playAsync();
+      } else {
+        // Not preloaded (or wrong one), fetch and play
+        const audioData = await QuranService.getAyahAudio(targetSurahNo, ayahNo);
+        const reciterData = audioData[reciterId.toString()];
+
+        if (!reciterData || !reciterData.url) {
+          console.error('No audio URL for reciter:', reciterId);
+          setIsPlaying(false);
+          return;
+        }
+
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: reciterData.url },
+          { shouldPlay: true, volume: 1.0 },
+          onPlaybackStatusUpdate
+        );
+        soundRef.current = sound;
       }
 
-      const audioUrl = reciterData.url;
+      // Unload previous sound in background to avoid blocking transition
+      if (prevSound) {
+        prevSound.unloadAsync().catch(() => { });
+      }
 
-      // Create and play sound
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: audioUrl },
-        { shouldPlay: true },
-        onPlaybackStatusUpdate
-      );
-      soundRef.current = sound;
+      // Start preloading the next one immediately
+      preloadNext(targetSurahNo, ayahNo);
+
     } catch (err) {
       console.error('Error playing audio:', err);
       setIsPlaying(false);
@@ -184,14 +291,33 @@ export default function QuranScreen() {
       const surah = selectedSurahRef.current;
       const ayah = currentAyahRef.current;
 
-      if (surah && ayah !== null && ayah < surah.totalAyah) {
-        // Play next ayah
-        playAyahAudio(ayah + 1);
-      } else {
-        // End of surah
-        setIsPlaying(false);
-        setCurrentAyah(null);
+      if (surah && ayah !== null) {
+        if (ayah < surah.totalAyah) {
+          // Play next ayah
+          playAyahAudio(ayah + 1);
+        } else if (surah.surahNo < 114) {
+          // End of surah, auto-advance to next surah
+          handleAutoNextSurah(surah.surahNo + 1);
+        } else {
+          // End of Quran
+          setIsPlaying(false);
+          setCurrentAyah(null);
+        }
       }
+    }
+  };
+
+  const handleAutoNextSurah = async (surahNo: number) => {
+    try {
+      // Load next surah metadata
+      const data = await QuranService.getSurah(surahNo);
+      setSelectedSurah(data);
+      // Play first ayah (should be preloaded already)
+      playAyahAudio(1, surahNo);
+    } catch (err) {
+      console.error('Error auto-advancing surah:', err);
+      setIsPlaying(false);
+      setCurrentAyah(null);
     }
   };
 
@@ -200,6 +326,12 @@ export default function QuranScreen() {
       await soundRef.current.stopAsync();
       await soundRef.current.unloadAsync();
       soundRef.current = null;
+    }
+    // Cleanup preload
+    if (nextSoundRef.current) {
+      await nextSoundRef.current.unloadAsync();
+      nextSoundRef.current = null;
+      preloadedAyahRef.current = null;
     }
     setIsPlaying(false);
     setCurrentAyah(null);

@@ -8,6 +8,7 @@ import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { translations } from '@/constants/translations';
 import { useAppMode } from '@/contexts/app-mode.context';
 import { useAuth } from '@/contexts/auth.context';
+import { useSubscription } from '@/contexts/subscription.context';
 import { BlockingService } from '@/services/blocking.service';
 import { NextPrayerInfo, PrayerService } from '@/services/prayer.service';
 import { StorageService } from '@/services/storage.service';
@@ -51,6 +52,7 @@ interface DashboardStats {
 export default function DashboardScreen() {
   const { switchToChildMode } = useAppMode();
   const { logout } = useAuth();
+  const { isPremium } = useSubscription();
   const [stats, setStats] = useState<DashboardStats>({
     blockedToday: 0,
     sitesBlocked: 0,
@@ -140,6 +142,32 @@ export default function DashboardScreen() {
             />
           </TouchableOpacity>
         </View>
+
+        {/* Premium Banner */}
+        {!isPremium && (
+          <TouchableOpacity
+            style={styles.premiumBanner}
+            onPress={() => router.push('/parent/premium')}
+            activeOpacity={0.9}
+          >
+            <View style={styles.premiumContent}>
+              <View style={styles.premiumIconContainer}>
+                <MaterialCommunityIcons name="crown" size={30} color="#FFF" />
+              </View>
+              <View style={styles.premiumTextContainer}>
+                <Text style={styles.premiumTitle}>Passer à Premium</Text>
+                <Text style={styles.premiumSubtitle}>
+                  Débloquez toutes les fonctionnalités
+                </Text>
+              </View>
+              <MaterialCommunityIcons
+                name="chevron-right"
+                size={24}
+                color="#FFF"
+              />
+            </View>
+          </TouchableOpacity>
+        )}
 
         {/* Next Prayer Banner */}
         {nextPrayer && (
@@ -335,6 +363,44 @@ const styles = StyleSheet.create({
     padding: Spacing.sm,
     borderRadius: BorderRadius.md,
     backgroundColor: Colors.light.surface,
+  },
+  premiumBanner: {
+    backgroundColor: Colors.warning,
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.lg,
+    padding: Spacing.md,
+    elevation: 4,
+    shadowColor: Colors.warning,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  premiumContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  premiumIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  premiumTextContainer: {
+    flex: 1,
+  },
+  premiumTitle: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  premiumSubtitle: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 13,
+    fontWeight: '500',
   },
   prayerBanner: {
     marginBottom: Spacing.lg,

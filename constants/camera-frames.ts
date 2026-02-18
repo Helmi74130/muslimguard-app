@@ -63,4 +63,82 @@ export const CAMERA_FRAMES: CameraFrame[] = [
     overlay: require('../assets/camera-frames/flowerleftbottom.png'),
   },
   
+  {
+    id: 'baloon',
+    name: 'Ballons',
+    icon: 'balloon',
+    borderColor: '#EF4444',
+    overlay: require('../assets/camera-frames/baloon.png'),
+  },
+  {
+    id: 'rectangle',
+    name: 'Rectangle',
+    icon: 'rectangle-outline',
+    borderColor: '#3B82F6',
+    overlay: require('../assets/camera-frames/rectangle.png'),
+  },
+  {
+    id: 'bubles',
+    name: 'Bulles',
+    icon: 'google-circles-extended',
+    borderColor: '#06B6D4',
+    overlay: require('../assets/camera-frames/bubles.png'),
+  },
+  {
+    id: 'speed',
+    name: 'Vitesse',
+    icon: 'speedometer',
+    borderColor: '#F59E0B',
+    overlay: require('../assets/camera-frames/speed.png'),
+  },
+  {
+    id: 'serpentin',
+    name: 'Serpentin',
+    icon: 'vector-curve',
+    borderColor: '#10B981',
+    overlay: require('../assets/camera-frames/serpentin.png'),
+  },
+  {
+    id: 'abstract',
+    name: 'Abstrait',
+    icon: 'palette',
+    borderColor: '#8B5CF6',
+    overlay: require('../assets/camera-frames/abstract.png'),
+  },
+  {
+    id: 'geometry',
+    name: 'Géométrie',
+    icon: 'shape-outline',
+    borderColor: '#6366F1',
+    overlay: require('../assets/camera-frames/geometry.png'),
+  },
+  {
+    id: 'lego',
+    name: 'Lego',
+    icon: 'puzzle',
+    borderColor: '#EF4444',
+    overlay: require('../assets/camera-frames/lego.png'),
+  },
+  {
+    id: 'school',
+    name: 'École',
+    icon: 'school',
+    borderColor: '#4B5563',
+    overlay: require('../assets/camera-frames/school.png'),
+  },
+  {
+    id: 'zigzag',
+    name: 'Zigzag',
+    icon: 'chart-bell-curve-cumulative',
+    borderColor: '#EC4899',
+    overlay: require('../assets/camera-frames/zigzag.png'),
+  },
+  {
+    id: 'frame',
+    name: 'Cadre Classique',
+    icon: 'crop-free',
+    borderColor: '#111827',
+    overlay: require('../assets/camera-frames/frame.png'),
+  }
+  
 ];
