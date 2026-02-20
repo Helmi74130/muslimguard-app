@@ -61,7 +61,7 @@ const EMOTIONS: Emotion[] = [
     id: 'grateful',
     label: 'Reconnaissant',
     weather: 'Arc-en-ciel',
-    icon: 'rainbow',
+    icon: 'looks',
     color: '#10B981',
     colorLight: '#D1FAE5',
     message: 'Dire merci à Allah, c\'est la plus belle chose.',
@@ -138,10 +138,25 @@ const getShortDay = (dateKey: string) => {
 // Get the emotion object by ID
 const getEmotionById = (id: string) => EMOTIONS.find(e => e.id === id);
 
+// Format timestamp to "HH:MM"
+const formatTime = (timestamp: number) => {
+  const d = new Date(timestamp);
+  return `${String(d.getHours()).padStart(2, '0')}h${String(d.getMinutes()).padStart(2, '0')}`;
+};
+
+// Format day key to readable date (e.g. "Lundi 20 février")
+const formatFullDate = (dateKey: string) => {
+  const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+  const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  const d = new Date(dateKey + 'T12:00:00');
+  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+};
+
 export default function EmotionsScreen() {
   const [entries, setEntries] = useState<EmotionEntry[]>([]);
   const [selectedEmotion, setSelectedEmotion] = useState<Emotion | null>(null);
   const [justSaved, setJustSaved] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
@@ -324,18 +339,25 @@ export default function EmotionsScreen() {
             {last7Days.map((dayKey) => {
               const dayEntries = historyByDay.get(dayKey) || [];
               const isToday = dayKey === todayKey;
+              const isSelected = selectedDay === dayKey;
               // Show the last emotion of the day
               const lastEntry = dayEntries.length > 0 ? dayEntries[0] : null;
               const emotion = lastEntry ? getEmotionById(lastEntry.emotionId) : null;
 
               return (
-                <View key={dayKey} style={[
-                  styles.historyDay,
-                  isToday && styles.historyDayToday,
-                ]}>
+                <Pressable
+                  key={dayKey}
+                  style={[
+                    styles.historyDay,
+                    isToday && styles.historyDayToday,
+                    isSelected && styles.historyDaySelected,
+                  ]}
+                  onPress={() => setSelectedDay(isSelected ? null : dayKey)}
+                >
                   <Text style={[
                     styles.historyDayLabel,
                     isToday && styles.historyDayLabelToday,
+                    isSelected && styles.historyDayLabelSelected,
                   ]}>
                     {getShortDay(dayKey)}
                   </Text>
@@ -344,6 +366,7 @@ export default function EmotionsScreen() {
                     emotion
                       ? { backgroundColor: emotion.colorLight, borderColor: emotion.color }
                       : { backgroundColor: '#F3F4F6', borderColor: '#E5E7EB' },
+                    isSelected && emotion && { borderWidth: 3 },
                   ]}>
                     {emotion ? (
                       <MaterialCommunityIcons
@@ -362,11 +385,35 @@ export default function EmotionsScreen() {
                   {dayEntries.length > 1 && (
                     <Text style={styles.historyCount}>x{dayEntries.length}</Text>
                   )}
-                </View>
+                </Pressable>
               );
             })}
           </View>
-          {!hasEntryToday && !selectedEmotion && (
+          {/* Day detail panel */}
+          {selectedDay && (() => {
+            const dayEntries = historyByDay.get(selectedDay) || [];
+            return (
+              <View style={styles.dayDetail}>
+                <Text style={styles.dayDetailTitle}>{formatFullDate(selectedDay)}</Text>
+                {dayEntries.length === 0 ? (
+                  <Text style={styles.dayDetailEmpty}>Aucune émotion enregistrée ce jour</Text>
+                ) : (
+                  dayEntries.map((entry) => {
+                    const emo = getEmotionById(entry.emotionId);
+                    if (!emo) return null;
+                    return (
+                      <View key={entry.id} style={[styles.dayDetailRow, { backgroundColor: emo.colorLight }]}>
+                        <MaterialCommunityIcons name={emo.icon} size={22} color={emo.color} />
+                        <Text style={[styles.dayDetailEmotion, { color: emo.color }]}>{emo.label}</Text>
+                        <Text style={styles.dayDetailTime}>{formatTime(entry.timestamp)}</Text>
+                      </View>
+                    );
+                  })
+                )}
+              </View>
+            );
+          })()}
+          {!hasEntryToday && !selectedEmotion && !selectedDay && (
             <Text style={styles.historyHint}>
               Tu n'as pas encore partagé ton émotion aujourd'hui
             </Text>
@@ -608,5 +655,55 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: Spacing.md,
     fontStyle: 'italic',
+  },
+  historyDaySelected: {
+    backgroundColor: '#DBEAFE',
+    borderRadius: BorderRadius.lg,
+  },
+  historyDayLabelSelected: {
+    color: Colors.primary,
+    fontWeight: '700',
+  },
+
+  // Day detail panel
+  dayDetail: {
+    marginTop: Spacing.md,
+    padding: Spacing.md,
+    backgroundColor: '#FFFFFF',
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    gap: Spacing.sm,
+  },
+  dayDetailTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.primary,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  dayDetailEmpty: {
+    fontSize: 13,
+    color: Colors.light.textSecondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  dayDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingVertical: 10,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.lg,
+  },
+  dayDetailEmotion: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  dayDetailTime: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.light.textSecondary,
   },
 });

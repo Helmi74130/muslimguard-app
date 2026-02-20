@@ -14,10 +14,12 @@ import { Video, VideoCategory } from '@/types/video.types';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  AppState,
   Dimensions,
+  FlatList,
   Image,
   Pressable,
   ScrollView,
@@ -48,6 +50,7 @@ export default function VideosScreen() {
   const [playing, setPlaying] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const scrollRef = useRef<ScrollView>(null);
+  const [playerReady, setPlayerReady] = useState(false);
 
   // Helper to generate a stable negative ID from a string
   const getStableId = (str: string): number => {
@@ -72,6 +75,16 @@ export default function VideosScreen() {
       };
     }, [])
   );
+
+  // Google Play Store compliance: stop video when app goes to background
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state !== 'active') {
+        setPlaying(false);
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   const loadCategories = async () => {
     setLoading(true);
@@ -177,16 +190,49 @@ export default function VideosScreen() {
   };
 
   const playVideo = (video: Video) => {
+    setPlayerReady(false);
     setActiveVideo(video);
     setPlaying(true);
     scrollRef.current?.scrollTo({ y: 0, animated: true });
   };
+
+  // Determine if current video should be muted
+  const shouldMute = activeVideo ? !activeVideo.hasSound : false;
+
+  const onPlayerReady = useCallback(() => {
+    setPlayerReady(true);
+  }, []);
 
   const onPlayerStateChange = useCallback((state: string) => {
     if (state === 'ended') {
       setPlaying(false);
     }
   }, []);
+
+  // JS injected directly into the WebView to enforce mute via postMessage
+  // to the YouTube iframe. This bypasses the React Native bridge entirely
+  // and sends mute + setVolume(0) commands on a fast loop.
+  const muteEnforcementScript = shouldMute
+    ? `(function() {
+        function enforceMute() {
+          try {
+            var frames = document.querySelectorAll('iframe');
+            for (var i = 0; i < frames.length; i++) {
+              frames[i].contentWindow.postMessage(
+                JSON.stringify({event: 'command', func: 'mute', args: []}), '*'
+              );
+              frames[i].contentWindow.postMessage(
+                JSON.stringify({event: 'command', func: 'setVolume', args: [0]}), '*'
+              );
+            }
+          } catch(e) {}
+        }
+        // Aggressive: every 150ms for first 5s, then every 500ms
+        var fast = setInterval(enforceMute, 150);
+        setTimeout(function() { clearInterval(fast); setInterval(enforceMute, 500); }, 5000);
+        enforceMute();
+      })(); true;`
+    : undefined;
 
   // Videos in the same category as active video (excluding the active one)
   const suggestedVideos = activeVideo
@@ -195,6 +241,58 @@ export default function VideosScreen() {
 
   // Thumbnail URL helper
   const getThumb = (video: Video) => VideoService.getThumbnailUrl(video);
+
+  // Render a single video card for FlatList
+  const renderVideoCard = useCallback(({ item: video }: { item: Video }) => (
+    <Pressable
+      style={({ pressed }) => [
+        styles.videoCard,
+        pressed && styles.pressed,
+      ]}
+      onPress={() => playVideo(video)}
+    >
+      <View style={styles.thumbContainer}>
+        <Image
+          source={{ uri: getThumb(video) }}
+          style={styles.thumbnail}
+        />
+        <View style={styles.playOverlay}>
+          <MaterialCommunityIcons
+            name="play-circle"
+            size={40}
+            color="rgba(255, 255, 255, 0.9)"
+          />
+        </View>
+        {!video.hasSound && (
+          <View style={styles.mutedOverlay}>
+            <MaterialCommunityIcons
+              name="volume-off"
+              size={14}
+              color="#FFFFFF"
+            />
+          </View>
+        )}
+        {!video.isCustom && (
+          <Pressable
+            style={styles.favoriteButton}
+            onPress={(e) => {
+              e.stopPropagation();
+              toggleFavorite(video.id);
+            }}
+          >
+            <MaterialCommunityIcons
+              name={favoriteIds.includes(video.id) ? "heart" : "heart-outline"}
+              size={20}
+              color={favoriteIds.includes(video.id) ? "#FF4444" : "#FFFFFF"}
+            />
+          </Pressable>
+        )}
+      </View>
+      <Text style={styles.videoTitle} numberOfLines={2}>
+        {video.title}
+      </Text>
+    </Pressable>
+  ), [favoriteIds]);
 
   // ── Loading state ──
   if (loading) {
@@ -361,25 +459,29 @@ export default function VideosScreen() {
       </View>
 
       {/* Main content */}
-      <ScrollView
-        ref={scrollRef}
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Active video player */}
-        {activeVideo && (
+      {activeVideo ? (
+        <ScrollView
+          ref={scrollRef}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.playerSection}>
             <View style={styles.playerWrapper}>
               <YoutubeIframe
+                key={activeVideo.id}
                 videoId={activeVideo.youtubeId}
                 height={PLAYER_HEIGHT}
-                play={playing}
-                mute={!activeVideo.hasSound}
+                play={playerReady ? playing : false}
+                mute={shouldMute}
+                volume={shouldMute ? 0 : 100}
+                onReady={onPlayerReady}
+                onChangeState={onPlayerStateChange}
                 webViewProps={{
                   allowsInlineMediaPlayback: true,
                   mediaPlaybackRequiresUserAction: false,
                   allowsLinking: false,
+                  ...(muteEnforcementScript ? { injectedJavaScript: muteEnforcementScript } : {}),
                 }}
                 initialPlayerParams={{
                   rel: false,
@@ -387,7 +489,6 @@ export default function VideosScreen() {
                   controls: true,
                   fs: false,
                 }}
-                onChangeState={onPlayerStateChange}
               />
               {/* Overlay to block YouTube logo (top-right of player) */}
               <View style={styles.youtubeBlockerTopRight} pointerEvents="box-only" />
@@ -446,100 +547,53 @@ export default function VideosScreen() {
               </View>
             )}
           </View>
-        )}
-
-        {/* Video grid (when no video is playing) */}
-        {!activeVideo && (
-          <>
-            {loadingVideos ? (
-              <View style={styles.centered}>
-                <ActivityIndicator size="large" color={Colors.primary} />
-              </View>
-            ) : videos.length === 0 ? (
-              <View style={styles.centered}>
-                <MaterialCommunityIcons
-                  name={
-                    selectedCategory === FAVORITES_CATEGORY_ID ? "heart-outline" :
-                      selectedCategory === CUSTOM_VIDEOS_CATEGORY_ID ? "folder-play-outline" :
-                        "video-off-outline"
-                  }
-                  size={64}
-                  color={Colors.light.textSecondary}
-                />
-                <Text style={styles.errorTitle}>
-                  {
-                    selectedCategory === FAVORITES_CATEGORY_ID ? t.noFavorites :
-                      selectedCategory === CUSTOM_VIDEOS_CATEGORY_ID ? t.noCustomVideos :
-                        t.noVideos
-                  }
-                </Text>
-                <Text style={styles.errorDesc}>
-                  {
-                    selectedCategory === FAVORITES_CATEGORY_ID ? t.noFavoritesDesc :
-                      selectedCategory === CUSTOM_VIDEOS_CATEGORY_ID ? t.noCustomVideosDesc :
-                        t.noVideosDesc
-                  }
-                </Text>
-              </View>
-            ) : (
-              <View style={styles.videoGrid}>
-                {videos.map((video) => (
-                  <Pressable
-                    key={video.id}
-                    style={({ pressed }) => [
-                      styles.videoCard,
-                      pressed && styles.pressed,
-                    ]}
-                    onPress={() => playVideo(video)}
-                  >
-                    <View style={styles.thumbContainer}>
-                      <Image
-                        source={{ uri: getThumb(video) }}
-                        style={styles.thumbnail}
-                      />
-                      <View style={styles.playOverlay}>
-                        <MaterialCommunityIcons
-                          name="play-circle"
-                          size={40}
-                          color="rgba(255, 255, 255, 0.9)"
-                        />
-                      </View>
-                      {!video.hasSound && (
-                        <View style={styles.mutedOverlay}>
-                          <MaterialCommunityIcons
-                            name="volume-off"
-                            size={14}
-                            color="#FFFFFF"
-                          />
-                        </View>
-                      )}
-                      {/* Favorite button - Only for non-custom videos */}
-                      {!video.isCustom && (
-                        <Pressable
-                          style={styles.favoriteButton}
-                          onPress={(e) => {
-                            e.stopPropagation();
-                            toggleFavorite(video.id);
-                          }}
-                        >
-                          <MaterialCommunityIcons
-                            name={favoriteIds.includes(video.id) ? "heart" : "heart-outline"}
-                            size={20}
-                            color={favoriteIds.includes(video.id) ? "#FF4444" : "#FFFFFF"}
-                          />
-                        </Pressable>
-                      )}
-                    </View>
-                    <Text style={styles.videoTitle} numberOfLines={2}>
-                      {video.title}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-          </>
-        )}
-      </ScrollView>
+        </ScrollView>
+      ) : loadingVideos ? (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={videos}
+          numColumns={2}
+          renderItem={renderVideoCard}
+          keyExtractor={(item) => item.id.toString()}
+          style={styles.scrollView}
+          contentContainerStyle={[styles.scrollContent, styles.videoGridContent]}
+          columnWrapperStyle={videos.length > 1 ? styles.videoGridRow : undefined}
+          showsVerticalScrollIndicator={false}
+          initialNumToRender={10}
+          maxToRenderPerBatch={8}
+          windowSize={5}
+          ListEmptyComponent={
+            <View style={styles.centered}>
+              <MaterialCommunityIcons
+                name={
+                  selectedCategory === FAVORITES_CATEGORY_ID ? "heart-outline" :
+                    selectedCategory === CUSTOM_VIDEOS_CATEGORY_ID ? "folder-play-outline" :
+                      "video-off-outline"
+                }
+                size={64}
+                color={Colors.light.textSecondary}
+              />
+              <Text style={styles.errorTitle}>
+                {
+                  selectedCategory === FAVORITES_CATEGORY_ID ? t.noFavorites :
+                    selectedCategory === CUSTOM_VIDEOS_CATEGORY_ID ? t.noCustomVideos :
+                      t.noVideos
+                }
+              </Text>
+              <Text style={styles.errorDesc}>
+                {
+                  selectedCategory === FAVORITES_CATEGORY_ID ? t.noFavoritesDesc :
+                    selectedCategory === CUSTOM_VIDEOS_CATEGORY_ID ? t.noCustomVideosDesc :
+                      t.noVideosDesc
+                }
+              </Text>
+            </View>
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -789,15 +843,16 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
   },
 
-  // Video grid
-  videoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  // Video grid (FlatList)
+  videoGridContent: {
+    paddingTop: Spacing.md,
+  },
+  videoGridRow: {
     gap: Spacing.md,
-    marginTop: Spacing.md,
   },
   videoCard: {
     width: THUMB_WIDTH,
+    marginBottom: Spacing.md,
   },
   pressed: {
     opacity: 0.8,

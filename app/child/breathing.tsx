@@ -1,10 +1,9 @@
 /**
  * Breathing Exercise - MuslimGuard
  * Guided breathing with multiple techniques and animated circle
- * Helps children relax and focus through breathing exercises
  */
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,78 +12,89 @@ import {
   Animated,
   Easing,
   Dimensions,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CIRCLE_MAX = SCREEN_WIDTH * 0.6;
-const CIRCLE_MIN = SCREEN_WIDTH * 0.25;
+const CIRCLE_MAX = SCREEN_WIDTH * 0.55;
+const CIRCLE_MIN = SCREEN_WIDTH * 0.22;
+const CARD_WIDTH = (SCREEN_WIDTH - Spacing.lg * 2 - 12) / 2;
 
-// Breathing techniques
 interface BreathingTechnique {
   id: string;
   label: string;
-  description: string;
+  subtitle: string;
+  timing: string;
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
   color: string;
   colorLight: string;
-  // Durations in milliseconds
+  gradient: [string, string];
   inhale: number;
-  holdIn: number;  // hold after inhale (0 = skip)
+  holdIn: number;
   exhale: number;
-  holdOut: number; // hold after exhale (0 = skip)
+  holdOut: number;
 }
 
 const TECHNIQUES: BreathingTechnique[] = [
   {
+    id: 'calm',
+    label: 'Doux',
+    subtitle: 'Idéal pour débuter',
+    timing: '3s · 3s',
+    icon: 'weather-windy',
+    color: '#0891B2',
+    colorLight: '#ECFEFF',
+    gradient: ['#0891B2', '#06B6D4'],
+    inhale: 3000,
+    holdIn: 0,
+    exhale: 3000,
+    holdOut: 0,
+  },
+  {
     id: 'coherence',
     label: 'Cohérence',
-    description: 'Inspire 5s, expire 5s\nÉquilibre et calme',
+    subtitle: 'Équilibre & calme',
+    timing: '5s · 5s',
     icon: 'heart-pulse',
     color: '#059669',
-    colorLight: '#D1FAE5',
+    colorLight: '#ECFDF5',
+    gradient: ['#059669', '#10B981'],
     inhale: 5000,
     holdIn: 0,
     exhale: 5000,
     holdOut: 0,
   },
   {
-    id: '478',
-    label: '4-7-8',
-    description: 'Inspire 4s, maintien 7s, expire 8s\nRelaxation profonde',
-    icon: 'moon-waning-crescent',
-    color: '#4338CA',
-    colorLight: '#E0E7FF',
-    inhale: 4000,
-    holdIn: 7000,
-    exhale: 8000,
-    holdOut: 0,
-  },
-  {
     id: 'square',
     label: 'Carrée',
-    description: 'Inspire 4s, maintien 4s\nExpire 4s, maintien 4s',
+    subtitle: 'Focus & clarté',
+    timing: '4s · 4s · 4s · 4s',
     icon: 'square-outline',
     color: '#2563EB',
-    colorLight: '#DBEAFE',
+    colorLight: '#EFF6FF',
+    gradient: ['#2563EB', '#3B82F6'],
     inhale: 4000,
     holdIn: 4000,
     exhale: 4000,
     holdOut: 4000,
   },
   {
-    id: 'calm',
-    label: 'Doux',
-    description: 'Inspire 3s, expire 3s\nIdéal pour débuter',
-    icon: 'weather-windy',
-    color: '#0891B2',
-    colorLight: '#CFFAFE',
-    inhale: 3000,
-    holdIn: 0,
-    exhale: 3000,
+    id: '478',
+    label: '4-7-8',
+    subtitle: 'Relaxation profonde',
+    timing: '4s · 7s · 8s',
+    icon: 'moon-waning-crescent',
+    color: '#6D28D9',
+    colorLight: '#F5F3FF',
+    gradient: ['#6D28D9', '#8B5CF6'],
+    inhale: 4000,
+    holdIn: 7000,
+    exhale: 8000,
     holdOut: 0,
   },
 ];
@@ -92,17 +102,17 @@ const TECHNIQUES: BreathingTechnique[] = [
 type Phase = 'inhale' | 'holdIn' | 'exhale' | 'holdOut';
 
 const PHASE_LABELS: Record<Phase, string> = {
-  inhale: 'Inspire...',
-  holdIn: 'Maintiens...',
-  exhale: 'Expire...',
-  holdOut: 'Maintiens...',
+  inhale: 'Inspire',
+  holdIn: 'Maintiens',
+  exhale: 'Expire',
+  holdOut: 'Maintiens',
 };
 
 const PHASE_ICONS: Record<Phase, keyof typeof MaterialCommunityIcons.glyphMap> = {
-  inhale: 'arrow-up',
-  holdIn: 'pause',
-  exhale: 'arrow-down',
-  holdOut: 'pause',
+  inhale: 'arrow-up-circle-outline',
+  holdIn: 'pause-circle-outline',
+  exhale: 'arrow-down-circle-outline',
+  holdOut: 'pause-circle-outline',
 };
 
 export default function BreathingScreen() {
@@ -114,17 +124,40 @@ export default function BreathingScreen() {
 
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0.4)).current;
+  const glowAnim = useRef(new Animated.Value(0.3)).current;
   const animRef = useRef<Animated.CompositeAnimation | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const phaseRef = useRef<Phase>('inhale');
   const runningRef = useRef(false);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       stopExercise();
     };
   }, []);
+
+  // Subtle pulsing glow for exercise screen background
+  useEffect(() => {
+    if (!isRunning) return;
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 0.6,
+          duration: 3000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0.3,
+          duration: 3000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [isRunning]);
 
   const getPhases = (tech: BreathingTechnique): { phase: Phase; duration: number }[] => {
     const phases: { phase: Phase; duration: number }[] = [];
@@ -135,26 +168,19 @@ export default function BreathingScreen() {
     return phases;
   };
 
-  const animatePhase = (
-    phase: Phase,
-    duration: number,
-  ): Promise<void> => {
+  const animatePhase = (phase: Phase, duration: number): Promise<void> => {
     return new Promise((resolve) => {
       phaseRef.current = phase;
       setCurrentPhase(phase);
 
-      // Set countdown
       const totalSeconds = Math.round(duration / 1000);
       setCountdown(totalSeconds);
 
-      // Countdown timer
       let remaining = totalSeconds;
       if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = setInterval(() => {
         remaining -= 1;
-        if (remaining >= 0) {
-          setCountdown(remaining);
-        }
+        if (remaining >= 0) setCountdown(remaining);
       }, 1000);
 
       let toScale: number;
@@ -197,7 +223,6 @@ export default function BreathingScreen() {
       animRef.current = anim;
 
       if (phase === 'holdIn' || phase === 'holdOut') {
-        // For hold phases, animate quickly to hold position then wait
         anim.start(() => {
           if (!runningRef.current) return resolve();
           setTimeout(() => {
@@ -216,15 +241,12 @@ export default function BreathingScreen() {
 
   const runCycle = async (tech: BreathingTechnique) => {
     const phases = getPhases(tech);
-
     while (runningRef.current) {
       for (const { phase, duration } of phases) {
         if (!runningRef.current) return;
         await animatePhase(phase, duration);
       }
-      if (runningRef.current) {
-        setRounds((prev) => prev + 1);
-      }
+      if (runningRef.current) setRounds((prev) => prev + 1);
     }
   };
 
@@ -242,9 +264,7 @@ export default function BreathingScreen() {
   const stopExercise = () => {
     runningRef.current = false;
     setIsRunning(false);
-    if (animRef.current) {
-      animRef.current.stop();
-    }
+    if (animRef.current) animRef.current.stop();
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -269,91 +289,176 @@ export default function BreathingScreen() {
     outputRange: [CIRCLE_MIN / CIRCLE_MAX, 1],
   });
 
-  // Technique selection screen
+  // ─── Selection Screen ─────────────────────────────────────
   if (!selectedTechnique) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
+        <LinearGradient
+          colors={['#EEF2FF', '#F8FAFC', '#F0FDFA']}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        />
+
+        {/* Header */}
+        <View style={styles.selHeader}>
+          <Pressable onPress={() => router.back()} style={styles.backBtn}>
+            <MaterialCommunityIcons name="arrow-left" size={22} color={Colors.primary} />
           </Pressable>
-          <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle}>Respiration guidée</Text>
-            <Text style={styles.headerSubtitle}>Choisis un exercice</Text>
+        </View>
+
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.selContent}
+        >
+          {/* Hero */}
+          <View style={styles.heroSection}>
+            <View style={styles.heroIconWrap}>
+              <LinearGradient
+                colors={['#E0E7FF', '#C7D2FE']}
+                style={styles.heroIconBg}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              />
+              <MaterialCommunityIcons name="weather-windy" size={40} color="#4338CA" />
+            </View>
+            <Text style={styles.heroTitle}>Respiration{'\n'}guidée</Text>
+            <Text style={styles.heroSubtitle}>
+              Choisis un exercice et laisse-toi guider
+            </Text>
           </View>
-          <View style={{ width: 40 }} />
-        </View>
 
-        <View style={styles.techniqueList}>
-          {TECHNIQUES.map((tech) => (
-            <Pressable
-              key={tech.id}
-              style={({ pressed }) => [
-                styles.techniqueCard,
-                { borderLeftColor: tech.color },
-                pressed && styles.techniqueCardPressed,
-              ]}
-              onPress={() => startExercise(tech)}
-            >
-              <View style={[styles.techniqueIcon, { backgroundColor: tech.colorLight }]}>
-                <MaterialCommunityIcons name={tech.icon} size={28} color={tech.color} />
-              </View>
-              <View style={styles.techniqueInfo}>
-                <Text style={styles.techniqueName}>{tech.label}</Text>
-                <Text style={styles.techniqueDesc}>{tech.description}</Text>
-              </View>
-              <MaterialCommunityIcons name="play-circle" size={32} color={tech.color} />
-            </Pressable>
-          ))}
-        </View>
+          {/* Grid */}
+          <View style={styles.grid}>
+            {TECHNIQUES.map((tech, index) => (
+              <Pressable
+                key={tech.id}
+                onPress={() => startExercise(tech)}
+                style={({ pressed }) => [
+                  styles.card,
+                  pressed && styles.cardPressed,
+                ]}
+              >
+                <LinearGradient
+                  colors={tech.gradient}
+                  style={styles.cardGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  {/* Decorative circle */}
+                  <View style={[styles.cardDecor, { backgroundColor: '#FFFFFF15' }]} />
 
-        <View style={styles.tipContainer}>
-          <MaterialCommunityIcons name="lightbulb-outline" size={18} color={Colors.light.textSecondary} />
-          <Text style={styles.tipText}>
-            Installe-toi confortablement, ferme les yeux et suis le rythme.
-          </Text>
-        </View>
+                  <View style={styles.cardIconRow}>
+                    <View style={styles.cardIconCircle}>
+                      <MaterialCommunityIcons name={tech.icon} size={24} color={tech.color} />
+                    </View>
+                  </View>
+
+                  <Text style={styles.cardLabel}>{tech.label}</Text>
+                  <Text style={styles.cardSubtitle}>{tech.subtitle}</Text>
+
+                  <View style={styles.cardTimingRow}>
+                    <MaterialCommunityIcons name="timer-outline" size={13} color="#FFFFFFBB" />
+                    <Text style={styles.cardTiming}>{tech.timing}</Text>
+                  </View>
+
+                  <View style={styles.cardPlayRow}>
+                    <MaterialCommunityIcons name="play-circle" size={28} color="#FFFFFFDD" />
+                  </View>
+                </LinearGradient>
+              </Pressable>
+            ))}
+          </View>
+
+          {/* Tip */}
+          <View style={styles.tipBox}>
+            <LinearGradient
+              colors={['#FFFFFF', '#F8FAFC']}
+              style={StyleSheet.absoluteFill}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+            />
+            <View style={styles.tipIconWrap}>
+              <MaterialCommunityIcons name="lightbulb-on-outline" size={18} color="#F59E0B" />
+            </View>
+            <Text style={styles.tipText}>
+              Installe-toi confortablement, ferme les yeux et suis le rythme.
+            </Text>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
 
-  // Exercise screen
+  // ─── Exercise Screen ──────────────────────────────────────
   const tech = selectedTechnique;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: tech.colorLight }]}>
+      <LinearGradient
+        colors={[tech.colorLight, '#FFFFFF', tech.colorLight]}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+      />
+
       {/* Header */}
-      <View style={styles.header}>
-        <Pressable onPress={goBack} style={styles.backButton}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color={tech.color} />
+      <View style={styles.exHeader}>
+        <Pressable onPress={goBack} style={[styles.backBtn, { backgroundColor: tech.color + '15' }]}>
+          <MaterialCommunityIcons name="arrow-left" size={22} color={tech.color} />
         </Pressable>
-        <View style={styles.headerCenter}>
-          <Text style={[styles.headerTitle, { color: tech.color }]}>{tech.label}</Text>
+        <View style={styles.exHeaderCenter}>
+          <Text style={[styles.exHeaderLabel, { color: tech.color }]}>{tech.label}</Text>
+          <Text style={styles.exHeaderSub}>{tech.subtitle}</Text>
         </View>
-        <View style={{ width: 40 }} />
+        <View style={{ width: 44 }} />
       </View>
 
       {/* Breathing Circle */}
       <View style={styles.circleContainer}>
-        {/* Outer ring */}
+        {/* Outer glow rings */}
+        <Animated.View
+          style={[
+            styles.glowRing3,
+            {
+              borderColor: tech.color + '08',
+              opacity: glowAnim,
+            },
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.glowRing2,
+            {
+              borderColor: tech.color + '12',
+              opacity: glowAnim,
+            },
+          ]}
+        />
         <View style={[styles.outerRing, { borderColor: tech.color + '20' }]}>
           <Animated.View
             style={[
               styles.circle,
               {
-                backgroundColor: tech.color,
                 width: CIRCLE_MAX,
                 height: CIRCLE_MAX,
                 borderRadius: CIRCLE_MAX / 2,
                 opacity: opacityAnim,
                 transform: [{ scale: circleScale }],
+                overflow: 'hidden',
               },
             ]}
           >
+            <LinearGradient
+              colors={tech.gradient}
+              style={StyleSheet.absoluteFill}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            />
             <View style={styles.circleContent}>
               <MaterialCommunityIcons
                 name={PHASE_ICONS[currentPhase]}
-                size={28}
+                size={32}
                 color="#FFFFFF"
               />
               <Text style={styles.phaseLabel}>{PHASE_LABELS[currentPhase]}</Text>
@@ -365,24 +470,27 @@ export default function BreathingScreen() {
         </View>
       </View>
 
-      {/* Rounds counter */}
-      <View style={styles.roundsContainer}>
-        <View style={[styles.roundsBadge, { backgroundColor: tech.color + '20' }]}>
-          <MaterialCommunityIcons name="refresh" size={18} color={tech.color} />
+      {/* Bottom area */}
+      <View style={styles.exBottom}>
+        {/* Rounds */}
+        <View style={[styles.roundsBadge, { backgroundColor: tech.color + '12' }]}>
+          <MaterialCommunityIcons name="repeat" size={16} color={tech.color} />
           <Text style={[styles.roundsText, { color: tech.color }]}>
             {rounds} cycle{rounds !== 1 ? 's' : ''}
           </Text>
         </View>
-      </View>
 
-      {/* Stop button */}
-      <View style={styles.controlsContainer}>
-        <Pressable
-          style={[styles.stopButton, { backgroundColor: tech.color }]}
-          onPress={goBack}
-        >
-          <MaterialCommunityIcons name="stop" size={24} color="#FFFFFF" />
-          <Text style={styles.stopButtonText}>Arrêter</Text>
+        {/* Stop button */}
+        <Pressable onPress={goBack} style={styles.stopBtnWrap}>
+          <LinearGradient
+            colors={tech.gradient}
+            style={styles.stopBtn}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <MaterialCommunityIcons name="stop-circle-outline" size={22} color="#FFFFFF" />
+            <Text style={styles.stopBtnText}>Arrêter</Text>
+          </LinearGradient>
         </Pressable>
       </View>
     </SafeAreaView>
@@ -395,97 +503,163 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F4FF',
   },
 
-  // Header
-  header: {
+  // ─── Selection Screen ───
+  selHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.xs,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.full,
+  backBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.primary,
-  },
-  headerSubtitle: {
-    fontSize: 13,
-    color: Colors.light.textSecondary,
-    marginTop: 2,
-  },
-
-  // Technique selection
-  techniqueList: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    gap: Spacing.md,
-  },
-  techniqueCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.md,
-    borderLeftWidth: 4,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
-    shadowRadius: 4,
-    gap: Spacing.md,
+    shadowRadius: 3,
   },
-  techniqueCardPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.98 }],
+  selContent: {
+    paddingBottom: Spacing.xl,
   },
-  techniqueIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
+
+  // Hero
+  heroSection: {
+    alignItems: 'center',
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+  },
+  heroIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
+    overflow: 'hidden',
+  },
+  heroIconBg: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: Colors.primary,
+    textAlign: 'center',
+    lineHeight: 34,
+    letterSpacing: -0.5,
+  },
+  heroSubtitle: {
+    fontSize: 15,
+    color: Colors.light.textSecondary,
+    textAlign: 'center',
+    marginTop: Spacing.sm,
+    lineHeight: 21,
+  },
+
+  // Grid
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: Spacing.lg,
+    gap: 12,
+  },
+  card: {
+    width: CARD_WIDTH,
+    borderRadius: 20,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+  },
+  cardPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.96 }],
+  },
+  cardGradient: {
+    borderRadius: 20,
+    padding: Spacing.md,
+    paddingTop: 18,
+    paddingBottom: 14,
+    minHeight: 175,
+    overflow: 'hidden',
+  },
+  cardDecor: {
+    position: 'absolute',
+    top: -30,
+    right: -30,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  cardIconRow: {
+    marginBottom: 10,
+  },
+  cardIconCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 13,
+    backgroundColor: '#FFFFFFEE',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  techniqueInfo: {
-    flex: 1,
+  cardLabel: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
   },
-  techniqueName: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: Colors.light.text,
-    marginBottom: 2,
-  },
-  techniqueDesc: {
+  cardSubtitle: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
-    lineHeight: 17,
+    color: '#FFFFFFCC',
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  cardTimingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 8,
+  },
+  cardTiming: {
+    fontSize: 11,
+    color: '#FFFFFFBB',
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  cardPlayRow: {
+    alignItems: 'flex-end',
+    marginTop: 'auto',
+    paddingTop: 6,
   },
 
   // Tip
-  tipContainer: {
+  tipBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
     marginHorizontal: Spacing.lg,
     marginTop: Spacing.xl,
-    padding: Spacing.md,
-    backgroundColor: '#FFFFFF',
-    borderRadius: BorderRadius.lg,
+    padding: 14,
+    borderRadius: 16,
+    gap: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  tipIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: '#FEF3C7',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tipText: {
     flex: 1,
@@ -494,11 +668,48 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 
-  // Exercise screen - circle
+  // ─── Exercise Screen ───
+  exHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.xs,
+  },
+  exHeaderCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  exHeaderLabel: {
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  exHeaderSub: {
+    fontSize: 13,
+    color: Colors.light.textSecondary,
+    marginTop: 1,
+  },
+
+  // Circle
   circleContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  glowRing3: {
+    position: 'absolute',
+    width: CIRCLE_MAX + 80,
+    height: CIRCLE_MAX + 80,
+    borderRadius: (CIRCLE_MAX + 80) / 2,
+    borderWidth: 1.5,
+  },
+  glowRing2: {
+    position: 'absolute',
+    width: CIRCLE_MAX + 48,
+    height: CIRCLE_MAX + 48,
+    borderRadius: (CIRCLE_MAX + 48) / 2,
+    borderWidth: 1.5,
   },
   outerRing: {
     width: CIRCLE_MAX + 24,
@@ -517,55 +728,56 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   phaseLabel: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: '#FFFFFF',
-    marginTop: Spacing.xs,
+    marginTop: 6,
+    letterSpacing: 0.5,
   },
   countdownText: {
-    fontSize: 36,
-    fontWeight: '700',
+    fontSize: 42,
+    fontWeight: '800',
     color: '#FFFFFF',
-    marginTop: Spacing.xs,
+    marginTop: 4,
   },
 
-  // Rounds
-  roundsContainer: {
+  // Bottom
+  exBottom: {
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
+    gap: Spacing.md,
   },
   roundsBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
+    gap: 6,
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    paddingVertical: 10,
     borderRadius: BorderRadius.full,
   },
   roundsText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
   },
-
-  // Controls
-  controlsContainer: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
+  stopBtnWrap: {
+    width: '100%',
+    borderRadius: 16,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
-  stopButton: {
+  stopBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.xl,
+    paddingVertical: 16,
+    borderRadius: 16,
     gap: Spacing.sm,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
   },
-  stopButtonText: {
+  stopBtnText: {
     fontSize: 17,
     fontWeight: '700',
     color: '#FFFFFF',
