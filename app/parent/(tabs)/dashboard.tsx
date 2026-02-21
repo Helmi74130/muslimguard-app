@@ -18,6 +18,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -80,6 +81,24 @@ export default function DashboardScreen() {
     logout();
     router.replace('/');
   }, [switchToChildMode, logout]);
+
+  const handleToggleBrowser = useCallback(async (enabled: boolean) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await StorageService.updateSettings({ browserEnabled: enabled });
+    setData(prev => ({ ...prev, browserEnabled: enabled }));
+  }, []);
+
+  const handleToggleStrict = useCallback(async (enabled: boolean) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await StorageService.updateSettings({ strictModeEnabled: enabled });
+    setData(prev => ({ ...prev, strictMode: enabled }));
+  }, []);
+
+  const handleToggleAutoPause = useCallback(async (enabled: boolean) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await StorageService.updateSettings({ autoPauseDuringPrayer: enabled });
+    setData(prev => ({ ...prev, autoPause: enabled }));
+  }, []);
 
   // Protection level
   const protectionLevel = data.strictMode ? 'high' : data.browserEnabled ? 'medium' : 'high';
@@ -214,6 +233,34 @@ export default function DashboardScreen() {
           </View>
         </View>
 
+        {/* Quick Toggles */}
+        <Text style={styles.sectionTitle}>Contrôles rapides</Text>
+        <Card variant="outlined" style={styles.togglesCard}>
+          <QuickToggle
+            icon="web"
+            label="Navigateur"
+            description="Autoriser ou bloquer l'accès au web"
+            value={data.browserEnabled}
+            onToggle={handleToggleBrowser}
+          />
+          <View style={styles.toggleDivider} />
+          <QuickToggle
+            icon="shield-lock"
+            label="Mode strict"
+            description="Uniquement les sites de la liste blanche"
+            value={data.strictMode}
+            onToggle={handleToggleStrict}
+          />
+          <View style={styles.toggleDivider} />
+          <QuickToggle
+            icon="clock-check"
+            label="Pause prière auto"
+            description="Suspendre le web pendant les prières"
+            value={data.autoPause}
+            onToggle={handleToggleAutoPause}
+          />
+        </Card>
+
         {/* Quick Actions */}
         <Text style={styles.sectionTitle}>Accès rapide</Text>
         <View style={styles.actionsContainer}>
@@ -259,6 +306,27 @@ export default function DashboardScreen() {
               />
             </View>
           </Card>
+          <Card
+            variant="outlined"
+            onPress={() => router.push('/parent/settings/custom-videos')}
+            style={styles.actionCard}
+          >
+            <View style={styles.actionContent}>
+              <View style={styles.actionIconContainer}>
+                <MaterialCommunityIcons
+                  name="video-plus"
+                  size={24}
+                  color={Colors.primary}
+                />
+              </View>
+              <Text style={styles.actionTitle}>Mes vidéos personnalisées</Text>
+              <MaterialCommunityIcons
+                name="chevron-right"
+                size={20}
+                color={Colors.light.textSecondary}
+              />
+            </View>
+          </Card>
         </View>
 
         {/* Return to Child Mode */}
@@ -288,6 +356,40 @@ export default function DashboardScreen() {
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function QuickToggle({
+  icon,
+  label,
+  description,
+  value,
+  onToggle,
+  color = Colors.primary
+}: {
+  icon: string;
+  label: string;
+  description: string;
+  value: boolean;
+  onToggle: (v: boolean) => void;
+  color?: string;
+}) {
+  return (
+    <View style={styles.toggleItem}>
+      <View style={[styles.toggleIconContainer, { backgroundColor: color + '15' }]}>
+        <MaterialCommunityIcons name={icon as any} size={20} color={color} />
+      </View>
+      <View style={styles.toggleContent}>
+        <Text style={styles.toggleLabel}>{label}</Text>
+        <Text style={styles.toggleDescription}>{description}</Text>
+      </View>
+      <Switch
+        value={value}
+        onValueChange={onToggle}
+        trackColor={{ false: Colors.light.border, true: color + '60' }}
+        thumbColor={value ? color : Colors.light.textSecondary}
+      />
+    </View>
   );
 }
 
@@ -549,5 +651,43 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 2,
     fontWeight: '500',
+  },
+
+  // Toggles
+  togglesCard: {
+    padding: 0,
+    marginBottom: Spacing.lg,
+    overflow: 'hidden',
+  },
+  toggleItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    gap: Spacing.md,
+  },
+  toggleIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  toggleContent: {
+    flex: 1,
+  },
+  toggleLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.light.text,
+  },
+  toggleDescription: {
+    fontSize: 11,
+    color: Colors.light.textSecondary,
+    marginTop: 1,
+  },
+  toggleDivider: {
+    height: 1,
+    backgroundColor: Colors.light.border,
+    marginLeft: Spacing.md + 36 + Spacing.md,
   },
 });

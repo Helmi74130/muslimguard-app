@@ -27,13 +27,14 @@ export interface QuizCategory {
   icon: string; // MaterialCommunityIcons name
   color: string;
   colorLight: string;
+  gradient: [string, string];
   questions: QuizQuestion[];
 }
 
-export const DIFFICULTY_CONFIG: Record<QuizDifficulty, { label: string; icon: string; color: string; colorLight: string; timerSeconds: number | null }> = {
-  easy: { label: 'Facile', icon: 'star-outline', color: '#4CAF50', colorLight: '#E8F5E9', timerSeconds: null },
-  normal: { label: 'Normal', icon: 'star-half-full', color: '#FF9800', colorLight: '#FFF3E0', timerSeconds: null },
-  hard: { label: 'Difficile', icon: 'star', color: '#F44336', colorLight: '#FFEBEE', timerSeconds: 15 },
+export const DIFFICULTY_CONFIG: Record<QuizDifficulty, { label: string; icon: string; color: string; colorLight: string; gradient: [string, string]; timerSeconds: number | null }> = {
+  easy: { label: 'Facile', icon: 'star-outline', color: '#4CAF50', colorLight: '#E8F5E9', gradient: ['#4CAF50', '#81C784'], timerSeconds: null },
+  normal: { label: 'Normal', icon: 'star-half-full', color: '#FF9800', colorLight: '#FFF3E0', gradient: ['#FF9800', '#FFB74D'], timerSeconds: null },
+  hard: { label: 'Difficile', icon: 'star', color: '#F44336', colorLight: '#FFEBEE', gradient: ['#F44336', '#E57373'], timerSeconds: 15 },
 };
 
 export const QUIZ_CATEGORIES: QuizCategory[] = [
@@ -43,6 +44,7 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
     icon: 'family-tree',
     color: '#1565C0',
     colorLight: '#E3F2FD',
+    gradient: ['#1565C0', '#42A5F5'],
     questions: [
       // === EASY ===
       {
@@ -209,6 +211,7 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
     icon: 'pillar',
     color: '#2E7D32',
     colorLight: '#E8F5E9',
+    gradient: ['#2E7D32', '#66BB6A'],
     questions: [
       // === EASY ===
       {
@@ -508,6 +511,7 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
     icon: 'book-open-page-variant',
     color: '#6A1B9A',
     colorLight: '#F3E5F5',
+    gradient: ['#6A1B9A', '#AB47BC'],
     questions: [
       // === EASY ===
       {
@@ -604,6 +608,7 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
     icon: 'mosque',
     color: '#E65100',
     colorLight: '#FFF3E0',
+    gradient: ['#E65100', '#FFA726'],
     questions: [
       // === EASY ===
       {
@@ -700,6 +705,7 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
     icon: 'hand-heart',
     color: '#C62828',
     colorLight: '#FFEBEE',
+    gradient: ['#C62828', '#EF5350'],
     questions: [
       // === EASY ===
       {

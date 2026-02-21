@@ -4,22 +4,24 @@
  * Includes Islamic du'as and 7-day history
  */
 
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ScrollView,
-  Animated,
-  Dimensions,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { StorageService } from '@/services/storage.service';
 import { EmotionEntry } from '@/types/storage.types';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Animated,
+  Dimensions,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -31,6 +33,7 @@ interface Emotion {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
   color: string;
   colorLight: string;
+  gradient: [string, string];
   message: string;
   dua: string;
   suggestion?: { label: string; route: string };
@@ -44,6 +47,7 @@ const EMOTIONS: Emotion[] = [
     icon: 'weather-sunny',
     color: '#F59E0B',
     colorLight: '#FEF3C7',
+    gradient: ['#F59E0B', '#FBBF24'],
     message: 'Quel bonheur ! Allah t\'a donné une belle journée.',
     dua: 'Alhamdulillah pour cette joie !',
   },
@@ -54,6 +58,7 @@ const EMOTIONS: Emotion[] = [
     icon: 'weather-partly-cloudy',
     color: '#3B82F6',
     colorLight: '#DBEAFE',
+    gradient: ['#3B82F6', '#60A5FA'],
     message: 'Le calme est une bénédiction d\'Allah.',
     dua: 'Alhamdulillah \'ala kulli hal',
   },
@@ -64,6 +69,7 @@ const EMOTIONS: Emotion[] = [
     icon: 'looks',
     color: '#10B981',
     colorLight: '#D1FAE5',
+    gradient: ['#10B981', '#34D399'],
     message: 'Dire merci à Allah, c\'est la plus belle chose.',
     dua: 'Dis Alhamdulillah 3 fois',
   },
@@ -74,6 +80,7 @@ const EMOTIONS: Emotion[] = [
     icon: 'weather-cloudy',
     color: '#6B7280',
     colorLight: '#F3F4F6',
+    gradient: ['#6B7280', '#9CA3AF'],
     message: 'C\'est normal, chaque jour est différent.',
     dua: 'Chaque jour est un cadeau d\'Allah',
   },
@@ -84,6 +91,7 @@ const EMOTIONS: Emotion[] = [
     icon: 'weather-rainy',
     color: '#6366F1',
     colorLight: '#E0E7FF',
+    gradient: ['#6366F1', '#818CF8'],
     message: 'C\'est ok d\'être triste. Allah est avec toi.',
     dua: '« Après la difficulté vient la facilité » (94:5)',
     suggestion: { label: 'Respirer pour se calmer', route: '/child/breathing' },
@@ -95,6 +103,7 @@ const EMOTIONS: Emotion[] = [
     icon: 'weather-lightning',
     color: '#EF4444',
     colorLight: '#FEE2E2',
+    gradient: ['#EF4444', '#F87171'],
     message: 'La colère vient du Shaytan. Calme-toi doucement.',
     dua: 'A\'oudhou billahi min ash-shaytan ar-rajim',
     suggestion: { label: 'Respirer pour se calmer', route: '/child/breathing' },
@@ -106,6 +115,7 @@ const EMOTIONS: Emotion[] = [
     icon: 'weather-windy',
     color: '#8B5CF6',
     colorLight: '#EDE9FE',
+    gradient: ['#8B5CF6', '#A78BFA'],
     message: 'N\'aie pas peur. Allah veille toujours sur toi.',
     dua: 'Hasbunallahu wa ni\'mal wakeel',
     suggestion: { label: 'Respirer pour se calmer', route: '/child/breathing' },
@@ -117,6 +127,7 @@ const EMOTIONS: Emotion[] = [
     icon: 'weather-snowy',
     color: '#94A3B8',
     colorLight: '#F1F5F9',
+    gradient: ['#94A3B8', '#CBD5E1'],
     message: 'Repose-toi, ton corps a besoin de récupérer.',
     dua: 'Bismika Allahumma amootu wa ahya',
   },
@@ -219,208 +230,258 @@ export default function EmotionsScreen() {
   const hasEntryToday = todayEntries.length > 0;
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
-        </Pressable>
-        <View style={styles.titleRow}>
-          <MaterialCommunityIcons name="weather-partly-cloudy" size={24} color={Colors.primary} />
-          <Text style={styles.title}>Météo des émotions</Text>
-        </View>
-        <View style={styles.backButton} />
-      </View>
-
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Question */}
-        <Text style={styles.question}>Comment te sens-tu aujourd'hui ?</Text>
-        <Text style={styles.subtitle}>Choisis la météo qui te ressemble</Text>
-
-        {/* Emotion Grid */}
-        <View style={styles.emotionGrid}>
-          {EMOTIONS.map((emotion) => {
-            const isSelected = selectedEmotion?.id === emotion.id;
-            return (
-              <Pressable
-                key={emotion.id}
-                style={({ pressed }) => [
-                  styles.emotionCard,
-                  { borderColor: isSelected ? emotion.color : 'transparent' },
-                  isSelected && { backgroundColor: emotion.colorLight },
-                  pressed && styles.cardPressed,
-                ]}
-                onPress={() => handleSelect(emotion)}
-              >
-                <View style={[styles.emotionIconBg, { backgroundColor: emotion.colorLight }]}>
-                  <MaterialCommunityIcons
-                    name={emotion.icon}
-                    size={32}
-                    color={emotion.color}
-                  />
-                </View>
-                <Text style={[
-                  styles.emotionLabel,
-                  isSelected && { color: emotion.color, fontWeight: '700' },
-                ]} numberOfLines={1}>
-                  {emotion.label}
-                </Text>
-                <Text style={styles.weatherLabel} numberOfLines={1}>{emotion.weather}</Text>
-              </Pressable>
-            );
-          })}
+    <LinearGradient
+      colors={['#F8FAFF', '#E0E7FF']}
+      style={styles.container}
+    >
+      <SafeAreaView style={{ flex: 1 }}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Pressable
+            style={({ pressed }) => [styles.backButton, pressed && styles.cardPressed]}
+            onPress={() => router.back()}
+          >
+            <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
+          </Pressable>
+          <View style={styles.titleRow}>
+            <MaterialCommunityIcons name="weather-partly-cloudy" size={24} color={Colors.primary} />
+            <Text style={styles.title}>Météo des émotions</Text>
+          </View>
+          <View style={styles.headerRight} />
         </View>
 
-        {/* Selected Emotion Feedback */}
-        {selectedEmotion && (
-          <Animated.View style={[
-            styles.feedbackCard,
-            { backgroundColor: selectedEmotion.colorLight, borderColor: selectedEmotion.color + '40' },
-            { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
-          ]}>
-            <MaterialCommunityIcons
-              name={selectedEmotion.icon}
-              size={44}
-              color={selectedEmotion.color}
-              style={styles.feedbackIcon}
-            />
-            <Text style={[styles.feedbackMessage, { color: selectedEmotion.color }]}>
-              {selectedEmotion.message}
-            </Text>
-            <View style={styles.duaContainer}>
-              <MaterialCommunityIcons name="star-four-points" size={14} color={selectedEmotion.color} />
-              <Text style={[styles.duaText, { color: selectedEmotion.color }]}>
-                {selectedEmotion.dua}
-              </Text>
-            </View>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Question */}
+          <Text style={styles.question}>Comment te sens-tu aujourd'hui ?</Text>
+          <Text style={styles.subtitle}>Choisis la météo qui te ressemble</Text>
 
-            {/* Suggestion link */}
-            {selectedEmotion.suggestion && (
-              <Pressable
-                style={[styles.suggestionButton, { backgroundColor: selectedEmotion.color + '20' }]}
-                onPress={() => router.push(selectedEmotion.suggestion!.route as any)}
-              >
-                <MaterialCommunityIcons name="lungs" size={18} color={selectedEmotion.color} />
-                <Text style={[styles.suggestionText, { color: selectedEmotion.color }]}>
-                  {selectedEmotion.suggestion.label}
-                </Text>
-                <MaterialCommunityIcons name="chevron-right" size={18} color={selectedEmotion.color} />
-              </Pressable>
-            )}
-
-            {/* Save button */}
-            {!justSaved ? (
-              <Pressable
-                style={[styles.saveButton, { backgroundColor: selectedEmotion.color }]}
-                onPress={handleSave}
-              >
-                <MaterialCommunityIcons name="check" size={20} color="#FFFFFF" />
-                <Text style={styles.saveButtonText}>C'est noté !</Text>
-              </Pressable>
-            ) : (
-              <View style={styles.savedConfirm}>
-                <MaterialCommunityIcons name="check-circle" size={22} color={selectedEmotion.color} />
-                <Text style={[styles.savedText, { color: selectedEmotion.color }]}>
-                  Enregistré ! Bravo d'avoir partagé.
-                </Text>
-              </View>
-            )}
-          </Animated.View>
-        )}
-
-        {/* 7-Day History */}
-        <View style={styles.historySection}>
-          <Text style={styles.historyTitle}>Ma semaine</Text>
-          <View style={styles.historyRow}>
-            {last7Days.map((dayKey) => {
-              const dayEntries = historyByDay.get(dayKey) || [];
-              const isToday = dayKey === todayKey;
-              const isSelected = selectedDay === dayKey;
-              // Show the last emotion of the day
-              const lastEntry = dayEntries.length > 0 ? dayEntries[0] : null;
-              const emotion = lastEntry ? getEmotionById(lastEntry.emotionId) : null;
-
+          {/* Emotion Grid */}
+          <View style={styles.emotionGrid}>
+            {EMOTIONS.map((emotion) => {
+              const isSelected = selectedEmotion?.id === emotion.id;
               return (
                 <Pressable
-                  key={dayKey}
-                  style={[
-                    styles.historyDay,
-                    isToday && styles.historyDayToday,
-                    isSelected && styles.historyDaySelected,
+                  key={emotion.id}
+                  onPress={() => handleSelect(emotion)}
+                  style={({ pressed }) => [
+                    styles.emotionCardContainer,
+                    pressed && styles.cardPressed,
                   ]}
-                  onPress={() => setSelectedDay(isSelected ? null : dayKey)}
                 >
-                  <Text style={[
-                    styles.historyDayLabel,
-                    isToday && styles.historyDayLabelToday,
-                    isSelected && styles.historyDayLabelSelected,
-                  ]}>
-                    {getShortDay(dayKey)}
-                  </Text>
-                  <View style={[
-                    styles.historyDot,
-                    emotion
-                      ? { backgroundColor: emotion.colorLight, borderColor: emotion.color }
-                      : { backgroundColor: '#F3F4F6', borderColor: '#E5E7EB' },
-                    isSelected && emotion && { borderWidth: 3 },
-                  ]}>
-                    {emotion ? (
-                      <MaterialCommunityIcons
-                        name={emotion.icon}
-                        size={20}
-                        color={emotion.color}
-                      />
-                    ) : (
-                      <MaterialCommunityIcons
-                        name="minus"
-                        size={16}
-                        color="#D1D5DB"
-                      />
-                    )}
-                  </View>
-                  {dayEntries.length > 1 && (
-                    <Text style={styles.historyCount}>x{dayEntries.length}</Text>
+                  {isSelected ? (
+                    <LinearGradient
+                      colors={emotion.gradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={[styles.emotionCard, styles.emotionCardSelected]}
+                    >
+                      <View style={styles.emotionIconBgSelected}>
+                        <MaterialCommunityIcons
+                          name={emotion.icon}
+                          size={32}
+                          color="#FFFFFF"
+                        />
+                      </View>
+                      <Text style={styles.emotionLabelSelected}>
+                        {emotion.label}
+                      </Text>
+                      <Text style={styles.weatherLabelSelected}>{emotion.weather}</Text>
+                    </LinearGradient>
+                  ) : (
+                    <View style={styles.emotionCard}>
+                      <View style={[styles.emotionIconBg, { backgroundColor: emotion.colorLight }]}>
+                        <MaterialCommunityIcons
+                          name={emotion.icon}
+                          size={32}
+                          color={emotion.color}
+                        />
+                      </View>
+                      <Text style={styles.emotionLabel}>
+                        {emotion.label}
+                      </Text>
+                      <Text style={styles.weatherLabel}>{emotion.weather}</Text>
+                    </View>
                   )}
                 </Pressable>
               );
             })}
           </View>
-          {/* Day detail panel */}
-          {selectedDay && (() => {
-            const dayEntries = historyByDay.get(selectedDay) || [];
-            return (
-              <View style={styles.dayDetail}>
-                <Text style={styles.dayDetailTitle}>{formatFullDate(selectedDay)}</Text>
-                {dayEntries.length === 0 ? (
-                  <Text style={styles.dayDetailEmpty}>Aucune émotion enregistrée ce jour</Text>
-                ) : (
-                  dayEntries.map((entry) => {
-                    const emo = getEmotionById(entry.emotionId);
-                    if (!emo) return null;
-                    return (
-                      <View key={entry.id} style={[styles.dayDetailRow, { backgroundColor: emo.colorLight }]}>
-                        <MaterialCommunityIcons name={emo.icon} size={22} color={emo.color} />
-                        <Text style={[styles.dayDetailEmotion, { color: emo.color }]}>{emo.label}</Text>
-                        <Text style={styles.dayDetailTime}>{formatTime(entry.timestamp)}</Text>
-                      </View>
-                    );
-                  })
+
+          {/* Selected Emotion Feedback */}
+          {selectedEmotion && (
+            <Animated.View style={[
+              styles.feedbackCardContainer,
+              { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
+            ]}>
+              <LinearGradient
+                colors={[selectedEmotion.colorLight, '#FFFFFF']}
+                style={styles.feedbackCard}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+              >
+                <MaterialCommunityIcons
+                  name={selectedEmotion.icon}
+                  size={48}
+                  color={selectedEmotion.color}
+                  style={styles.feedbackIcon}
+                />
+                <Text style={[styles.feedbackMessage, { color: selectedEmotion.color }]}>
+                  {selectedEmotion.message}
+                </Text>
+
+                <View style={[styles.duaContainer, { borderColor: selectedEmotion.color + '30', borderWidth: 1 }]}>
+                  <MaterialCommunityIcons name="star-four-points" size={14} color={selectedEmotion.color} />
+                  <Text style={[styles.duaText, { color: selectedEmotion.color }]}>
+                    {selectedEmotion.dua}
+                  </Text>
+                </View>
+
+                {/* Suggestion link */}
+                {selectedEmotion.suggestion && (
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.suggestionButton,
+                      { backgroundColor: selectedEmotion.color + '15' },
+                      pressed && { opacity: 0.7 }
+                    ]}
+                    onPress={() => router.push(selectedEmotion.suggestion!.route as any)}
+                  >
+                    <MaterialCommunityIcons name="heart-flash" size={18} color={selectedEmotion.color} />
+                    <Text style={[styles.suggestionText, { color: selectedEmotion.color }]}>
+                      {selectedEmotion.suggestion.label}
+                    </Text>
+                    <MaterialCommunityIcons name="chevron-right" size={18} color={selectedEmotion.color} />
+                  </Pressable>
                 )}
-              </View>
-            );
-          })()}
-          {!hasEntryToday && !selectedEmotion && !selectedDay && (
-            <Text style={styles.historyHint}>
-              Tu n'as pas encore partagé ton émotion aujourd'hui
-            </Text>
+
+                {/* Save button */}
+                {!justSaved ? (
+                  <Pressable
+                    onPress={handleSave}
+                    style={({ pressed }) => [
+                      styles.saveButtonContainer,
+                      pressed && styles.cardPressed
+                    ]}
+                  >
+                    <LinearGradient
+                      colors={selectedEmotion.gradient}
+                      style={styles.saveButton}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                    >
+                      <MaterialCommunityIcons name="check-circle-outline" size={24} color="#FFFFFF" />
+                      <Text style={styles.saveButtonText}>Valider cette émotion</Text>
+                    </LinearGradient>
+                  </Pressable>
+                ) : (
+                  <View style={styles.savedConfirm}>
+                    <MaterialCommunityIcons name="check-decagram" size={28} color={selectedEmotion.color} />
+                    <View>
+                      <Text style={[styles.savedText, { color: selectedEmotion.color }]}>
+                        C'est enregistré !
+                      </Text>
+                      <Text style={styles.savedSubtext}>Excellent choix d'avoir partagé.</Text>
+                    </View>
+                  </View>
+                )}
+              </LinearGradient>
+            </Animated.View>
           )}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+
+          {/* 7-Day History */}
+          <View style={styles.historySection}>
+            <Text style={styles.historyTitle}>Ma semaine</Text>
+            <View style={styles.historyRow}>
+              {last7Days.map((dayKey) => {
+                const dayEntries = historyByDay.get(dayKey) || [];
+                const isToday = dayKey === todayKey;
+                const isSelected = selectedDay === dayKey;
+                // Show the last emotion of the day
+                const lastEntry = dayEntries.length > 0 ? dayEntries[0] : null;
+                const emotion = lastEntry ? getEmotionById(lastEntry.emotionId) : null;
+
+                return (
+                  <Pressable
+                    key={dayKey}
+                    style={[
+                      styles.historyDay,
+                      isToday && styles.historyDayToday,
+                      isSelected && styles.historyDaySelected,
+                    ]}
+                    onPress={() => setSelectedDay(isSelected ? null : dayKey)}
+                  >
+                    <Text style={[
+                      styles.historyDayLabel,
+                      isToday && styles.historyDayLabelToday,
+                      isSelected && styles.historyDayLabelSelected,
+                    ]}>
+                      {getShortDay(dayKey)}
+                    </Text>
+                    <View style={[
+                      styles.historyDot,
+                      emotion
+                        ? { backgroundColor: emotion.colorLight, borderColor: emotion.color }
+                        : { backgroundColor: '#F3F4F6', borderColor: '#E5E7EB' },
+                      isSelected && emotion && { borderWidth: 3 },
+                    ]}>
+                      {emotion ? (
+                        <MaterialCommunityIcons
+                          name={emotion.icon}
+                          size={20}
+                          color={emotion.color}
+                        />
+                      ) : (
+                        <MaterialCommunityIcons
+                          name="minus"
+                          size={16}
+                          color="#D1D5DB"
+                        />
+                      )}
+                    </View>
+                    {dayEntries.length > 1 && (
+                      <Text style={styles.historyCount}>x{dayEntries.length}</Text>
+                    )}
+                  </Pressable>
+                );
+              })}
+            </View>
+            {/* Day detail panel */}
+            {selectedDay && (() => {
+              const dayEntries = historyByDay.get(selectedDay) || [];
+              return (
+                <View style={styles.dayDetail}>
+                  <Text style={styles.dayDetailTitle}>{formatFullDate(selectedDay)}</Text>
+                  {dayEntries.length === 0 ? (
+                    <Text style={styles.dayDetailEmpty}>Aucune émotion enregistrée ce jour</Text>
+                  ) : (
+                    dayEntries.map((entry) => {
+                      const emo = getEmotionById(entry.emotionId);
+                      if (!emo) return null;
+                      return (
+                        <View key={entry.id} style={[styles.dayDetailRow, { backgroundColor: emo.colorLight }]}>
+                          <MaterialCommunityIcons name={emo.icon} size={22} color={emo.color} />
+                          <Text style={[styles.dayDetailEmotion, { color: emo.color }]}>{emo.label}</Text>
+                          <Text style={styles.dayDetailTime}>{formatTime(entry.timestamp)}</Text>
+                        </View>
+                      );
+                    })
+                  )}
+                </View>
+              );
+            })()}
+            {!hasEntryToday && !selectedEmotion && !selectedDay && (
+              <Text style={styles.historyHint}>
+                Tu n'as pas encore partagé ton émotion aujourd'hui
+              </Text>
+            )}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
@@ -429,7 +490,6 @@ const CARD_WIDTH = (SCREEN_WIDTH - Spacing.lg * 2 - Spacing.sm * 3) / 4;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFF',
   },
   header: {
     flexDirection: 'row',
@@ -438,6 +498,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
   },
+  headerRight: {
+    width: 40,
+  },
   backButton: {
     width: 40,
     height: 40,
@@ -445,6 +508,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   titleRow: {
     flexDirection: 'row',
@@ -465,18 +533,19 @@ const styles = StyleSheet.create({
 
   // Question
   question: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: Colors.light.text,
+    fontSize: 24,
+    fontWeight: '800',
+    color: Colors.primary,
     textAlign: 'center',
-    marginTop: Spacing.sm,
+    marginTop: Spacing.md,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 15,
     color: Colors.light.textSecondary,
     textAlign: 'center',
-    marginTop: 4,
-    marginBottom: Spacing.lg,
+    marginTop: 6,
+    marginBottom: Spacing.xl,
+    paddingHorizontal: Spacing.md,
   },
 
   // Emotion Grid
@@ -486,23 +555,29 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     justifyContent: 'center',
   },
-  emotionCard: {
+  emotionCardContainer: {
     width: CARD_WIDTH,
+  },
+  emotionCard: {
+    width: '100%',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 4,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    borderRadius: BorderRadius.xl,
     backgroundColor: '#FFFFFF',
-    elevation: 1,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+  },
+  emotionCardSelected: {
+    elevation: 6,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
   cardPressed: {
-    opacity: 0.8,
+    opacity: 0.9,
     transform: [{ scale: 0.95 }],
   },
   emotionIconBg: {
@@ -511,7 +586,16 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
+  },
+  emotionIconBgSelected: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   emotionLabel: {
     fontSize: 12,
@@ -519,171 +603,226 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
     textAlign: 'center',
   },
+  emotionLabelSelected: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
   weatherLabel: {
     fontSize: 10,
     color: Colors.light.textSecondary,
     textAlign: 'center',
-    marginTop: 1,
+    marginTop: 2,
+  },
+  weatherLabelSelected: {
+    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.9)',
+    textAlign: 'center',
+    marginTop: 2,
+    fontWeight: '500',
   },
 
   // Feedback Card
+  feedbackCardContainer: {
+    marginTop: Spacing.xl,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    borderRadius: 24,
+    overflow: Platform.OS === 'android' ? 'hidden' : 'visible',
+  },
   feedbackCard: {
-    marginTop: Spacing.lg,
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.xl,
-    borderWidth: 1,
+    padding: Spacing.xl,
+    borderRadius: 24,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   feedbackIcon: {
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   feedbackMessage: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
     textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: Spacing.sm,
+    lineHeight: 26,
+    marginBottom: Spacing.md,
   },
   duaContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
+    gap: 8,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    marginBottom: Spacing.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: Spacing.xl,
   },
   duaText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     fontStyle: 'italic',
   },
   suggestionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
-    paddingVertical: 10,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.md,
+    gap: Spacing.sm,
+    paddingVertical: 14,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    marginBottom: Spacing.xl,
+    width: '100%',
   },
   suggestionText: {
     flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  saveButtonContainer: {
+    width: '100%',
+    borderRadius: BorderRadius.full,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   saveButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
-    paddingVertical: 12,
-    paddingHorizontal: Spacing.xl,
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    paddingVertical: 16,
     borderRadius: BorderRadius.full,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
   },
   saveButtonText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   savedConfirm: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
+    gap: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   savedText: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  savedSubtext: {
     fontSize: 14,
-    fontWeight: '600',
+    color: Colors.light.textSecondary,
+    fontWeight: '500',
   },
 
   // History
   historySection: {
-    marginTop: Spacing.xl,
+    marginTop: Spacing.xxl,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    padding: Spacing.lg,
+    borderRadius: 24,
   },
   historyTitle: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
     color: Colors.primary,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   historyRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 4,
+    gap: 6,
   },
   historyDay: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.xl,
   },
   historyDayToday: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
   },
   historyDayLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     color: Colors.light.textSecondary,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   historyDayLabelToday: {
     color: Colors.primary,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   historyDot: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     borderWidth: 2,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   historyCount: {
     fontSize: 10,
-    fontWeight: '600',
-    color: Colors.light.textSecondary,
-    marginTop: 2,
+    fontWeight: '700',
+    color: Colors.primary,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 4,
+    borderRadius: 6,
+    marginTop: -8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   historyHint: {
-    fontSize: 13,
+    fontSize: 14,
     color: Colors.light.textSecondary,
     textAlign: 'center',
-    marginTop: Spacing.md,
+    marginTop: Spacing.lg,
     fontStyle: 'italic',
+    fontWeight: '500',
   },
   historyDaySelected: {
-    backgroundColor: '#DBEAFE',
-    borderRadius: BorderRadius.lg,
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
   },
   historyDayLabelSelected: {
     color: Colors.primary,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 
   // Day detail panel
   dayDetail: {
-    marginTop: Spacing.md,
-    padding: Spacing.md,
+    marginTop: Spacing.lg,
+    padding: Spacing.lg,
     backgroundColor: '#FFFFFF',
     borderRadius: BorderRadius.xl,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    gap: Spacing.sm,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    gap: Spacing.md,
   },
   dayDetailTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
     color: Colors.primary,
     textAlign: 'center',
     marginBottom: 4,
   },
   dayDetailEmpty: {
-    fontSize: 13,
+    fontSize: 14,
     color: Colors.light.textSecondary,
     textAlign: 'center',
     fontStyle: 'italic',
@@ -691,19 +830,19 @@ const styles = StyleSheet.create({
   dayDetailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
-    paddingVertical: 10,
-    paddingHorizontal: Spacing.md,
+    gap: Spacing.md,
+    paddingVertical: 12,
+    paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.lg,
   },
   dayDetailEmotion: {
     flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
   },
   dayDetailTime: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.light.textSecondary,
   },
 });

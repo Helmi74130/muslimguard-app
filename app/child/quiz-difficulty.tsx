@@ -3,20 +3,21 @@
  * Kid-friendly difficulty picker with scores per level
  */
 
-import React, { useState, useCallback } from 'react';
+import { DIFFICULTY_CONFIG, QUIZ_CATEGORIES, QuizDifficulty } from '@/constants/quiz-data';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { StorageService } from '@/services/storage.service';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
-import { QUIZ_CATEGORIES, DIFFICULTY_CONFIG, QuizDifficulty } from '@/constants/quiz-data';
-import { StorageService } from '@/services/storage.service';
 
 const DIFFICULTIES: QuizDifficulty[] = ['easy', 'normal', 'hard'];
 
@@ -54,88 +55,102 @@ export default function QuizDifficultyScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
-        </Pressable>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>{category.label}</Text>
-          <Text style={styles.headerSubtitle}>Choisis ton niveau</Text>
+    <LinearGradient
+      colors={['#F0F4FF', '#E0E7FF']}
+      style={styles.container}
+    >
+      <SafeAreaView style={{ flex: 1 }}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
+          </Pressable>
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle}>{category.label}</Text>
+            <Text style={styles.headerSubtitle}>Choisis ton niveau</Text>
+          </View>
+          <View style={{ width: 40 }} />
         </View>
-        <View style={{ width: 40 }} />
-      </View>
 
-      {/* Category icon */}
-      <View style={styles.categoryIconContainer}>
-        <View style={[styles.categoryIconCircle, { backgroundColor: category.colorLight }]}>
-          <MaterialCommunityIcons name={category.icon as any} size={48} color={category.color} />
+        {/* Category icon */}
+        <View style={styles.categoryIconContainer}>
+          <LinearGradient
+            colors={category.gradient}
+            style={styles.categoryIconCircle}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <MaterialCommunityIcons name={category.icon as any} size={48} color="#FFFFFF" />
+          </LinearGradient>
         </View>
-      </View>
 
-      {/* Difficulty cards */}
-      <View style={styles.content}>
-        {DIFFICULTIES.map((diff) => {
-          const config = DIFFICULTY_CONFIG[diff];
-          const questionsCount = category.questions.filter(q => q.difficulty === diff).length;
-          const scoreKey = `${categoryId}_${diff}`;
-          const bestScore = scores[scoreKey] || 0;
-          const stars = getStars(bestScore);
-          const hasPlayed = bestScore > 0;
+        {/* Difficulty cards */}
+        <View style={styles.content}>
+          {DIFFICULTIES.map((diff) => {
+            const config = DIFFICULTY_CONFIG[diff];
+            const questionsCount = category.questions.filter(q => q.difficulty === diff).length;
+            const scoreKey = `${categoryId}_${diff}`;
+            const bestScore = scores[scoreKey] || 0;
+            const stars = getStars(bestScore);
+            const hasPlayed = bestScore > 0;
 
-          return (
-            <Pressable
-              key={diff}
-              style={({ pressed }) => [
-                styles.difficultyCard,
-                pressed && styles.difficultyCardPressed,
-                { borderLeftColor: config.color, borderLeftWidth: 4 },
-              ]}
-              onPress={() => router.push(`/child/quiz-play?categoryId=${categoryId}&difficulty=${diff}` as any)}
-            >
-              {/* Icon */}
-              <View style={[styles.diffIcon, { backgroundColor: config.colorLight }]}>
-                <MaterialCommunityIcons name={config.icon as any} size={28} color={config.color} />
-              </View>
+            return (
+              <Pressable
+                key={diff}
+                style={({ pressed }) => [
+                  styles.difficultyCard,
+                  pressed && styles.difficultyCardPressed,
+                  { borderLeftColor: config.color, borderLeftWidth: 4 },
+                ]}
+                onPress={() => router.push(`/child/quiz-play?categoryId=${categoryId}&difficulty=${diff}` as any)}
+              >
+                {/* Icon */}
+                <LinearGradient
+                  colors={config.gradient}
+                  style={styles.diffIcon}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <MaterialCommunityIcons name={config.icon as any} size={28} color="#FFFFFF" />
+                </LinearGradient>
 
-              {/* Info */}
-              <View style={styles.diffInfo}>
-                <Text style={styles.diffLabel}>{config.label}</Text>
-                <Text style={styles.diffCount}>
-                  {questionsCount} question{questionsCount > 1 ? 's' : ''}
-                  {diff === 'hard' ? ' • ⏱ 15s' : ''}
-                </Text>
-                {/* Stars */}
-                {hasPlayed && (
-                  <View style={styles.starsRow}>
-                    {[1, 2, 3].map((i) => (
-                      <MaterialCommunityIcons
-                        key={i}
-                        name={i <= stars ? 'star' : 'star-outline'}
-                        size={16}
-                        color={i <= stars ? '#FBBF24' : '#D1D5DB'}
-                      />
-                    ))}
-                    <Text style={styles.scoreText}>{bestScore}%</Text>
-                  </View>
-                )}
-              </View>
+                {/* Info */}
+                <View style={styles.diffInfo}>
+                  <Text style={styles.diffLabel}>{config.label}</Text>
+                  <Text style={styles.diffCount}>
+                    {questionsCount} question{questionsCount > 1 ? 's' : ''}
+                    {diff === 'hard' ? ' • ⏱ 15s' : ''}
+                  </Text>
+                  {/* Stars */}
+                  {hasPlayed && (
+                    <View style={styles.starsRow}>
+                      {[1, 2, 3].map((i) => (
+                        <MaterialCommunityIcons
+                          key={i}
+                          name={i <= stars ? 'star' : 'star-outline'}
+                          size={16}
+                          color={i <= stars ? '#FBBF24' : '#D1D5DB'}
+                        />
+                      ))}
+                      <Text style={styles.scoreText}>{bestScore}%</Text>
+                    </View>
+                  )}
+                </View>
 
-              {/* Arrow */}
-              <MaterialCommunityIcons name="chevron-right" size={24} color={Colors.light.textSecondary} />
-            </Pressable>
-          );
-        })}
-      </View>
-    </SafeAreaView>
+                {/* Arrow */}
+                <MaterialCommunityIcons name="chevron-right" size={24} color={Colors.light.textSecondary} />
+              </Pressable>
+            );
+          })}
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F0F4FF',
   },
   emptyContainer: {
     flex: 1,
@@ -200,11 +215,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: BorderRadius.xl,
     padding: Spacing.md,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+    elevation: 4,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   difficultyCardPressed: {
     opacity: 0.8,

@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -172,6 +173,13 @@ export default function BreathingScreen() {
     return new Promise((resolve) => {
       phaseRef.current = phase;
       setCurrentPhase(phase);
+
+      // Haptic feedback at each phase transition
+      const hapticStyle =
+        phase === 'inhale' || phase === 'exhale'
+          ? Haptics.ImpactFeedbackStyle.Light
+          : Haptics.ImpactFeedbackStyle.Medium;
+      Haptics.impactAsync(hapticStyle);
 
       const totalSeconds = Math.round(duration / 1000);
       setCountdown(totalSeconds);

@@ -31,7 +31,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import YoutubeIframe from 'react-native-youtube-iframe';
 
 const t = translations.videos;
-const SCREEN_WIDTH = Dimensions.get('window').width;
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const PLAYER_HEIGHT = (SCREEN_WIDTH - Spacing.lg * 2) * (9 / 16); // 16:9 ratio
 const THUMB_WIDTH = (SCREEN_WIDTH - Spacing.lg * 2 - Spacing.md) / 2;
 
@@ -51,6 +51,10 @@ export default function VideosScreen() {
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const scrollRef = useRef<ScrollView>(null);
   const [playerReady, setPlayerReady] = useState(false);
+  const playerRef = useRef<any>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const progressBarWidth = useRef(0);
 
   // Helper to generate a stable negative ID from a string
   const getStableId = (str: string): number => {
@@ -191,6 +195,8 @@ export default function VideosScreen() {
 
   const playVideo = (video: Video) => {
     setPlayerReady(false);
+    setCurrentTime(0);
+    setDuration(0);
     setActiveVideo(video);
     setPlaying(true);
     scrollRef.current?.scrollTo({ y: 0, animated: true });
@@ -201,11 +207,23 @@ export default function VideosScreen() {
 
   const onPlayerReady = useCallback(() => {
     setPlayerReady(true);
+    setTimeout(async () => {
+      if (playerRef.current) {
+        try {
+          const dur = await playerRef.current.getDuration();
+          if (dur > 0) setDuration(dur);
+        } catch {}
+      }
+    }, 500);
   }, []);
 
   const onPlayerStateChange = useCallback((state: string) => {
     if (state === 'ended') {
       setPlaying(false);
+    } else if (state === 'paused') {
+      setPlaying(false);
+    } else if (state === 'playing') {
+      setPlaying(true);
     }
   }, []);
 
@@ -233,6 +251,28 @@ export default function VideosScreen() {
         enforceMute();
       })(); true;`
     : undefined;
+
+  // Poll current time from YouTube player
+  useEffect(() => {
+    if (!playing || !playerReady) return;
+    const interval = setInterval(async () => {
+      if (playerRef.current) {
+        try {
+          const time = await playerRef.current.getCurrentTime();
+          setCurrentTime(time);
+          const dur = await playerRef.current.getDuration();
+          if (dur > 0) setDuration(dur);
+        } catch {}
+      }
+    }, 500);
+    return () => clearInterval(interval);
+  }, [playing, playerReady]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // Videos in the same category as active video (excluding the active one)
   const suggestedVideos = activeVideo
@@ -470,6 +510,7 @@ export default function VideosScreen() {
             <View style={styles.playerWrapper}>
               <YoutubeIframe
                 key={activeVideo.id}
+                ref={playerRef}
                 videoId={activeVideo.youtubeId}
                 height={PLAYER_HEIGHT}
                 play={playerReady ? playing : false}
@@ -486,14 +527,52 @@ export default function VideosScreen() {
                 initialPlayerParams={{
                   rel: false,
                   modestbranding: true,
-                  controls: true,
+                  controls: false,
                   fs: false,
                 }}
               />
-              {/* Overlay to block YouTube logo (top-right of player) */}
-              <View style={styles.youtubeBlockerTopRight} pointerEvents="box-only" />
-              {/* Overlay to block YouTube watermark (bottom-right of player) */}
-              <View style={styles.youtubeBlockerBottomRight} pointerEvents="box-only" />
+              {/* Overlay to block YouTube links at top (logo/title) */}
+              <View style={styles.overlayTop} pointerEvents="box-only" />
+              {/* Overlay to block YouTube links at bottom (watermark) */}
+              <View style={styles.overlayBottom} pointerEvents="box-only" />
+              {/* Custom controls bar */}
+              <View style={styles.controlsBar}>
+                <Pressable
+                  onPress={() => setPlaying(prev => !prev)}
+                  style={styles.playPauseBtn}
+                >
+                  <MaterialCommunityIcons
+                    name={playing ? 'pause' : 'play'}
+                    size={22}
+                    color="#FFFFFF"
+                  />
+                </Pressable>
+                <Text style={styles.timeText}>{formatTime(currentTime)}</Text>
+                <Pressable
+                  style={styles.progressBarContainer}
+                  onLayout={(e) => { progressBarWidth.current = e.nativeEvent.layout.width; }}
+                  onPress={(e) => {
+                    if (duration > 0 && progressBarWidth.current > 0) {
+                      const seekTime = (e.nativeEvent.locationX / progressBarWidth.current) * duration;
+                      playerRef.current?.seekTo(seekTime, true);
+                      setCurrentTime(seekTime);
+                    }
+                  }}
+                >
+                  <View style={styles.progressBarBg}>
+                    <View
+                      style={[
+                        styles.progressBarFill,
+                        { width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` },
+                      ]}
+                    />
+                  </View>
+                </Pressable>
+                <Text style={styles.timeText}>{formatTime(duration)}</Text>
+                {shouldMute && (
+                  <MaterialCommunityIcons name="volume-off" size={16} color={Colors.warning} />
+                )}
+              </View>
             </View>
 
             {/* Now playing info */}
@@ -594,6 +673,7 @@ export default function VideosScreen() {
           }
         />
       )}
+
     </SafeAreaView>
   );
 }
@@ -739,23 +819,62 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 8,
   },
-  // Invisible overlay blocking YouTube logo (top-right corner)
-  youtubeBlockerTopRight: {
+  // Overlays to block YouTube clickable areas (top logo + bottom watermark)
+  overlayTop: {
     position: 'absolute',
     top: 0,
+    left: 0,
     right: 0,
-    width: 120,
-    height: 40,
+    height: 62,
     zIndex: 10,
   },
-  // Invisible overlay blocking YouTube watermark (bottom-right)
-  youtubeBlockerBottomRight: {
+  overlayBottom: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 50,
+    left: 0,
     right: 0,
-    width: 130,
-    height: 50,
+    height: 70,
     zIndex: 10,
+  },
+  // Custom player controls
+  controlsBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    backgroundColor: Colors.primaryDark,
+    gap: Spacing.sm,
+  },
+  playPauseBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  progressBarContainer: {
+    flex: 1,
+    height: 28,
+    justifyContent: 'center',
+  },
+  progressBarBg: {
+    height: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 2,
+  },
+  timeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.85)',
+    minWidth: 36,
+    textAlign: 'center',
   },
   nowPlayingInfo: {
     marginTop: Spacing.md,

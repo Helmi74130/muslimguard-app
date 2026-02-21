@@ -3,13 +3,13 @@
  * Reusable card container with shadow and styling
  */
 
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import React, { ReactNode } from 'react';
-import { View, StyleSheet, ViewStyle, Pressable } from 'react-native';
-import { Colors, BorderRadius, Spacing } from '@/constants/theme';
+import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 interface CardProps {
   children: ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   variant?: 'default' | 'elevated' | 'outlined';
   padding?: 'none' | 'small' | 'medium' | 'large';
   onPress?: () => void;
@@ -33,7 +33,10 @@ export function Card({
     return (
       <Pressable
         style={({ pressed }) => [
-          ...cardStyles,
+          styles.base,
+          styles[`${variant}Variant`],
+          styles[`${padding}Padding`],
+          style,
           pressed && styles.pressed,
         ]}
         onPress={onPress}
@@ -43,7 +46,18 @@ export function Card({
     );
   }
 
-  return <View style={cardStyles}>{children}</View>;
+  return (
+    <View
+      style={[
+        styles.base,
+        styles[`${variant}Variant`],
+        styles[`${padding}Padding`],
+        style,
+      ]}
+    >
+      {children}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({

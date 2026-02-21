@@ -3,18 +3,19 @@
  * Shows score, stars, and replay option
  */
 
+import { DIFFICULTY_CONFIG, QUIZ_CATEGORIES, QuizDifficulty } from '@/constants/quiz-data';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   Pressable,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
-import { QUIZ_CATEGORIES, DIFFICULTY_CONFIG, QuizDifficulty } from '@/constants/quiz-data';
 
 function getStars(score: number, total: number): number {
   const pct = (score / total) * 100;
@@ -59,79 +60,95 @@ export default function QuizResultScreen() {
   const diffConfig = DIFFICULTY_CONFIG[diff];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        {/* Trophy / Icon */}
-        <View style={[styles.iconCircle, { backgroundColor: stars >= 2 ? '#FEF3C7' : '#F1F5F9' }]}>
-          <MaterialCommunityIcons
-            name={getEmoji(stars) as any}
-            size={64}
-            color={stars >= 2 ? '#F59E0B' : Colors.primary}
-          />
-        </View>
-
-        {/* Message */}
-        <Text style={styles.message}>{getMessage(stars)}</Text>
-
-        {/* Score */}
-        <Text style={styles.score}>{score} / {total}</Text>
-        <Text style={styles.percentage}>{percentage}%</Text>
-
-        {/* Stars */}
-        <View style={styles.starsRow}>
-          {[1, 2, 3].map((i) => (
+    <LinearGradient
+      colors={['#F0F4FF', '#E0E7FF']}
+      style={styles.container}
+    >
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={styles.content}>
+          <LinearGradient
+            colors={stars >= 2 ? ['#FEF3C7', '#FDE68A'] : ['#F1F5F9', '#E2E8F0']}
+            style={styles.iconCircle}
+          >
             <MaterialCommunityIcons
-              key={i}
-              name={i <= stars ? 'star' : 'star-outline'}
-              size={48}
-              color={i <= stars ? '#FBBF24' : '#D1D5DB'}
+              name={getEmoji(stars) as any}
+              size={64}
+              color={stars >= 2 ? '#F59E0B' : Colors.primary}
             />
-          ))}
-        </View>
+          </LinearGradient>
 
-        {/* Category + difficulty info */}
-        <View style={styles.badgeRow}>
-          {category && (
-            <View style={[styles.categoryBadge, { backgroundColor: category.colorLight }]}>
-              <MaterialCommunityIcons name={category.icon as any} size={16} color={category.color} />
-              <Text style={[styles.categoryBadgeText, { color: category.color }]}>{category.label}</Text>
+          {/* Message */}
+          <Text style={styles.message}>{getMessage(stars)}</Text>
+
+          {/* Score */}
+          <Text style={styles.score}>{score} / {total}</Text>
+          <Text style={styles.percentage}>{percentage}%</Text>
+
+          {/* Stars */}
+          <View style={styles.starsRow}>
+            {[1, 2, 3].map((i) => (
+              <MaterialCommunityIcons
+                key={i}
+                name={i <= stars ? 'star' : 'star-outline'}
+                size={48}
+                color={i <= stars ? '#FBBF24' : '#D1D5DB'}
+              />
+            ))}
+          </View>
+
+          {/* Category + difficulty info */}
+          <View style={styles.badgeRow}>
+            {category && (
+              <View style={[styles.categoryBadge, { backgroundColor: category.colorLight }]}>
+                <MaterialCommunityIcons name={category.icon as any} size={16} color={category.color} />
+                <Text style={[styles.categoryBadgeText, { color: category.color }]}>{category.label}</Text>
+              </View>
+            )}
+            <View style={[styles.categoryBadge, { backgroundColor: diffConfig.colorLight }]}>
+              <MaterialCommunityIcons name={diffConfig.icon as any} size={14} color={diffConfig.color} />
+              <Text style={[styles.categoryBadgeText, { color: diffConfig.color }]}>{diffConfig.label}</Text>
             </View>
-          )}
-          <View style={[styles.categoryBadge, { backgroundColor: diffConfig.colorLight }]}>
-            <MaterialCommunityIcons name={diffConfig.icon as any} size={14} color={diffConfig.color} />
-            <Text style={[styles.categoryBadgeText, { color: diffConfig.color }]}>{diffConfig.label}</Text>
           </View>
         </View>
-      </View>
 
-      {/* Buttons */}
-      <View style={styles.buttons}>
-        <Pressable
-          style={styles.replayButton}
-          onPress={() => {
-            router.replace(`/child/quiz-play?categoryId=${categoryId}&difficulty=${diff}` as any);
-          }}
-        >
-          <MaterialCommunityIcons name="replay" size={22} color="#FFFFFF" />
-          <Text style={styles.replayButtonText}>Rejouer</Text>
-        </Pressable>
+        {/* Buttons */}
+        <View style={styles.buttons}>
+          <Pressable
+            onPress={() => {
+              router.replace(`/child/quiz-play?categoryId=${categoryId}&difficulty=${diff}` as any);
+            }}
+            style={({ pressed }) => [
+              styles.replayButtonContainer,
+              pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] }
+            ]}
+          >
+            <LinearGradient
+              colors={['#003463', '#1a4d7a']}
+              style={styles.replayButton}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <MaterialCommunityIcons name="replay" size={22} color="#FFFFFF" />
+              <Text style={styles.replayButtonText}>Rejouer</Text>
+            </LinearGradient>
+          </Pressable>
 
-        <Pressable
-          style={styles.backButton}
-          onPress={() => router.replace(`/child/quiz-difficulty?categoryId=${categoryId}` as any)}
-        >
-          <MaterialCommunityIcons name="view-grid" size={20} color={Colors.primary} />
-          <Text style={styles.backButtonText}>Changer de niveau</Text>
-        </Pressable>
-      </View>
-    </SafeAreaView>
+          <Pressable
+            style={styles.backButton}
+            onPress={() => router.replace(`/child/quiz-difficulty?categoryId=${categoryId}` as any)}
+          >
+            <MaterialCommunityIcons name="view-grid" size={20} color={Colors.primary} />
+            <Text style={styles.backButtonText}>Changer de niveau</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F0F4FF',
   },
   content: {
     flex: 1,
@@ -198,24 +215,27 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
     gap: Spacing.sm,
   },
+  replayButtonContainer: {
+    borderRadius: BorderRadius.xl,
+    elevation: 6,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
   replayButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.primary,
     paddingVertical: Spacing.md,
     borderRadius: BorderRadius.xl,
     gap: Spacing.sm,
-    elevation: 3,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
   },
   replayButtonText: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
     color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   backButton: {
     flexDirection: 'row',
@@ -234,3 +254,5 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
 });
+
+

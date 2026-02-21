@@ -3,20 +3,21 @@
  * Kid-friendly quiz gameplay with animated feedback and timer for hard mode
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { DIFFICULTY_CONFIG, QUESTIONS_PER_QUIZ, QUIZ_CATEGORIES, QuizDifficulty, QuizQuestion } from '@/constants/quiz-data';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { StorageService } from '@/services/storage.service';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
   Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
-import { QUIZ_CATEGORIES, QuizQuestion, QUESTIONS_PER_QUIZ, DIFFICULTY_CONFIG, QuizDifficulty } from '@/constants/quiz-data';
-import { StorageService } from '@/services/storage.service';
 
 /** Shuffle array (Fisher-Yates) */
 function shuffle<T>(arr: T[]): T[] {
@@ -97,11 +98,16 @@ export default function QuizPlayScreen() {
 
   if (!category || questions.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Chargement...</Text>
-        </View>
-      </SafeAreaView>
+      <LinearGradient
+        colors={['#F0F4FF', '#E0E7FF']}
+        style={styles.container}
+      >
+        <SafeAreaView style={{ flex: 1 }}>
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Chargement...</Text>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
     );
   }
 
@@ -176,132 +182,141 @@ export default function QuizPlayScreen() {
   const timerColor = timeLeft !== null && timeLeft <= 5 ? Colors.error : diffConfig.color;
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <MaterialCommunityIcons name="close" size={22} color={Colors.light.textSecondary} />
-        </Pressable>
+    <LinearGradient
+      colors={['#F0F4FF', '#E0E7FF']}
+      style={styles.container}
+    >
+      <SafeAreaView style={{ flex: 1 }}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <MaterialCommunityIcons name="close" size={22} color={Colors.light.textSecondary} />
+          </Pressable>
 
-        {/* Progress bar */}
-        <View style={styles.progressBarContainer}>
-          <View style={[styles.progressBar, { width: `${progress * 100}%`, backgroundColor: category.color }]} />
+          {/* Progress bar */}
+          <View style={styles.progressBarContainer}>
+            <LinearGradient
+              colors={category.gradient}
+              style={[styles.progressBar, { width: `${progress * 100}%` }]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            />
+          </View>
+
+          <Text style={styles.progressText}>
+            {currentIndex + 1}/{totalQuestions}
+          </Text>
         </View>
 
-        <Text style={styles.progressText}>
-          {currentIndex + 1}/{totalQuestions}
-        </Text>
-      </View>
-
-      {/* Category + difficulty badge */}
-      <View style={styles.badgeRow}>
-        <View style={[styles.categoryBadge, { backgroundColor: category.colorLight }]}>
-          <MaterialCommunityIcons name={category.icon as any} size={16} color={category.color} />
-          <Text style={[styles.categoryBadgeText, { color: category.color }]}>{category.label}</Text>
+        {/* Category + difficulty badge */}
+        <View style={styles.badgeRow}>
+          <View style={[styles.categoryBadge, { backgroundColor: category.colorLight }]}>
+            <MaterialCommunityIcons name={category.icon as any} size={16} color={category.color} />
+            <Text style={[styles.categoryBadgeText, { color: category.color }]}>{category.label}</Text>
+          </View>
+          <View style={[styles.categoryBadge, { backgroundColor: diffConfig.colorLight }]}>
+            <MaterialCommunityIcons name={diffConfig.icon as any} size={14} color={diffConfig.color} />
+            <Text style={[styles.categoryBadgeText, { color: diffConfig.color }]}>{diffConfig.label}</Text>
+          </View>
         </View>
-        <View style={[styles.categoryBadge, { backgroundColor: diffConfig.colorLight }]}>
-          <MaterialCommunityIcons name={diffConfig.icon as any} size={14} color={diffConfig.color} />
-          <Text style={[styles.categoryBadgeText, { color: diffConfig.color }]}>{diffConfig.label}</Text>
+
+        {/* Timer for hard mode */}
+        {timerSeconds && timeLeft !== null && !showFeedback && (
+          <View style={styles.timerContainer}>
+            <MaterialCommunityIcons name="timer-outline" size={20} color={timerColor} />
+            <Text style={[styles.timerText, { color: timerColor }]}>{timeLeft}s</Text>
+          </View>
+        )}
+
+        {/* Time's up message */}
+        {showFeedback && selectedAnswer === null && (
+          <View style={styles.timesUpContainer}>
+            <MaterialCommunityIcons name="timer-off-outline" size={20} color={Colors.error} />
+            <Text style={styles.timesUpText}>Temps écoulé !</Text>
+          </View>
+        )}
+
+        {/* Question */}
+        <View style={styles.questionContainer}>
+          <Text style={styles.questionText}>{currentQuestion.question}</Text>
         </View>
-      </View>
 
-      {/* Timer for hard mode */}
-      {timerSeconds && timeLeft !== null && !showFeedback && (
-        <View style={styles.timerContainer}>
-          <MaterialCommunityIcons name="timer-outline" size={20} color={timerColor} />
-          <Text style={[styles.timerText, { color: timerColor }]}>{timeLeft}s</Text>
-        </View>
-      )}
-
-      {/* Time's up message */}
-      {showFeedback && selectedAnswer === null && (
-        <View style={styles.timesUpContainer}>
-          <MaterialCommunityIcons name="timer-off-outline" size={20} color={Colors.error} />
-          <Text style={styles.timesUpText}>Temps écoulé !</Text>
-        </View>
-      )}
-
-      {/* Question */}
-      <View style={styles.questionContainer}>
-        <Text style={styles.questionText}>{currentQuestion.question}</Text>
-      </View>
-
-      {/* Choices */}
-      <View style={styles.choicesContainer}>
-        {currentQuestion.choices.map((choice, index) => (
-          <Pressable
-            key={index}
-            style={getChoiceStyle(index)}
-            onPress={() => handleAnswer(index)}
-            disabled={showFeedback}
-          >
-            <View style={[
-              styles.choiceLetter,
-              showFeedback && index === currentQuestion.correctIndex && styles.choiceLetterCorrect,
-              showFeedback && index === selectedAnswer && index !== currentQuestion.correctIndex && styles.choiceLetterWrong,
-            ]}>
-              <Text style={[
-                styles.choiceLetterText,
-                showFeedback && (index === currentQuestion.correctIndex || index === selectedAnswer) && styles.choiceLetterTextHighlight,
+        {/* Choices */}
+        <View style={styles.choicesContainer}>
+          {currentQuestion.choices.map((choice, index) => (
+            <Pressable
+              key={index}
+              style={getChoiceStyle(index)}
+              onPress={() => handleAnswer(index)}
+              disabled={showFeedback}
+            >
+              <View style={[
+                styles.choiceLetter,
+                showFeedback && index === currentQuestion.correctIndex && styles.choiceLetterCorrect,
+                showFeedback && index === selectedAnswer && index !== currentQuestion.correctIndex && styles.choiceLetterWrong,
               ]}>
-                {String.fromCharCode(65 + index)}
+                <Text style={[
+                  styles.choiceLetterText,
+                  showFeedback && (index === currentQuestion.correctIndex || index === selectedAnswer) && styles.choiceLetterTextHighlight,
+                ]}>
+                  {String.fromCharCode(65 + index)}
+                </Text>
+              </View>
+              <Text style={getChoiceTextStyle(index)}>{choice}</Text>
+              {showFeedback && index === currentQuestion.correctIndex && (
+                <MaterialCommunityIcons name="check-circle" size={22} color={Colors.success} style={styles.choiceIcon} />
+              )}
+              {showFeedback && index === selectedAnswer && index !== currentQuestion.correctIndex && (
+                <MaterialCommunityIcons name="close-circle" size={22} color={Colors.error} style={styles.choiceIcon} />
+              )}
+            </Pressable>
+          ))}
+        </View>
+
+        {/* Feedback */}
+        {showFeedback && (
+          <Animated.View style={[
+            styles.feedbackContainer,
+            {
+              opacity: feedbackAnim,
+              transform: [{ translateY: feedbackAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+            },
+          ]}>
+            <View style={styles.feedbackHeader}>
+              <MaterialCommunityIcons
+                name={isCorrect ? 'check-decagram' : 'information'}
+                size={22}
+                color={isCorrect ? Colors.success : Colors.error}
+              />
+              <Text style={[
+                styles.feedbackText,
+                { color: isCorrect ? Colors.success : Colors.error },
+              ]}>
+                {selectedAnswer === null ? 'Temps écoulé !' : isCorrect ? 'Bravo !' : 'Pas tout à fait...'}
               </Text>
             </View>
-            <Text style={getChoiceTextStyle(index)}>{choice}</Text>
-            {showFeedback && index === currentQuestion.correctIndex && (
-              <MaterialCommunityIcons name="check-circle" size={22} color={Colors.success} style={styles.choiceIcon} />
+            {currentQuestion.explanation && (
+              <View style={styles.explanationContainer}>
+                <MaterialCommunityIcons name="lightbulb-outline" size={16} color="#F59E0B" />
+                <Text style={styles.explanationText}>{currentQuestion.explanation}</Text>
+              </View>
             )}
-            {showFeedback && index === selectedAnswer && index !== currentQuestion.correctIndex && (
-              <MaterialCommunityIcons name="close-circle" size={22} color={Colors.error} style={styles.choiceIcon} />
-            )}
-          </Pressable>
-        ))}
-      </View>
+          </Animated.View>
+        )}
 
-      {/* Feedback */}
-      {showFeedback && (
-        <Animated.View style={[
-          styles.feedbackContainer,
-          {
-            opacity: feedbackAnim,
-            transform: [{ translateY: feedbackAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
-          },
-        ]}>
-          <View style={styles.feedbackHeader}>
-            <MaterialCommunityIcons
-              name={isCorrect ? 'check-decagram' : 'information'}
-              size={22}
-              color={isCorrect ? Colors.success : Colors.error}
-            />
-            <Text style={[
-              styles.feedbackText,
-              { color: isCorrect ? Colors.success : Colors.error },
-            ]}>
-              {selectedAnswer === null ? 'Temps écoulé !' : isCorrect ? 'Bravo !' : 'Pas tout à fait...'}
-            </Text>
-          </View>
-          {currentQuestion.explanation && (
-            <View style={styles.explanationContainer}>
-              <MaterialCommunityIcons name="lightbulb-outline" size={16} color="#F59E0B" />
-              <Text style={styles.explanationText}>{currentQuestion.explanation}</Text>
-            </View>
-          )}
-        </Animated.View>
-      )}
-
-      {/* Score */}
-      <View style={styles.scoreContainer}>
-        <MaterialCommunityIcons name="star" size={18} color="#FBBF24" />
-        <Text style={styles.scoreText}>{score} point{score > 1 ? 's' : ''}</Text>
-      </View>
-    </SafeAreaView>
+        {/* Score */}
+        <View style={styles.scoreContainer}>
+          <MaterialCommunityIcons name="star" size={18} color="#FBBF24" />
+          <Text style={styles.scoreText}>{score} point{score > 1 ? 's' : ''}</Text>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F0F4FF',
   },
   emptyContainer: {
     flex: 1,
@@ -400,8 +415,8 @@ const styles = StyleSheet.create({
   },
   questionText: {
     fontSize: 22,
-    fontWeight: '700',
-    color: Colors.light.text,
+    fontWeight: '800',
+    color: Colors.primary,
     textAlign: 'center',
     lineHeight: 30,
   },
@@ -431,6 +446,7 @@ const styles = StyleSheet.create({
   choiceWrong: {
     backgroundColor: '#FEE2E2',
     borderColor: Colors.error,
+    elevation: 0,
   },
   choiceDisabled: {
     opacity: 0.5,
