@@ -1,7 +1,6 @@
 /**
  * Blocklist Settings Screen - MuslimGuard
- * Category-based blocking with custom parent items
- * Parents see categories with toggle, never the raw keyword/domain lists
+ * Category-based blocking with collapsible sections
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -15,6 +14,9 @@ import {
   Keyboard,
   Switch,
   ScrollView,
+  LayoutAnimation,
+  UIManager,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -27,6 +29,11 @@ import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 import { translations } from '@/constants/translations';
 import type { BlockCategoryId } from '@/constants/default-blocklist';
 import type { ContentFilterMode } from '@/types/storage.types';
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const t = translations.blocklist;
 
@@ -42,6 +49,64 @@ interface CategorySummary {
   enabled: boolean;
 }
 
+// Collapsible section component
+function CollapsibleSection({
+  title,
+  subtitle,
+  icon,
+  expanded,
+  onToggle,
+  badge,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  icon: string;
+  expanded: boolean;
+  onToggle: () => void;
+  badge?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <View style={styles.collapsibleSection}>
+      <TouchableOpacity
+        style={styles.collapsibleHeader}
+        onPress={onToggle}
+        activeOpacity={0.7}
+      >
+        <View style={styles.collapsibleIconContainer}>
+          <MaterialCommunityIcons
+            name={icon as any}
+            size={20}
+            color={Colors.primary}
+          />
+        </View>
+        <View style={styles.collapsibleTextContainer}>
+          <View style={styles.collapsibleTitleRow}>
+            <Text style={styles.collapsibleTitle}>{title}</Text>
+            {badge && (
+              <View style={styles.collapsibleBadge}>
+                <Text style={styles.collapsibleBadgeText}>{badge}</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.collapsibleSubtitle}>{subtitle}</Text>
+        </View>
+        <MaterialCommunityIcons
+          name={expanded ? 'chevron-up' : 'chevron-down'}
+          size={24}
+          color={Colors.light.textSecondary}
+        />
+      </TouchableOpacity>
+      {expanded && (
+        <View style={styles.collapsibleContent}>
+          {children}
+        </View>
+      )}
+    </View>
+  );
+}
+
 export default function BlocklistScreen() {
   const { isAvailable: strictModeAvailable, requireFeature } = usePremiumFeature('strict_mode');
   const [categories, setCategories] = useState<CategorySummary[]>([]);
@@ -53,6 +118,22 @@ export default function BlocklistScreen() {
   const [contentFilterMode, setContentFilterMode] = useState<ContentFilterMode>('off');
   const [newItem, setNewItem] = useState('');
   const [newWhitelistItem, setNewWhitelistItem] = useState('');
+
+  // Collapsible sections state
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    whitelist: false,
+    contentFilter: false,
+    categories: false,
+    custom: false,
+  });
+
+  const toggleSection = useCallback((section: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  }, []);
 
   // Load all data
   const loadData = useCallback(async () => {
@@ -83,7 +164,6 @@ export default function BlocklistScreen() {
   // Category toggle
   const handleToggleCategory = useCallback(async (categoryId: BlockCategoryId, currentEnabled: boolean) => {
     if (currentEnabled) {
-      // Disabling - show warning
       const cat = categories.find(c => c.id === categoryId);
       const categoryName = cat?.nameFr || categoryId;
       Alert.alert(
@@ -102,7 +182,6 @@ export default function BlocklistScreen() {
         ]
       );
     } else {
-      // Enabling - no warning needed
       await BlockingService.setCategoryEnabled(categoryId, true);
       loadData();
     }
@@ -244,6 +323,7 @@ export default function BlocklistScreen() {
   }, [loadData]);
 
   const currentCustomList = customTab === 'domains' ? customDomains : customKeywords;
+  const enabledCategoriesCount = categories.filter(c => c.enabled).length;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -259,7 +339,7 @@ export default function BlocklistScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Strict Mode Toggle */}
+        {/* Strict Mode Toggle — always visible */}
         <View style={styles.strictModeContainer}>
           <View style={styles.strictModeContent}>
             <MaterialCommunityIcons
@@ -282,11 +362,15 @@ export default function BlocklistScreen() {
           />
         </View>
 
-        {/* Whitelist section (always visible so user can add sites before enabling strict mode) */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t.whitelist.title}</Text>
-          <Text style={styles.sectionSubtitle}>{t.whitelist.description}</Text>
-
+        {/* Whitelist — collapsible */}
+        <CollapsibleSection
+          title={t.whitelist.title}
+          subtitle={t.whitelist.description}
+          icon="check-circle"
+          expanded={expandedSections.whitelist}
+          onToggle={() => toggleSection('whitelist')}
+          badge={`${whitelist.length}`}
+        >
           <View style={styles.addContainer}>
             <View style={styles.inputContainer}>
               <TextInput
@@ -326,13 +410,17 @@ export default function BlocklistScreen() {
               </View>
             ))
           )}
-        </View>
+        </CollapsibleSection>
 
-        {/* Content Filter Mode */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t.contentFilter.title}</Text>
-          <Text style={styles.sectionSubtitle}>{t.contentFilter.description}</Text>
-
+        {/* Content Filter — collapsible */}
+        <CollapsibleSection
+          title={t.contentFilter.title}
+          subtitle={t.contentFilter.description}
+          icon="image-filter-hdr"
+          expanded={expandedSections.contentFilter}
+          onToggle={() => toggleSection('contentFilter')}
+          badge={contentFilterMode === 'off' ? 'OFF' : contentFilterMode === 'block' ? 'Bloquer' : 'Flouter'}
+        >
           {([
             { mode: 'off' as ContentFilterMode, label: t.contentFilter.off, desc: t.contentFilter.offDesc, icon: 'eye-off' as const },
             { mode: 'block' as ContentFilterMode, label: t.contentFilter.block, desc: t.contentFilter.blockDesc, icon: 'shield-alert' as const },
@@ -374,13 +462,17 @@ export default function BlocklistScreen() {
               </View>
             </TouchableOpacity>
           ))}
-        </View>
+        </CollapsibleSection>
 
-        {/* Categories Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t.categories.title}</Text>
-          <Text style={styles.sectionSubtitle}>{t.categories.subtitle}</Text>
-
+        {/* Categories — collapsible */}
+        <CollapsibleSection
+          title={t.categories.title}
+          subtitle={t.categories.subtitle}
+          icon="shape"
+          expanded={expandedSections.categories}
+          onToggle={() => toggleSection('categories')}
+          badge={`${enabledCategoriesCount}/${categories.length}`}
+        >
           {categories.map((cat) => {
             const totalCount = cat.domainCount + cat.keywordCount;
             return (
@@ -415,13 +507,17 @@ export default function BlocklistScreen() {
               </View>
             );
           })}
-        </View>
+        </CollapsibleSection>
 
-        {/* Custom Items Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t.custom.title}</Text>
-          <Text style={styles.sectionSubtitle}>{t.custom.subtitle}</Text>
-
+        {/* Custom Items — collapsible */}
+        <CollapsibleSection
+          title={t.custom.title}
+          subtitle={t.custom.subtitle}
+          icon="pencil-plus"
+          expanded={expandedSections.custom}
+          onToggle={() => toggleSection('custom')}
+          badge={`${customDomains.length + customKeywords.length}`}
+        >
           {/* Custom tabs */}
           <View style={styles.customTabContainer}>
             <TouchableOpacity
@@ -505,7 +601,7 @@ export default function BlocklistScreen() {
               </View>
             ))
           )}
-        </View>
+        </CollapsibleSection>
       </ScrollView>
     </SafeAreaView>
   );
@@ -535,7 +631,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: Spacing.xl * 2,
   },
-  // Strict Mode
+
+  // Strict Mode — always visible
   strictModeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -567,28 +664,74 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
     marginTop: 2,
   },
-  // Sections
-  section: {
+
+  // Collapsible section
+  collapsibleSection: {
     marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    backgroundColor: Colors.light.card,
+    overflow: 'hidden',
   },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: '700',
+  collapsibleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    gap: Spacing.md,
+  },
+  collapsibleIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.primary + '10',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  collapsibleTextContainer: {
+    flex: 1,
+  },
+  collapsibleTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  collapsibleTitle: {
+    fontSize: 15,
+    fontWeight: '600',
     color: Colors.light.text,
-    marginBottom: 4,
   },
-  sectionSubtitle: {
-    fontSize: 13,
+  collapsibleBadge: {
+    backgroundColor: Colors.primary + '15',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.full,
+  },
+  collapsibleBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  collapsibleSubtitle: {
+    fontSize: 12,
     color: Colors.light.textSecondary,
-    marginBottom: Spacing.md,
+    marginTop: 2,
   },
+  collapsibleContent: {
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.border,
+    paddingTop: Spacing.md,
+  },
+
   // Content filter mode
   filterModeCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
-    backgroundColor: Colors.light.card,
+    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.sm,
     borderWidth: 1,
@@ -647,13 +790,14 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: Colors.primary,
   },
+
   // Category cards
   categoryCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: Spacing.md,
-    backgroundColor: Colors.light.card,
+    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.sm,
     borderWidth: 1,
@@ -703,6 +847,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
     fontWeight: '500',
   },
+
   // Custom tabs
   customTabContainer: {
     flexDirection: 'row',
@@ -733,6 +878,7 @@ const styles = StyleSheet.create({
   customTabTextActive: {
     color: Colors.primary,
   },
+
   // Add input
   addContainer: {
     flexDirection: 'row',
@@ -752,13 +898,14 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Colors.light.text,
   },
+
   // List items
   listItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.light.card,
+    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.sm,
     borderWidth: 1,
@@ -780,6 +927,7 @@ const styles = StyleSheet.create({
   removeButton: {
     padding: Spacing.xs,
   },
+
   // Empty states
   emptyCustom: {
     alignItems: 'center',
