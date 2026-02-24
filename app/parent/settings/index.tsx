@@ -163,24 +163,6 @@ export default function SettingsScreen() {
           )}
         </Card>
 
-        {/* Security Section */}
-        <Text style={styles.sectionTitle}>{t.sections.security}</Text>
-        <Card variant="outlined" style={styles.section}>
-          <SettingItem
-            icon="lock-reset"
-            title={t.changePin.title}
-            subtitle="Modifier votre code PIN parent"
-            onPress={() => router.push('/parent/settings/pin')}
-          />
-          <View style={styles.divider} />
-          <SettingItem
-            icon="cellphone-lock"
-            title="Mode kiosque"
-            subtitle="Empêcher la sortie de l'application"
-            onPress={() => router.push('/parent/settings/kiosk')}
-          />
-        </Card>
-
         {/* Content Section */}
         <Text style={styles.sectionTitle}>{t.sections.content}</Text>
         <Card variant="outlined" style={styles.section}>
@@ -244,6 +226,24 @@ export default function SettingsScreen() {
               thumbColor={browserEnabled ? Colors.primary : Colors.light.textSecondary}
             />
           </View>
+        </Card>
+
+        {/* Security Section */}
+        <Text style={styles.sectionTitle}>{t.sections.security}</Text>
+        <Card variant="outlined" style={styles.section}>
+          <SettingItem
+            icon="lock-reset"
+            title={t.changePin.title}
+            subtitle="Modifier votre code PIN parent"
+            onPress={() => router.push('/parent/settings/pin')}
+          />
+          <View style={styles.divider} />
+          <SettingItem
+            icon="cellphone-lock"
+            title="Mode kiosque"
+            subtitle="Empêcher la sortie de l'application"
+            onPress={() => router.push('/parent/settings/kiosk')}
+          />
         </Card>
 
         {/* Prayer Section */}

@@ -791,6 +791,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: Colors.light.text,
+    flexShrink: 1,
   },
   collapsibleBadge: {
     backgroundColor: Colors.primary + '15',

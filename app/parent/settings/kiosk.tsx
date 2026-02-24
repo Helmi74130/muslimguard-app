@@ -125,7 +125,15 @@ export default function KioskSettingsScreen() {
               />
             </View>
             <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>{t.title}</Text>
+              <View style={styles.settingTitleRow}>
+                <Text style={styles.settingTitle}>{t.title}</Text>
+                {!isAvailable && (
+                  <View style={styles.premiumBadge}>
+                    <MaterialCommunityIcons name="crown" size={11} color="#B8860B" />
+                    <Text style={styles.premiumBadgeText}>Premium</Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.settingSubtitle}>
                 {kioskEnabled ? t.enabled : t.disabled}
               </Text>
@@ -321,5 +329,29 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: Colors.primary,
+  },
+
+  // Premium badge
+  settingTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  premiumBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#FFF8DC',
+    borderWidth: 1,
+    borderColor: '#DAA520',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 20,
+  },
+  premiumBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#B8860B',
+    letterSpacing: 0.3,
   },
 });

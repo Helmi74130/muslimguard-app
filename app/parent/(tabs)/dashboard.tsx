@@ -18,6 +18,7 @@ import { router } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
+  Image,
   ScrollView,
   StyleSheet,
   Switch,
@@ -347,24 +348,19 @@ export default function DashboardScreen() {
           onPress={handleChildMode}
           activeOpacity={0.9}
         >
-          <View style={styles.childModeIconContainer}>
-            <MaterialCommunityIcons
-              name="account-child-circle"
-              size={32}
-              color="#FFFFFF"
-            />
-          </View>
-          <View style={styles.childModeTextContainer}>
-            <Text style={styles.childModeTitle}>{t.childMode}</Text>
-            <Text style={styles.childModeSubtitle}>
-              Verrouiller l'accès et retourner en sécurité
-            </Text>
-          </View>
-          <MaterialCommunityIcons
-            name="lock-reset"
-            size={24}
-            color="rgba(255, 255, 255, 0.6)"
+          <Image
+            source={require('@/assets/images/ours.png')}
+            style={styles.childModeImage}
+            resizeMode="contain"
           />
+          <View style={styles.childModeTextContainer}>
+            <Text style={styles.childModeLabel}>Mode enfant</Text>
+            <Text style={styles.childModeTitle}>{t.childMode}</Text>
+            <TouchableOpacity style={styles.childModePlayButton} onPress={handleChildMode}>
+              <MaterialCommunityIcons name="play" size={18} color="#FFFFFF" />
+              <Text style={styles.childModePlayText}>C'est parti !</Text>
+            </TouchableOpacity>
+          </View>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -634,45 +630,61 @@ const styles = StyleSheet.create({
 
   // Child Mode Button
   childModeButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.xl,
+    backgroundColor: '#FFF5E6',
+    borderRadius: 20,
     padding: Spacing.lg,
+    paddingRight: Spacing.xl,
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: Spacing.xl,
-    elevation: 8,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    elevation: 4,
+    shadowColor: '#E8C878',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    overflow: 'hidden',
   },
-  childModeIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  childModeImage: {
+    width: 130,
+    height: 130,
     marginRight: Spacing.md,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    marginLeft: -Spacing.lg,
+    marginBottom: -Spacing.lg - 8,
+    alignSelf: 'flex-end',
   },
   childModeTextContainer: {
     flex: 1,
+    paddingLeft: Spacing.sm,
+  },
+  childModeLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.warning,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   childModeTitle: {
-    color: '#FFFFFF',
+    color: Colors.light.text,
     fontSize: 18,
     fontWeight: '700',
-    letterSpacing: 0.3,
+    lineHeight: 24,
+    marginBottom: Spacing.sm,
   },
-  childModeSubtitle: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 13,
-    marginTop: 2,
-    fontWeight: '500',
+  childModePlayButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: BorderRadius.full,
+    gap: 8,
+  },
+  childModePlayText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
 
   // Toggles
