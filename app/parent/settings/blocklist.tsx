@@ -3,32 +3,33 @@
  * Category-based blocking with collapsible sections
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  TextInput,
-  Keyboard,
-  Switch,
-  ScrollView,
-  LayoutAnimation,
-  UIManager,
-  Platform,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Button } from '@/components/ui/button';
+import type { BlockCategoryId } from '@/constants/default-blocklist';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { translations } from '@/constants/translations';
+import { useSubscription } from '@/contexts/subscription.context';
+import { usePremiumFeature } from '@/hooks/use-premium-feature';
 import { BlockingService } from '@/services/blocking.service';
 import { StorageService } from '@/services/storage.service';
-import { usePremiumFeature } from '@/hooks/use-premium-feature';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
-import { translations } from '@/constants/translations';
-import type { BlockCategoryId } from '@/constants/default-blocklist';
 import type { ContentFilterMode } from '@/types/storage.types';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  Alert,
+  Keyboard,
+  LayoutAnimation,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  UIManager,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -109,6 +110,7 @@ function CollapsibleSection({
 
 export default function BlocklistScreen() {
   const { isAvailable: strictModeAvailable, requireFeature } = usePremiumFeature('strict_mode');
+  const { getLimit, isPremium: hasPremium } = useSubscription();
   const [categories, setCategories] = useState<CategorySummary[]>([]);
   const [customDomains, setCustomDomains] = useState<string[]>([]);
   const [customKeywords, setCustomKeywords] = useState<string[]>([]);
@@ -192,7 +194,15 @@ export default function BlocklistScreen() {
     if (!newItem.trim()) return;
     Keyboard.dismiss();
 
+    // Check limit for free users
+    const maxDomains = getLimit('maxCustomDomains');
+    const maxKeywords = getLimit('maxCustomKeywords');
+
     if (customTab === 'domains') {
+      if (customDomains.length >= maxDomains) {
+        requireFeatureCustom();
+        return;
+      }
       const result = await BlockingService.addCustomDomain(newItem);
       if (result.success) {
         setNewItem('');
@@ -202,6 +212,10 @@ export default function BlocklistScreen() {
         Alert.alert(translations.common.error, result.error);
       }
     } else {
+      if (customKeywords.length >= maxKeywords) {
+        requireFeatureCustom();
+        return;
+      }
       const result = await BlockingService.addCustomKeyword(newItem);
       if (result.success) {
         setNewItem('');
@@ -211,7 +225,7 @@ export default function BlocklistScreen() {
         Alert.alert(translations.common.error, result.error);
       }
     }
-  }, [customTab, newItem, loadData]);
+  }, [customTab, newItem, loadData, customDomains.length, customKeywords.length, getLimit]);
 
   // Remove custom item
   const handleRemoveCustom = useCallback((item: string) => {
@@ -325,6 +339,25 @@ export default function BlocklistScreen() {
   const currentCustomList = customTab === 'domains' ? customDomains : customKeywords;
   const enabledCategoriesCount = categories.filter(c => c.enabled).length;
 
+  // Custom items limits
+  const maxCustomDomains = getLimit('maxCustomDomains');
+  const maxCustomKeywords = getLimit('maxCustomKeywords');
+  const domainsLimitReached = !hasPremium && customDomains.length >= maxCustomDomains;
+  const keywordsLimitReached = !hasPremium && customKeywords.length >= maxCustomKeywords;
+  const currentLimitReached = customTab === 'domains' ? domainsLimitReached : keywordsLimitReached;
+  const currentMax = customTab === 'domains' ? maxCustomDomains : maxCustomKeywords;
+
+  const requireFeatureCustom = () => {
+    Alert.alert(
+      '🔒 Limite atteinte',
+      `Vous avez atteint la limite de ${currentMax} ${customTab === 'domains' ? 'sites' : 'mots-clés'} personnalisés. Passez à Premium pour des ajouts illimités.`,
+      [
+        { text: 'Plus tard', style: 'cancel' },
+        { text: '👑 Voir les offres', onPress: () => router.push('/parent/premium' as any) },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -348,7 +381,15 @@ export default function BlocklistScreen() {
               color={strictModeEnabled ? Colors.success : Colors.light.textSecondary}
             />
             <View style={styles.strictModeText}>
-              <Text style={styles.strictModeTitle}>{t.strictMode.title}</Text>
+              <View style={styles.strictModeTitleRow}>
+                <Text style={styles.strictModeTitle}>{t.strictMode.title}</Text>
+                {!strictModeAvailable && (
+                  <View style={styles.premiumBadge}>
+                    <MaterialCommunityIcons name="crown" size={11} color="#B8860B" />
+                    <Text style={styles.premiumBadgeText}>Premium</Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.strictModeDesc}>
                 {strictModeEnabled ? t.strictMode.enabled : t.strictMode.disabled}
               </Text>
@@ -362,55 +403,57 @@ export default function BlocklistScreen() {
           />
         </View>
 
-        {/* Whitelist — collapsible */}
-        <CollapsibleSection
-          title={t.whitelist.title}
-          subtitle={t.whitelist.description}
-          icon="check-circle"
-          expanded={expandedSections.whitelist}
-          onToggle={() => toggleSection('whitelist')}
-          badge={`${whitelist.length}`}
-        >
-          <View style={styles.addContainer}>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                value={newWhitelistItem}
-                onChangeText={setNewWhitelistItem}
-                placeholder={t.whitelist.placeholder}
-                placeholderTextColor={Colors.light.textSecondary}
-                autoCapitalize="none"
-                autoCorrect={false}
-                onSubmitEditing={handleAddWhitelist}
-                returnKeyType="done"
+        {/* Whitelist — only visible when strict mode is enabled */}
+        {strictModeEnabled && (
+          <CollapsibleSection
+            title={t.whitelist.title}
+            subtitle={t.whitelist.description}
+            icon="check-circle"
+            expanded={expandedSections.whitelist}
+            onToggle={() => toggleSection('whitelist')}
+            badge={`${whitelist.length}`}
+          >
+            <View style={styles.addContainer}>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  value={newWhitelistItem}
+                  onChangeText={setNewWhitelistItem}
+                  placeholder={t.whitelist.placeholder}
+                  placeholderTextColor={Colors.light.textSecondary}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  onSubmitEditing={handleAddWhitelist}
+                  returnKeyType="done"
+                />
+              </View>
+              <Button
+                title={translations.common.add}
+                onPress={handleAddWhitelist}
+                disabled={!newWhitelistItem.trim()}
+                size="medium"
               />
             </View>
-            <Button
-              title={translations.common.add}
-              onPress={handleAddWhitelist}
-              disabled={!newWhitelistItem.trim()}
-              size="medium"
-            />
-          </View>
 
-          {whitelist.length === 0 ? (
-            <View style={styles.emptyMini}>
-              <Text style={styles.emptyMiniText}>{t.whitelist.empty}</Text>
-            </View>
-          ) : (
-            whitelist.map((item) => (
-              <View key={item} style={[styles.listItem, styles.listItemWhitelist]}>
-                <View style={styles.listItemContent}>
-                  <MaterialCommunityIcons name="check-circle" size={18} color={Colors.success} />
-                  <Text style={styles.listItemText}>{item}</Text>
-                </View>
-                <TouchableOpacity style={styles.removeButton} onPress={() => handleRemoveWhitelist(item)}>
-                  <MaterialCommunityIcons name="close-circle" size={22} color={Colors.error} />
-                </TouchableOpacity>
+            {whitelist.length === 0 ? (
+              <View style={styles.emptyMini}>
+                <Text style={styles.emptyMiniText}>{t.whitelist.empty}</Text>
               </View>
-            ))
-          )}
-        </CollapsibleSection>
+            ) : (
+              whitelist.map((item) => (
+                <View key={item} style={[styles.listItem, styles.listItemWhitelist]}>
+                  <View style={styles.listItemContent}>
+                    <MaterialCommunityIcons name="check-circle" size={18} color={Colors.success} />
+                    <Text style={styles.listItemText}>{item}</Text>
+                  </View>
+                  <TouchableOpacity style={styles.removeButton} onPress={() => handleRemoveWhitelist(item)}>
+                    <MaterialCommunityIcons name="close-circle" size={22} color={Colors.error} />
+                  </TouchableOpacity>
+                </View>
+              ))
+            )}
+          </CollapsibleSection>
+        )}
 
         {/* Content Filter — collapsible */}
         <CollapsibleSection
@@ -474,7 +517,6 @@ export default function BlocklistScreen() {
           badge={`${enabledCategoriesCount}/${categories.length}`}
         >
           {categories.map((cat) => {
-            const totalCount = cat.domainCount + cat.keywordCount;
             return (
               <View key={cat.id} style={[styles.categoryCard, !cat.enabled && styles.categoryCardDisabled]}>
                 <View style={styles.categoryLeft}>
@@ -490,12 +532,6 @@ export default function BlocklistScreen() {
                       {cat.nameFr}
                     </Text>
                     <Text style={styles.categoryDesc}>{cat.descriptionFr}</Text>
-                    <Text style={styles.categoryCount}>
-                      {cat.domainCount > 0 && `${cat.domainCount} ${t.categories.sites}`}
-                      {cat.domainCount > 0 && cat.keywordCount > 0 && ' + '}
-                      {cat.keywordCount > 0 && `${cat.keywordCount} ${t.categories.keywords}`}
-                      {totalCount === 0 && `0 ${t.categories.keywords}`}
-                    </Text>
                   </View>
                 </View>
                 <Switch
@@ -518,7 +554,7 @@ export default function BlocklistScreen() {
           onToggle={() => toggleSection('custom')}
           badge={`${customDomains.length + customKeywords.length}`}
         >
-          {/* Custom tabs */}
+          {/* Custom tabs with quota */}
           <View style={styles.customTabContainer}>
             <TouchableOpacity
               style={[styles.customTab, customTab === 'domains' && styles.customTabActive]}
@@ -530,8 +566,11 @@ export default function BlocklistScreen() {
                 color={customTab === 'domains' ? Colors.primary : Colors.light.textSecondary}
               />
               <Text style={[styles.customTabText, customTab === 'domains' && styles.customTabTextActive]}>
-                {t.custom.domainsTab} ({customDomains.length})
+                {t.custom.domainsTab} ({customDomains.length}{!hasPremium ? `/${maxCustomDomains}` : ''})
               </Text>
+              {domainsLimitReached && (
+                <MaterialCommunityIcons name="crown" size={13} color="#B8860B" />
+              )}
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.customTab, customTab === 'keywords' && styles.customTabActive]}
@@ -543,30 +582,59 @@ export default function BlocklistScreen() {
                 color={customTab === 'keywords' ? Colors.primary : Colors.light.textSecondary}
               />
               <Text style={[styles.customTabText, customTab === 'keywords' && styles.customTabTextActive]}>
-                {t.custom.keywordsTab} ({customKeywords.length})
+                {t.custom.keywordsTab} ({customKeywords.length}{!hasPremium ? `/${maxCustomKeywords}` : ''})
               </Text>
+              {keywordsLimitReached && (
+                <MaterialCommunityIcons name="crown" size={13} color="#B8860B" />
+              )}
             </TouchableOpacity>
           </View>
+
+          {/* Bannière Premium si limite atteinte */}
+          {currentLimitReached && (
+            <TouchableOpacity
+              style={styles.premiumLimitBanner}
+              onPress={() => router.push('/parent/premium' as any)}
+              activeOpacity={0.85}
+            >
+              <View style={styles.premiumLimitLeft}>
+                <MaterialCommunityIcons name="crown" size={18} color="#B8860B" />
+                <View>
+                  <Text style={styles.premiumLimitTitle}>Limite atteinte – Premium requis</Text>
+                  <Text style={styles.premiumLimitDesc}>
+                    {`${currentMax}/${currentMax} ${customTab === 'domains' ? 'sites' : 'mots-clés'} utilisés. Passez à Premium pour des ajouts illimités.`}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.premiumLimitButton}>
+                <Text style={styles.premiumLimitButtonText}>Débloquer</Text>
+              </View>
+            </TouchableOpacity>
+          )}
 
           {/* Add input */}
           <View style={styles.addContainer}>
             <View style={styles.inputContainer}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, currentLimitReached && styles.inputDisabled]}
                 value={newItem}
                 onChangeText={setNewItem}
-                placeholder={customTab === 'domains' ? t.custom.domainPlaceholder : t.custom.keywordPlaceholder}
-                placeholderTextColor={Colors.light.textSecondary}
+                placeholder={currentLimitReached
+                  ? `Limite de ${currentMax} atteinte – Premium requis`
+                  : customTab === 'domains' ? t.custom.domainPlaceholder : t.custom.keywordPlaceholder
+                }
+                placeholderTextColor={currentLimitReached ? '#B8860B' : Colors.light.textSecondary}
                 autoCapitalize="none"
                 autoCorrect={false}
                 onSubmitEditing={handleAddCustom}
                 returnKeyType="done"
+                editable={!currentLimitReached}
               />
             </View>
             <Button
               title={translations.common.add}
               onPress={handleAddCustom}
-              disabled={!newItem.trim()}
+              disabled={!newItem.trim() || currentLimitReached}
               size="medium"
             />
           </View>
@@ -654,6 +722,11 @@ const styles = StyleSheet.create({
   strictModeText: {
     flex: 1,
   },
+  strictModeTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   strictModeTitle: {
     fontSize: 15,
     fontWeight: '600',
@@ -663,6 +736,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.light.textSecondary,
     marginTop: 2,
+  },
+  premiumBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#FFF8DC',
+    borderWidth: 1,
+    borderColor: '#DAA520',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 20,
+  },
+  premiumBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#B8860B',
+    letterSpacing: 0.3,
   },
 
   // Collapsible section
@@ -952,5 +1042,53 @@ const styles = StyleSheet.create({
   emptyMiniText: {
     fontSize: 13,
     color: Colors.light.textSecondary,
+  },
+
+  // Premium limit banner
+  premiumLimitBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFBEA',
+    borderWidth: 1,
+    borderColor: '#DAA520',
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    gap: Spacing.sm,
+  },
+  premiumLimitLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+  },
+  premiumLimitTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#92640A',
+    marginBottom: 2,
+  },
+  premiumLimitDesc: {
+    fontSize: 11,
+    color: '#A0722A',
+    lineHeight: 15,
+  },
+  premiumLimitButton: {
+    backgroundColor: '#DAA520',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+  },
+  premiumLimitButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#fff',
+  },
+
+  // Input disabled state
+  inputDisabled: {
+    backgroundColor: '#FFF8DC',
+    color: '#B8860B',
   },
 });

@@ -3,14 +3,16 @@
  * Circular navigation controls for children (no search bar)
  */
 
+import { Colors, KidColors, Spacing } from '@/constants/theme';
+import { translations } from '@/constants/translations';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import {
-  View,
   StyleSheet,
+  Text,
   TouchableOpacity,
+  View,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Spacing, KidColors } from '@/constants/theme';
 
 interface BrowserToolbarProps {
   canGoBack: boolean;
@@ -88,9 +90,10 @@ export function BrowserToolbar({
         <TouchableOpacity style={styles.parentBtn} onPress={onParentAccess}>
           <MaterialCommunityIcons
             name="shield-account-outline"
-            size={22}
+            size={24}
             color={Colors.light.textSecondary}
           />
+          <Text style={styles.parentBtnText}>{translations.childHome.parentMode}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -135,11 +138,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   parentBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 60,
+  },
+  parentBtnText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.light.textSecondary,
+    marginTop: 2,
   },
 });
 

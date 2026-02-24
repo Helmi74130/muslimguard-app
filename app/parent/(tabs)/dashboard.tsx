@@ -9,6 +9,7 @@ import { translations } from '@/constants/translations';
 import { useAppMode } from '@/contexts/app-mode.context';
 import { useAuth } from '@/contexts/auth.context';
 import { useSubscription } from '@/contexts/subscription.context';
+import { usePremiumFeature } from '@/hooks/use-premium-feature';
 import { BlockingService } from '@/services/blocking.service';
 import { StorageService } from '@/services/storage.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -16,6 +17,7 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Switch,
@@ -39,6 +41,8 @@ export default function DashboardScreen() {
   const { switchToChildMode } = useAppMode();
   const { logout } = useAuth();
   const { isPremium } = useSubscription();
+  const { requireFeature: requireBrowserControl } = usePremiumFeature('browser_control');
+  const { requireFeature: requireStrictMode } = usePremiumFeature('strict_mode');
   const [data, setData] = useState<DashboardData>({
     blockedToday: 0,
     totalVisits: 0,
@@ -83,21 +87,27 @@ export default function DashboardScreen() {
   }, [switchToChildMode, logout]);
 
   const handleToggleBrowser = useCallback(async (enabled: boolean) => {
+    // Only disabling the browser requires premium (re-enabling is always allowed)
+    if (!enabled && !requireBrowserControl()) return;
+    // Update state first to avoid flicker, then persist
+    setData(prev => ({ ...prev, browserEnabled: enabled }));
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await StorageService.updateSettings({ browserEnabled: enabled });
-    setData(prev => ({ ...prev, browserEnabled: enabled }));
-  }, []);
+  }, [requireBrowserControl]);
 
   const handleToggleStrict = useCallback(async (enabled: boolean) => {
+    if (!requireStrictMode()) return;
+    // Update state first to avoid flicker, then persist
+    setData(prev => ({ ...prev, strictMode: enabled }));
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await StorageService.updateSettings({ strictModeEnabled: enabled });
-    setData(prev => ({ ...prev, strictMode: enabled }));
-  }, []);
+  }, [requireStrictMode]);
 
   const handleToggleAutoPause = useCallback(async (enabled: boolean) => {
+    // Update state first to avoid flicker, then persist
+    setData(prev => ({ ...prev, autoPause: enabled }));
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await StorageService.updateSettings({ autoPauseDuringPrayer: enabled });
-    setData(prev => ({ ...prev, autoPause: enabled }));
   }, []);
 
   // Protection level
@@ -242,6 +252,7 @@ export default function DashboardScreen() {
             description="Autoriser ou bloquer l'accès au web"
             value={data.browserEnabled}
             onToggle={handleToggleBrowser}
+            premium={!isPremium}
           />
           <View style={styles.toggleDivider} />
           <QuickToggle
@@ -250,6 +261,7 @@ export default function DashboardScreen() {
             description="Uniquement les sites de la liste blanche"
             value={data.strictMode}
             onToggle={handleToggleStrict}
+            premium={!isPremium}
           />
           <View style={styles.toggleDivider} />
           <QuickToggle
@@ -365,7 +377,8 @@ function QuickToggle({
   description,
   value,
   onToggle,
-  color = Colors.primary
+  color = Colors.primary,
+  premium = false,
 }: {
   icon: string;
   label: string;
@@ -373,6 +386,7 @@ function QuickToggle({
   value: boolean;
   onToggle: (v: boolean) => void;
   color?: string;
+  premium?: boolean;
 }) {
   return (
     <View style={styles.toggleItem}>
@@ -380,7 +394,15 @@ function QuickToggle({
         <MaterialCommunityIcons name={icon as any} size={20} color={color} />
       </View>
       <View style={styles.toggleContent}>
-        <Text style={styles.toggleLabel}>{label}</Text>
+        <View style={styles.toggleLabelRow}>
+          <Text style={styles.toggleLabel}>{label}</Text>
+          {premium && (
+            <View style={styles.premiumBadge}>
+              <MaterialCommunityIcons name="crown" size={10} color={Colors.warning} />
+              <Text style={styles.premiumBadgeText}>Premium</Text>
+            </View>
+          )}
+        </View>
         <Text style={styles.toggleDescription}>{description}</Text>
       </View>
       <Switch
@@ -675,10 +697,29 @@ const styles = StyleSheet.create({
   toggleContent: {
     flex: 1,
   },
+  toggleLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   toggleLabel: {
     fontSize: 14,
     fontWeight: '600',
     color: Colors.light.text,
+  },
+  premiumBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: Colors.warning + '15',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+  },
+  premiumBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: Colors.warning,
   },
   toggleDescription: {
     fontSize: 11,

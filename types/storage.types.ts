@@ -131,6 +131,19 @@ export const DEFAULT_LOCKOUT_STATE: PinLockoutState = {
   lockedUntil: null,
 };
 
+// Recovery lockout state (anti-brute force for recovery)
+export interface RecoveryLockoutState {
+  failedAttempts: number;
+  lastFailedAttempt: number | null;
+  lockedUntil: number | null;
+}
+
+export const DEFAULT_RECOVERY_LOCKOUT_STATE: RecoveryLockoutState = {
+  failedAttempts: 0,
+  lastFailedAttempt: null,
+  lockedUntil: null,
+};
+
 // Child note entry
 export interface NoteEntry {
   id: string;
@@ -188,8 +201,8 @@ export interface LocalVideo {
   hasSound: boolean;
 }
 
-// Maximum custom videos allowed
-export const MAX_CUSTOM_VIDEOS = 999;
+// Maximum custom videos allowed (free tier - premium is unlimited)
+export const MAX_CUSTOM_VIDEOS = 3;
 
 // Storage keys enum for type safety
 export const STORAGE_KEYS = {
@@ -215,6 +228,7 @@ export const STORAGE_KEYS = {
 
   // Auth
   PIN_LOCKOUT: 'auth.lockout',
+  RECOVERY_LOCKOUT: 'auth.recovery.lockout',
 
   // Prayer cache
   PRAYER_CACHE: 'cache.prayerData',
@@ -245,6 +259,10 @@ export const STORAGE_KEYS = {
   // Videos
   FAVORITE_VIDEOS: 'videos.favorites',
   CUSTOM_VIDEOS: 'videos.custom',
+  VIDEO_WATCH_TIME: 'videos.watchTime',
+
+  // Dev / Testing
+  DEV_PREMIUM: 'dev.premium',
 } as const;
 
 // Prayer time names

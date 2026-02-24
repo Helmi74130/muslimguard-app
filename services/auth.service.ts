@@ -5,13 +5,17 @@
 
 import * as Crypto from 'expo-crypto';
 import { StorageService } from './storage.service';
-import { PinLockoutState } from '@/types/storage.types';
+import { PinLockoutState, RecoveryLockoutState } from '@/types/storage.types';
 
 // Configuration
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 const MIN_PIN_LENGTH = 4;
 const MAX_PIN_LENGTH = 6;
+
+// Recovery anti-brute force
+const MAX_RECOVERY_ATTEMPTS = 3;
+const RECOVERY_LOCKOUT_DURATION_MS = 60 * 1000; // 60 seconds
 
 // Result types
 export interface PinValidationResult {
@@ -24,6 +28,18 @@ export interface PinValidationResult {
 export interface PinSetupResult {
   success: boolean;
   error?: string;
+}
+
+export interface RecoverySetupResult {
+  success: boolean;
+  masterKey?: string; // Plain text key to show to user once
+  error?: string;
+}
+
+export interface RecoveryVerifyResult {
+  success: boolean;
+  error?: string;
+  lockedUntil?: Date;
 }
 
 /**
@@ -266,6 +282,212 @@ export const AuthService = {
    */
   async resetPin(): Promise<void> {
     await StorageService.resetAll();
+  },
+
+  // ==================== RECOVERY ====================
+
+  /**
+   * Generate a random Master Key in format MG-XXX-XX (5 alphanumeric chars)
+   */
+  generateMasterKey(): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No O/0/1/I to avoid confusion
+    let part1 = '';
+    let part2 = '';
+    for (let i = 0; i < 3; i++) {
+      part1 += chars[Math.floor(Math.random() * chars.length)];
+    }
+    for (let i = 0; i < 2; i++) {
+      part2 += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return `MG-${part1}-${part2}`;
+  },
+
+  /**
+   * Normalize a security answer: lowercase, trim, remove extra spaces
+   */
+  normalizeAnswer(answer: string): string {
+    return answer.toLowerCase().trim().replace(/\s+/g, '');
+  },
+
+  /**
+   * Set up recovery (master key + security question)
+   * Returns the plain master key to display to the user
+   */
+  async setupRecovery(
+    questionIndex: number,
+    answer: string,
+  ): Promise<RecoverySetupResult> {
+    try {
+      const masterKey = this.generateMasterKey();
+
+      // Hash master key
+      const mkSalt = await generateSalt();
+      const mkHash = await hashPin(masterKey, mkSalt);
+
+      // Hash normalized answer
+      const ansSalt = await generateSalt();
+      const normalizedAnswer = this.normalizeAnswer(answer);
+      const ansHash = await hashPin(normalizedAnswer, ansSalt);
+
+      // Store everything
+      await StorageService.saveMasterKeyHash(mkHash);
+      await StorageService.saveMasterKeySalt(mkSalt);
+      await StorageService.saveSecurityQuestionIndex(questionIndex);
+      await StorageService.saveSecurityAnswerHash(ansHash);
+      await StorageService.saveSecurityAnswerSalt(ansSalt);
+
+      return { success: true, masterKey };
+    } catch (error) {
+      console.error('Error setting up recovery:', error);
+      return { success: false, error: 'Failed to set up recovery' };
+    }
+  },
+
+  /**
+   * Check if recovery is locked out
+   */
+  async isRecoveryLockedOut(state?: RecoveryLockoutState): Promise<boolean> {
+    const lockoutState = state || await StorageService.getRecoveryLockoutState();
+    if (!lockoutState.lockedUntil) return false;
+    if (Date.now() >= lockoutState.lockedUntil) {
+      await StorageService.resetRecoveryLockout();
+      return false;
+    }
+    return true;
+  },
+
+  /**
+   * Record a failed recovery attempt
+   */
+  recordFailedRecoveryAttempt(currentState: RecoveryLockoutState): RecoveryLockoutState {
+    const newAttempts = currentState.failedAttempts + 1;
+    if (newAttempts >= MAX_RECOVERY_ATTEMPTS) {
+      return {
+        failedAttempts: newAttempts,
+        lastFailedAttempt: Date.now(),
+        lockedUntil: Date.now() + RECOVERY_LOCKOUT_DURATION_MS,
+      };
+    }
+    return {
+      failedAttempts: newAttempts,
+      lastFailedAttempt: Date.now(),
+      lockedUntil: null,
+    };
+  },
+
+  /**
+   * Get remaining recovery lockout seconds
+   */
+  async getRemainingRecoveryLockoutSeconds(): Promise<number> {
+    const state = await StorageService.getRecoveryLockoutState();
+    if (!state.lockedUntil) return 0;
+    const remaining = state.lockedUntil - Date.now();
+    return remaining > 0 ? Math.ceil(remaining / 1000) : 0;
+  },
+
+  /**
+   * Verify master key for recovery
+   */
+  async verifyMasterKey(key: string): Promise<RecoveryVerifyResult> {
+    const lockoutState = await StorageService.getRecoveryLockoutState();
+    if (await this.isRecoveryLockedOut(lockoutState)) {
+      return {
+        success: false,
+        error: 'recovery_locked',
+        lockedUntil: new Date(lockoutState.lockedUntil!),
+      };
+    }
+
+    const storedHash = await StorageService.getMasterKeyHash();
+    const storedSalt = await StorageService.getMasterKeySalt();
+    if (!storedHash || !storedSalt) {
+      return { success: false, error: 'recovery_not_setup' };
+    }
+
+    try {
+      const inputKey = key.toUpperCase().trim();
+      const inputHash = await hashPin(inputKey, storedSalt);
+
+      if (inputHash === storedHash) {
+        await StorageService.resetRecoveryLockout();
+        return { success: true };
+      }
+
+      const newState = this.recordFailedRecoveryAttempt(lockoutState);
+      await StorageService.setRecoveryLockoutState(newState);
+
+      if (newState.lockedUntil) {
+        return {
+          success: false,
+          error: 'recovery_locked',
+          lockedUntil: new Date(newState.lockedUntil),
+        };
+      }
+
+      return { success: false, error: 'invalid_master_key' };
+    } catch {
+      return { success: false, error: 'verification_failed' };
+    }
+  },
+
+  /**
+   * Verify security answer for recovery
+   */
+  async verifySecurityAnswer(answer: string): Promise<RecoveryVerifyResult> {
+    const lockoutState = await StorageService.getRecoveryLockoutState();
+    if (await this.isRecoveryLockedOut(lockoutState)) {
+      return {
+        success: false,
+        error: 'recovery_locked',
+        lockedUntil: new Date(lockoutState.lockedUntil!),
+      };
+    }
+
+    const storedHash = await StorageService.getSecurityAnswerHash();
+    const storedSalt = await StorageService.getSecurityAnswerSalt();
+    if (!storedHash || !storedSalt) {
+      return { success: false, error: 'recovery_not_setup' };
+    }
+
+    try {
+      const normalizedAnswer = this.normalizeAnswer(answer);
+      const inputHash = await hashPin(normalizedAnswer, storedSalt);
+
+      if (inputHash === storedHash) {
+        await StorageService.resetRecoveryLockout();
+        return { success: true };
+      }
+
+      const newState = this.recordFailedRecoveryAttempt(lockoutState);
+      await StorageService.setRecoveryLockoutState(newState);
+
+      if (newState.lockedUntil) {
+        return {
+          success: false,
+          error: 'recovery_locked',
+          lockedUntil: new Date(newState.lockedUntil),
+        };
+      }
+
+      return { success: false, error: 'invalid_answer' };
+    } catch {
+      return { success: false, error: 'verification_failed' };
+    }
+  },
+
+  /**
+   * Get the stored security question index
+   */
+  async getSecurityQuestionIndex(): Promise<number | null> {
+    return StorageService.getSecurityQuestionIndex();
+  },
+
+  /**
+   * Reset PIN via recovery (after successful verification)
+   * Clears PIN so user can set a new one
+   */
+  async resetPinForRecovery(newPin: string): Promise<PinSetupResult> {
+    return this.setupPin(newPin);
   },
 };
 

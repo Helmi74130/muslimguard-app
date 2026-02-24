@@ -41,6 +41,7 @@ interface CachedData {
   contentFilterMode: ContentFilterMode;
   prayerPaused: boolean;
   prayerPausedBy: string | null;
+  isPremium: boolean;
 }
 
 const t = translations.kidBrowser;
@@ -74,13 +75,14 @@ export default function BrowserScreen() {
     contentFilterMode: 'off',
     prayerPaused: false,
     prayerPausedBy: null,
+    isPremium: false,
   });
 
   // Load and cache data
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [settings, schedule, domains, keywords, whitelist, strictMode, prayerStatus] = await Promise.all([
+        const [settings, schedule, domains, keywords, whitelist, strictMode, prayerStatus, subscriptionState, devPremium] = await Promise.all([
           StorageService.getSettings(),
           StorageService.getSchedule(),
           BlockingService.getBlockedDomains(),
@@ -88,7 +90,11 @@ export default function BrowserScreen() {
           BlockingService.getWhitelistDomains(),
           BlockingService.isStrictModeEnabled(),
           PrayerService.isInPrayerPauseWindow(),
+          StorageService.getSubscriptionState(),
+          StorageService.getDevPremium(),
         ]);
+
+        const isPremium = subscriptionState.isPremium || devPremium;
 
         cachedDataRef.current = {
           settings,
@@ -101,6 +107,7 @@ export default function BrowserScreen() {
           contentFilterMode: settings?.contentFilterMode ?? 'off',
           prayerPaused: prayerStatus.isPaused,
           prayerPausedBy: prayerStatus.currentPrayer || null,
+          isPremium,
         };
         setReadingMode(settings?.readingModeEnabled ?? false);
       } catch (error) {
@@ -186,7 +193,8 @@ export default function BrowserScreen() {
     }
 
     // Check strict mode (whitelist) - block everything not in whitelist
-    if (cached.strictModeEnabled && domain) {
+    // Only applies if user has premium (feature gating at runtime)
+    if (cached.strictModeEnabled && cached.isPremium && domain) {
       const baseDomain = domain.replace(/^www\./, '');
       let isWhitelisted = false;
 
@@ -215,8 +223,9 @@ export default function BrowserScreen() {
       }
     }
 
-    // Check domains blocklist (only if not in strict mode)
-    if (!cached.strictModeEnabled && domain) {
+    // Check domains blocklist (only if strict mode is not effectively active)
+    const effectiveStrictMode = cached.strictModeEnabled && cached.isPremium;
+    if (!effectiveStrictMode && domain) {
       const baseDomain = domain.replace(/^www\./, '');
 
       for (const blockedDomain of cached.blockedDomains) {

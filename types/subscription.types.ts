@@ -39,18 +39,27 @@ export type PremiumFeature =
   | 'kiosk_mode'           // Screen pinning
   | 'extended_history'      // 90 days instead of 7
   | 'schedule_restrictions' // Time-based access
+  | 'browser_control'       // Enable/disable browser access
   | 'multi_child';          // Future feature - multiple child profiles
 
 /** Feature limits for free tier */
 export const FREE_TIER_LIMITS = {
   maxBlockedDomains: 50,
+  maxCustomVideos: 3,
   historyDays: 7,
+  maxVideoDailyMinutes: 30,
+  maxCustomDomains: 10,
+  maxCustomKeywords: 10,
 } as const;
 
 /** Feature limits for premium tier */
 export const PREMIUM_TIER_LIMITS = {
   maxBlockedDomains: Infinity,
+  maxCustomVideos: Infinity,
   historyDays: 90,
+  maxVideoDailyMinutes: Infinity,
+  maxCustomDomains: Infinity,
+  maxCustomKeywords: Infinity,
 } as const;
 
 /** French labels for premium features */
@@ -60,6 +69,7 @@ export const PREMIUM_FEATURE_LABELS: Record<PremiumFeature, string> = {
   kiosk_mode: 'Mode kiosque',
   extended_history: 'Historique étendu (90 jours)',
   schedule_restrictions: 'Restrictions horaires',
+  browser_control: 'Contrôle du navigateur',
   multi_child: 'Multi-enfants',
 };
 

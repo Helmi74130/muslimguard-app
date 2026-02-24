@@ -3,25 +3,25 @@
  * Configure screen pinning and status bar behavior for child mode
  */
 
-import React, { useState, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { translations } from '@/constants/translations';
+import { usePremiumFeature } from '@/hooks/use-premium-feature';
+import { KioskService } from '@/services/kiosk.service';
+import { StorageService } from '@/services/storage.service';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Switch,
-  TouchableOpacity,
   Alert,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Card } from '@/components/ui/card';
-import { StorageService } from '@/services/storage.service';
-import { KioskService } from '@/services/kiosk.service';
-import { usePremiumFeature } from '@/hooks/use-premium-feature';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
-import { translations } from '@/constants/translations';
 
 const t = translations.kiosk;
 

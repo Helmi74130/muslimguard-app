@@ -37,40 +37,68 @@ export const translations = {
 
   // Onboarding screens
   onboarding: {
-    welcome: {
-      title: 'Bienvenue sur MuslimGuard',
-      subtitle: 'Protection familiale conçue par des musulmans pour les familles musulmanes',
-      description: 'Protégez vos enfants du contenu haram et nocif sur Internet tout en préservant leur vie privée.',
-      features: [
-        'Navigation sécurisée avec filtrage en temps réel',
-        'Horaires de prière avec pause automatique',
-        'Restrictions horaires configurables',
-        'Toutes les données restent sur votre appareil',
-      ],
-      getStarted: 'Commencer',
+    slides: {
+      slide1: {
+        greeting: 'As-salamu alaykum',
+        tagline: 'Un espace 100% éducatif, verrouillé et dédié à l’éveil de votre enfant.',
+      },
+      slide2: {
+        title: 'Protection intelligente',
+        features: [
+          { title: 'Verrouillage Kiosque', desc: 'Sortie impossible sans votre code secret.' },
+          { title: 'Pause Prières', desc: 'Blocage automatique aux heures de prière.' },
+          { title: 'YouTube 200% Safe', desc: 'Zéro pub, zéro commentaire, zéro dérive.' },
+          { title: 'Navigation Blanche', desc: 'Seuls les sites que vous validez sont accessibles.' },
+          { title: 'Hifz & Apprentissage', desc: 'Un parcours éducatif intégré et suivi.' },
+          { title: 'Zéro Addiction', desc: 'Vous fixez les limites de temps d\'écran.' },
+        ],
+      },
+      slide3: {
+        title: 'Prêt en 30 secondes',
+        motivation: 'Configure en un instant et protège tes enfants dès maintenant',
+        cta: 'Commencer l\'aventure !',
+      },
     },
-    pinSetup: {
-      title: 'Créer votre code PIN',
-      subtitle: 'Ce code PIN protégera l\'accès au mode parent',
-      enterPin: 'Entrez un code PIN à 4 ou 6 chiffres',
-      confirmPin: 'Confirmez votre code PIN',
-      pinMismatch: 'Les codes PIN ne correspondent pas',
-      pinTooShort: 'Le code PIN doit contenir au moins 4 chiffres',
-      pinCreated: 'Code PIN créé avec succès',
-    },
-    citySelection: {
-      title: 'Sélectionnez votre ville',
-      subtitle: 'Pour calculer les horaires de prière précis',
-      searchPlaceholder: 'Rechercher une ville...',
-      popularCities: 'Villes populaires',
-      selectedCity: 'Ville sélectionnée',
-      noResults: 'Aucune ville trouvée',
-    },
-    complete: {
-      title: 'Configuration terminée !',
-      subtitle: 'MuslimGuard est prêt à protéger votre famille',
-      description: 'L\'application démarrera en mode enfant. Utilisez votre code PIN pour accéder aux paramètres parents.',
-      startApp: 'Démarrer l\'application',
+    setup: {
+      title: 'Configuration',
+      stepsSubtitle: '3 étapes rapides et c\'est parti',
+      pin: {
+        title: 'Code PIN parent',
+        subtitle: 'Ce code protège l\'accès aux paramètres',
+        enterPin: 'Choisissez un code PIN à 4 chiffres',
+        confirmPin: 'Confirmez votre code PIN',
+        pinMismatch: 'Les codes PIN ne correspondent pas',
+        pinCreated: 'Code PIN créé !',
+      },
+      city: {
+        title: 'Ta ville',
+        subtitle: 'Pour les horaires de prière',
+        searchPlaceholder: 'Rechercher une ville...',
+        noResults: 'Aucune ville trouvée',
+        selectedCity: 'Ville sélectionnée',
+      },
+      recovery: {
+        title: 'Récupération de secours',
+        subtitle: 'En cas d\'oubli du code PIN',
+        masterKeyLabel: 'Votre Clé Maître',
+        masterKeyWarning: 'Notez ce code, c\'est votre unique accès de secours.',
+        masterKeyCopied: 'Clé copiée !',
+        questionLabel: 'Question de sécurité',
+        questionPlaceholder: 'Choisissez une question...',
+        answerLabel: 'Votre réponse',
+        answerPlaceholder: 'Saisissez votre réponse...',
+        answerHint: 'La réponse sera normalisée (minuscules, sans espaces).',
+        configured: 'Récupération configurée !',
+        questions: [
+          'Quel est le nom de famille de votre meilleur ami d\'enfance ?',
+          'Dans quelle rue se trouvait votre toute première école ?',
+          'Quel était le modèle de la première voiture que vous avez conduite ?',
+          'Quel est le prénom de votre premier professeur de Coran ou d\'Arabe ?',
+          'Dans quelle ville ou village vos parents se sont-ils mariés ?',
+          'Quel est le nom du lieu de votre tout premier voyage ?',
+        ],
+      },
+      startButton: 'Démarrer MuslimGuard',
     },
   },
 
@@ -85,6 +113,30 @@ export const translations = {
     lockedMessage: 'Trop de tentatives échouées. Réessayez dans {minutes} minutes.',
     forgotPin: 'Code PIN oublié ?',
     forgotPinMessage: 'Pour réinitialiser votre PIN, vous devez réinstaller l\'application. Toutes les données seront perdues.',
+  },
+
+  // Recovery screen
+  recovery: {
+    title: 'Récupération du PIN',
+    subtitle: 'Choisissez une méthode pour réinitialiser votre code PIN',
+    optionQuestion: 'Question de sécurité',
+    optionMasterKey: 'Clé Maître',
+    questionLabel: 'Votre question :',
+    answerPlaceholder: 'Saisissez votre réponse...',
+    masterKeyPlaceholder: 'Ex: MG-K82-B9',
+    verify: 'Vérifier',
+    newPinTitle: 'Nouveau code PIN',
+    newPinSubtitle: 'Choisissez un nouveau code PIN à 4 chiffres',
+    confirmNewPin: 'Confirmez votre nouveau code PIN',
+    pinResetSuccess: 'Code PIN réinitialisé avec succès !',
+    pinMismatch: 'Les codes ne correspondent pas',
+    errors: {
+      invalidAnswer: 'Réponse incorrecte',
+      invalidMasterKey: 'Clé Maître incorrecte',
+      locked: 'Trop de tentatives. Réessayez dans {seconds} secondes.',
+      notSetup: 'La récupération n\'a pas été configurée',
+      failed: 'Erreur de vérification',
+    },
   },
 
   // Child mode / Browser
@@ -388,6 +440,7 @@ export const translations = {
     appsSoon: 'Bientôt disponible',
     reminder: 'Rappel du jour',
     parentAccess: 'Accès parent',
+    parentMode: 'Mode Parent',
     noPrayerData: 'Configurez votre ville pour les horaires de prière',
     changeBackground: 'Fond d\'écran',
     selectBackground: 'Choisir un fond d\'écran',

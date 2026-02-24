@@ -21,12 +21,12 @@ interface AppModeContextType {
   isParentMode: boolean;
 
   // Mode switching
-  switchToChildMode: () => void;
-  switchToParentMode: () => void;
+  switchToChildMode: () => Promise<void>;
+  switchToParentMode: () => Promise<void>;
 
   // Onboarding
   isOnboardingComplete: boolean;
-  completeOnboarding: () => void;
+  completeOnboarding: () => Promise<void>;
 
   // Loading state
   isLoading: boolean;

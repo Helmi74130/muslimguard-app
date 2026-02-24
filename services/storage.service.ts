@@ -9,6 +9,7 @@ import {
   BlocklistData,
   DEFAULT_LOCKOUT_STATE,
   DEFAULT_PEDOMETER_DATA,
+  DEFAULT_RECOVERY_LOCKOUT_STATE,
   DEFAULT_SCHEDULE,
   DEFAULT_SETTINGS,
   EmotionEntry,
@@ -20,6 +21,7 @@ import {
   NoteEntry,
   PedometerData,
   PinLockoutState,
+  RecoveryLockoutState,
   ScheduleData,
   STORAGE_KEYS,
 } from '@/types/storage.types';
@@ -610,6 +612,27 @@ export const StorageService = {
     }
   },
 
+  // ==================== DEV / TESTING ====================
+
+  /**
+   * Get dev premium toggle state
+   */
+  async getDevPremium(): Promise<boolean> {
+    try {
+      const value = await AsyncStorage.getItem(STORAGE_KEYS.DEV_PREMIUM);
+      return value === 'true';
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Set dev premium toggle state
+   */
+  async setDevPremium(enabled: boolean): Promise<void> {
+    await AsyncStorage.setItem(STORAGE_KEYS.DEV_PREMIUM, enabled ? 'true' : 'false');
+  },
+
   // ==================== NOTES ====================
 
   /**
@@ -825,6 +848,168 @@ export const StorageService = {
     await AsyncStorage.setItem(STORAGE_KEYS.CUSTOM_VIDEOS, JSON.stringify(filtered));
   },
 
+  // ==================== VIDEO WATCH TIME ====================
+
+  /**
+   * Get today's video watch time in seconds.
+   * Resets automatically if the stored date is not today.
+   */
+  async getVideoWatchTime(): Promise<number> {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEYS.VIDEO_WATCH_TIME);
+      if (!json) return 0;
+      const data = JSON.parse(json);
+      const today = new Date().toDateString();
+      if (data.date !== today) return 0; // New day, reset
+      return data.seconds || 0;
+    } catch {
+      return 0;
+    }
+  },
+
+  /**
+   * Add seconds to today's video watch time.
+   */
+  async addVideoWatchTime(seconds: number): Promise<number> {
+    const today = new Date().toDateString();
+    const current = await this.getVideoWatchTime();
+    const updated = current + seconds;
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.VIDEO_WATCH_TIME,
+      JSON.stringify({ date: today, seconds: updated })
+    );
+    return updated;
+  },
+
+  // ==================== RECOVERY (Master Key + Security Question) ====================
+
+  /**
+   * Save master key hash (encrypted with SecureStore)
+   */
+  async saveMasterKeyHash(hash: string): Promise<void> {
+    await SecureStore.setItemAsync('recovery.masterkey.hash', hash);
+  },
+
+  /**
+   * Get master key hash
+   */
+  async getMasterKeyHash(): Promise<string | null> {
+    try {
+      return await SecureStore.getItemAsync('recovery.masterkey.hash');
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Save master key salt
+   */
+  async saveMasterKeySalt(salt: string): Promise<void> {
+    await SecureStore.setItemAsync('recovery.masterkey.salt', salt);
+  },
+
+  /**
+   * Get master key salt
+   */
+  async getMasterKeySalt(): Promise<string | null> {
+    try {
+      return await SecureStore.getItemAsync('recovery.masterkey.salt');
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Save security question index
+   */
+  async saveSecurityQuestionIndex(index: number): Promise<void> {
+    await SecureStore.setItemAsync('recovery.question.index', String(index));
+  },
+
+  /**
+   * Get security question index
+   */
+  async getSecurityQuestionIndex(): Promise<number | null> {
+    try {
+      const val = await SecureStore.getItemAsync('recovery.question.index');
+      return val !== null ? parseInt(val, 10) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Save security answer hash (encrypted with SecureStore)
+   */
+  async saveSecurityAnswerHash(hash: string): Promise<void> {
+    await SecureStore.setItemAsync('recovery.answer.hash', hash);
+  },
+
+  /**
+   * Get security answer hash
+   */
+  async getSecurityAnswerHash(): Promise<string | null> {
+    try {
+      return await SecureStore.getItemAsync('recovery.answer.hash');
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Save security answer salt
+   */
+  async saveSecurityAnswerSalt(salt: string): Promise<void> {
+    await SecureStore.setItemAsync('recovery.answer.salt', salt);
+  },
+
+  /**
+   * Get security answer salt
+   */
+  async getSecurityAnswerSalt(): Promise<string | null> {
+    try {
+      return await SecureStore.getItemAsync('recovery.answer.salt');
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Check if recovery is set up
+   */
+  async hasRecoverySetup(): Promise<boolean> {
+    const mkHash = await this.getMasterKeyHash();
+    const ansHash = await this.getSecurityAnswerHash();
+    return !!mkHash && !!ansHash;
+  },
+
+  /**
+   * Get recovery lockout state
+   */
+  async getRecoveryLockoutState(): Promise<RecoveryLockoutState> {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEYS.RECOVERY_LOCKOUT);
+      if (!json) return DEFAULT_RECOVERY_LOCKOUT_STATE;
+      return { ...DEFAULT_RECOVERY_LOCKOUT_STATE, ...JSON.parse(json) };
+    } catch {
+      return DEFAULT_RECOVERY_LOCKOUT_STATE;
+    }
+  },
+
+  /**
+   * Save recovery lockout state
+   */
+  async setRecoveryLockoutState(state: RecoveryLockoutState): Promise<void> {
+    await AsyncStorage.setItem(STORAGE_KEYS.RECOVERY_LOCKOUT, JSON.stringify(state));
+  },
+
+  /**
+   * Reset recovery lockout
+   */
+  async resetRecoveryLockout(): Promise<void> {
+    await this.setRecoveryLockoutState(DEFAULT_RECOVERY_LOCKOUT_STATE);
+  },
+
   // ==================== UTILITY ====================
 
   /**
@@ -835,6 +1020,11 @@ export const StorageService = {
     await SecureStore.deleteItemAsync('pin.hash');
     await SecureStore.deleteItemAsync('pin.salt');
     await SecureStore.deleteItemAsync('auth.token');
+    await SecureStore.deleteItemAsync('recovery.masterkey.hash');
+    await SecureStore.deleteItemAsync('recovery.masterkey.salt');
+    await SecureStore.deleteItemAsync('recovery.question.index');
+    await SecureStore.deleteItemAsync('recovery.answer.hash');
+    await SecureStore.deleteItemAsync('recovery.answer.salt');
   },
 
   /**

@@ -42,6 +42,14 @@ interface BrowserHomePageProps {
 
 const QUICK_LINKS = [
   {
+    label: t.links.videos,
+    url: 'videos',
+    icon: 'youtube' as const,
+    colorIndex: 1,
+    isInternal: true,
+    customColor: '#FF0000',
+  },
+  {
     label: t.links.quran,
     url: 'quran', // Special internal route
     icon: 'book-open-variant' as const,
@@ -140,14 +148,7 @@ const QUICK_LINKS = [
     isInternal: true,
   },
 
-  {
-    label: t.links.videos,
-    url: 'videos',
-    icon: 'youtube' as const,
-    colorIndex: 1,
-    isInternal: true,
-    customColor: '#FF0000',
-  },
+  
   {
     label: t.links.breathing,
     url: 'breathing',
@@ -188,6 +189,7 @@ const QUICK_LINKS = [
 export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [strictModeEnabled, setStrictModeEnabled] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
   const [whitelistDomains, setWhitelistDomains] = useState<string[]>([]);
   const [showBgPicker, setShowBgPicker] = useState(false);
   const [selectedBgId, setSelectedBgId] = useState<string>(DEFAULT_BACKGROUND_ID);
@@ -196,21 +198,26 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
   const [galleryPhotos, setGalleryPhotos] = useState<MediaLibrary.Asset[]>([]);
   const [showGalleryPicker, setShowGalleryPicker] = useState(false);
 
-  // Load strict mode status, whitelist, and browser setting
+  // Load strict mode status, whitelist, browser setting, and premium status
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [strictMode, whitelist, bgId, settings, customUri] = await Promise.all([
+        const [strictMode, whitelist, bgId, settings, customUri, subscriptionState, devPremium] = await Promise.all([
           BlockingService.isStrictModeEnabled(),
           BlockingService.getWhitelistDomains(),
           StorageService.getChildBackground(),
           StorageService.getSettings(),
           StorageService.getChildBackgroundUri(),
+          StorageService.getSubscriptionState(),
+          StorageService.getDevPremium(),
         ]);
+        const premium = subscriptionState.isPremium || devPremium;
+        setIsPremium(premium);
         setStrictModeEnabled(strictMode);
         setWhitelistDomains(whitelist);
         setSelectedBgId(bgId);
-        setBrowserEnabled(settings.browserEnabled);
+        // Browser control only applies if premium
+        setBrowserEnabled(premium ? settings.browserEnabled : true);
         setCustomPhotoUri(customUri);
       } catch (error) {
         console.error('Error loading data:', error);
@@ -264,6 +271,9 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
     onSearch(safeUrl);
   };
 
+  // Strict mode only effective if user is premium
+  const effectiveStrictMode = strictModeEnabled && isPremium;
+
   const renderScrollContent = () => (
     <ScrollView
       style={styles.scrollView}
@@ -271,15 +281,17 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
-      {/* Greeting */}
-      <View style={styles.greetingContainer}>
-        <Text style={[styles.greeting, dark && styles.textLight]}>{t.greeting}</Text>
-        <Text style={[styles.homeTitle, dark && styles.textLight]}>{t.homeTitle}</Text>
-        <Text style={[styles.homeSubtitle, dark && styles.textLightSecondary]}>{t.homeSubtitle}</Text>
-      </View>
+      {/* Greeting (hidden in strict mode) */}
+      {!effectiveStrictMode && (
+        <View style={styles.greetingContainer}>
+          <Text style={[styles.greeting, dark && styles.textLight]}>{t.greeting}</Text>
+          <Text style={[styles.homeTitle, dark && styles.textLight]}>{t.homeTitle}</Text>
+          <Text style={[styles.homeSubtitle, dark && styles.textLightSecondary]}>{t.homeSubtitle}</Text>
+        </View>
+      )}
 
-      {/* Search Bar (hidden when browser disabled) */}
-      {browserEnabled && (
+      {/* Search Bar (hidden when browser disabled or strict mode) */}
+      {browserEnabled && !effectiveStrictMode && (
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
             <MaterialCommunityIcons
@@ -314,9 +326,8 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
             )}
           </View>
 
-          {/* Badges row */}
+          {/* Safe search badge */}
           <View style={styles.badgesRow}>
-            {/* Safe search badge */}
             <View style={styles.safeBadge}>
               <MaterialCommunityIcons
                 name="shield-check"
@@ -325,54 +336,58 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
               />
               <Text style={styles.safeBadgeText}>{t.safeSearch}</Text>
             </View>
-
-            {/* Strict mode badge */}
-            {strictModeEnabled && (
-              <View style={styles.strictBadge}>
-                <MaterialCommunityIcons
-                  name="shield-lock"
-                  size={14}
-                  color={Colors.primary}
-                />
-                <Text style={styles.strictBadgeText}>{t.strictMode}</Text>
-              </View>
-            )}
           </View>
         </View>
       )}
 
-      {/* Allowed Sites (Strict Mode) */}
-      {browserEnabled && strictModeEnabled && whitelistDomains.length > 0 && (
-        <View style={styles.allowedSitesSection}>
-          <View style={styles.allowedSitesHeader}>
+      {/* Strict Mode Banner + Allowed Sites */}
+      {effectiveStrictMode && (
+        <View style={styles.strictModeSection}>
+          <View style={styles.strictModeBanner}>
             <MaterialCommunityIcons
-              name="shield-check"
-              size={18}
+              name="shield-lock"
+              size={28}
               color={Colors.success}
             />
-            <Text style={styles.allowedSitesTitle}>{t.allowedSites}</Text>
+            <Text style={styles.strictModeTitle}>Mode strict activé</Text>
+            <Text style={styles.strictModeDesc}>
+              Seuls les sites autorisés sont accessibles
+            </Text>
           </View>
-          <View style={styles.allowedSitesGrid}>
-            {whitelistDomains.map((domain) => (
-              <Pressable
-                key={domain}
-                style={({ pressed }) => [
-                  styles.allowedTile,
-                  pressed && styles.tilePressed,
-                ]}
-                onPress={() => onQuickLink(`https://${domain}`)}
-              >
+
+          {whitelistDomains.length > 0 && (
+            <>
+              <View style={styles.allowedSitesHeader}>
                 <MaterialCommunityIcons
-                  name="web"
-                  size={20}
+                  name="check-circle"
+                  size={18}
                   color={Colors.success}
                 />
-                <Text style={styles.allowedTileLabel} numberOfLines={1}>
-                  {domain}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+                <Text style={styles.allowedSitesTitle}>{t.allowedSites}</Text>
+              </View>
+              <View style={styles.allowedSitesGrid}>
+                {whitelistDomains.map((domain) => (
+                  <Pressable
+                    key={domain}
+                    style={({ pressed }) => [
+                      styles.allowedTile,
+                      pressed && styles.tilePressed,
+                    ]}
+                    onPress={() => onQuickLink(`https://${domain}`)}
+                  >
+                    <MaterialCommunityIcons
+                      name="web"
+                      size={20}
+                      color={Colors.success}
+                    />
+                    <Text style={styles.allowedTileLabel} numberOfLines={1}>
+                      {domain}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </>
+          )}
         </View>
       )}
 
@@ -733,10 +748,28 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
 
-  // Allowed Sites (Strict Mode)
-  allowedSitesSection: {
+  // Strict Mode Section
+  strictModeSection: {
     marginBottom: Spacing.lg,
   },
+  strictModeBanner: {
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  strictModeTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.success,
+    marginTop: Spacing.sm,
+  },
+  strictModeDesc: {
+    fontSize: 13,
+    color: Colors.light.textSecondary,
+    marginTop: Spacing.xs,
+  },
+
+  // Allowed Sites (Strict Mode)
   allowedSitesHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -759,10 +792,10 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.success + '10',
+    backgroundColor: '#FFFFFF',
     borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.success + '30',
+    borderWidth: 1.5,
+    borderColor: Colors.success,
   },
   allowedTileLabel: {
     fontSize: 13,

@@ -3,26 +3,28 @@
  * Manages premium subscription state globally
  */
 
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useEffect,
-  ReactNode,
-} from 'react';
-import { StorageService } from '@/services/storage.service';
 import { ApiService } from '@/services/api.service';
+import { BillingService } from '@/services/billing.service';
+import { StorageService } from '@/services/storage.service';
 import {
-  LocalSubscriptionState,
   DEFAULT_SUBSCRIPTION_STATE,
+  FREE_TIER_LIMITS,
+  GOOGLE_PLAY_PRODUCTS,
+  LocalSubscriptionState,
+  PREMIUM_TIER_LIMITS,
+  PremiumFeature,
+  ProductInfo,
   SubscriptionInfo,
   UserInfo,
-  PremiumFeature,
-  FREE_TIER_LIMITS,
-  PREMIUM_TIER_LIMITS,
-  ProductInfo,
 } from '@/types/subscription.types';
+import React, {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 
 // =============================================================================
 // CONTEXT TYPE
@@ -36,20 +38,24 @@ interface SubscriptionContextType {
   subscription: SubscriptionInfo | null;
   isLoading: boolean;
 
-  // Products (for Google Play Billing - will be implemented in billing.service.ts)
+  // Dev mode (for testing without Google Play)
+  isDevPremium: boolean;
+  setDevPremium: (enabled: boolean) => Promise<void>;
+
+  // Products (Google Play Billing)
   products: ProductInfo[];
   productsLoading: boolean;
 
   // Feature checking
   hasFeature: (feature: PremiumFeature) => boolean;
-  getLimit: (key: 'maxBlockedDomains' | 'historyDays') => number;
+  getLimit: (key: 'maxBlockedDomains' | 'maxCustomVideos' | 'historyDays' | 'maxVideoDailyMinutes' | 'maxCustomDomains' | 'maxCustomKeywords') => number;
 
   // Auth actions
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshSubscription: () => Promise<void>;
 
-  // Purchase actions (stubs for now - will connect to billing.service.ts)
+  // Purchase actions (connected to BillingService)
   loadProducts: () => Promise<void>;
   purchaseMonthly: () => Promise<{ success: boolean; error?: string }>;
   purchaseAnnual: () => Promise<{ success: boolean; error?: string }>;
@@ -73,6 +79,7 @@ interface SubscriptionProviderProps {
 export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const [state, setState] = useState<LocalSubscriptionState>(DEFAULT_SUBSCRIPTION_STATE);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDevPremium, setIsDevPremiumState] = useState(false);
   const [products, setProducts] = useState<ProductInfo[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
 
@@ -86,6 +93,10 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
         // Load saved state from storage
         const savedState = await StorageService.getSubscriptionState();
         setState(savedState);
+
+        // Load dev premium toggle state
+        const devPremium = await StorageService.getDevPremium();
+        setIsDevPremiumState(devPremium);
 
         // If logged in, verify token is still valid
         if (savedState.isLoggedIn && savedState.token) {
@@ -112,6 +123,9 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
             setState(DEFAULT_SUBSCRIPTION_STATE);
           }
         }
+
+        // Initialize billing connection
+        await BillingService.initialize();
       } catch (error) {
         console.error('[SubscriptionContext] Error loading state:', error);
       } finally {
@@ -120,38 +134,55 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     };
 
     loadState();
+
+    // Cleanup billing on unmount
+    return () => {
+      BillingService.cleanup();
+    };
   }, []);
 
   // ==========================================================================
   // FEATURE CHECKING
   // ==========================================================================
 
+  // Effective premium status (real OR dev toggle)
+  const effectivePremium = state.isPremium || isDevPremium;
+
   /**
    * Check if user has access to a specific feature
    */
   const hasFeature = useCallback(
     (feature: PremiumFeature): boolean => {
-      // Premium users have all features
-      if (state.isPremium) return true;
+      // Premium users (real or dev) have all features
+      if (effectivePremium) return true;
 
       // Free tier has no premium features
       return false;
     },
-    [state.isPremium]
+    [effectivePremium]
   );
 
   /**
    * Get limit based on subscription tier
    */
   const getLimit = useCallback(
-    (key: 'maxBlockedDomains' | 'historyDays'): number => {
-      if (state.isPremium) {
+    (key: 'maxBlockedDomains' | 'maxCustomVideos' | 'historyDays' | 'maxVideoDailyMinutes' | 'maxCustomDomains' | 'maxCustomKeywords'): number => {
+      if (effectivePremium) {
         return PREMIUM_TIER_LIMITS[key];
       }
       return FREE_TIER_LIMITS[key];
     },
-    [state.isPremium]
+    [effectivePremium]
   );
+
+  /**
+   * Toggle dev premium mode (for testing)
+   */
+  const setDevPremium = useCallback(async (enabled: boolean): Promise<void> => {
+    await StorageService.setDevPremium(enabled);
+    setIsDevPremiumState(enabled);
+    console.log('[SubscriptionContext] Dev premium:', enabled);
+  }, []);
 
   // ==========================================================================
   // AUTH ACTIONS
@@ -230,8 +261,35 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   }, [state.isLoggedIn]);
 
   // ==========================================================================
-  // PURCHASE ACTIONS (STUBS - Will be implemented with billing.service.ts)
+  // PURCHASE ACTIONS (connected to BillingService)
   // ==========================================================================
+
+  /**
+   * Activate premium locally after a verified purchase
+   */
+  const activatePremiumLocally = useCallback(async (
+    productId: string,
+    purchaseToken?: string
+  ): Promise<void> => {
+    const plan = productId === GOOGLE_PLAY_PRODUCTS.annual ? 'annual' : 'monthly';
+    const subscriptionInfo: SubscriptionInfo = {
+      isPremium: true,
+      status: 'active',
+      planName: plan === 'annual' ? 'Annuel' : 'Mensuel',
+      plan: plan as any,
+      source: 'google_play',
+      willRenew: true,
+    };
+
+    const updatedState = await StorageService.updateSubscriptionState({
+      isPremium: true,
+      subscription: subscriptionInfo,
+      googlePlayPurchaseToken: purchaseToken || null,
+      lastVerificationTimestamp: Date.now(),
+    });
+    setState(updatedState);
+    console.log('[SubscriptionContext] Premium activated locally for:', productId);
+  }, []);
 
   /**
    * Load available products from Google Play
@@ -239,9 +297,8 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const loadProducts = useCallback(async (): Promise<void> => {
     setProductsLoading(true);
     try {
-      // TODO: Connect to BillingService.getProducts() when implemented
-      // For now, return empty array
-      setProducts([]);
+      const prods = await BillingService.getProducts();
+      setProducts(prods);
     } catch (error) {
       console.error('[SubscriptionContext] Error loading products:', error);
     } finally {
@@ -250,40 +307,74 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   }, []);
 
   /**
+   * Purchase a subscription by product ID
+   */
+  const purchaseSubscription = useCallback(async (
+    productId: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    if (!BillingService.isNativeAvailable()) {
+      return { success: false, error: 'Achats in-app non disponibles. Nécessite un build natif.' };
+    }
+
+    const result = await BillingService.purchaseSubscription(productId);
+    // Note: actual success is handled by the purchase listener set up in PremiumScreen
+    return result;
+  }, []);
+
+  /**
    * Purchase monthly subscription
    */
   const purchaseMonthly = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
-    if (!state.isLoggedIn) {
-      return { success: false, error: "Veuillez vous connecter d'abord" };
-    }
-
-    // TODO: Connect to BillingService.purchaseSubscription('muslimguard_monthly')
-    return { success: false, error: 'Google Play Billing non configuré' };
-  }, [state.isLoggedIn]);
+    return purchaseSubscription(GOOGLE_PLAY_PRODUCTS.monthly);
+  }, [purchaseSubscription]);
 
   /**
    * Purchase annual subscription
    */
   const purchaseAnnual = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
-    if (!state.isLoggedIn) {
-      return { success: false, error: "Veuillez vous connecter d'abord" };
-    }
-
-    // TODO: Connect to BillingService.purchaseSubscription('muslimguard_annual')
-    return { success: false, error: 'Google Play Billing non configuré' };
-  }, [state.isLoggedIn]);
+    return purchaseSubscription(GOOGLE_PLAY_PRODUCTS.annual);
+  }, [purchaseSubscription]);
 
   /**
-   * Restore purchases
+   * Restore purchases from Google Play
    */
   const restorePurchases = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
-    if (!state.isLoggedIn) {
-      return { success: false, error: "Veuillez vous connecter d'abord" };
+    if (!BillingService.isNativeAvailable()) {
+      return { success: false, error: 'Non disponible en mode développement.' };
     }
 
-    // TODO: Connect to BillingService.restorePurchases()
-    return { success: false, error: 'Google Play Billing non configuré' };
-  }, [state.isLoggedIn]);
+    try {
+      const purchases = await BillingService.restorePurchases();
+
+      if (purchases.length === 0) {
+        return { success: false, error: 'Aucun achat trouvé à restaurer.' };
+      }
+
+      // Try to validate with backend first
+      const latest = purchases[0];
+      if (latest.purchaseToken) {
+        const backendResult = await BillingService.validateAndActivate(
+          latest.purchaseToken,
+          latest.productId
+        );
+
+        if (backendResult.success) {
+          await refreshSubscription();
+          return { success: true };
+        }
+
+        // Backend validation failed - activate locally since Google Play confirmed the purchase
+        console.log('[SubscriptionContext] Backend validation failed, activating locally');
+        await activatePremiumLocally(latest.productId, latest.purchaseToken);
+        return { success: true };
+      }
+
+      return { success: false, error: 'Achat invalide.' };
+    } catch (error) {
+      console.error('[SubscriptionContext] Restore error:', error);
+      return { success: false, error: 'Erreur lors de la restauration.' };
+    }
+  }, [refreshSubscription, activatePremiumLocally]);
 
   // ==========================================================================
   // CONTEXT VALUE
@@ -292,10 +383,14 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const value: SubscriptionContextType = {
     // State
     isLoggedIn: state.isLoggedIn,
-    isPremium: state.isPremium,
+    isPremium: effectivePremium,
     user: state.user,
     subscription: state.subscription,
     isLoading,
+
+    // Dev mode
+    isDevPremium,
+    setDevPremium,
 
     // Products
     products,

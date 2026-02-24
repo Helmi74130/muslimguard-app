@@ -75,18 +75,14 @@ export function usePremiumFeature(feature: PremiumFeature): UsePremiumFeatureRes
       [
         { text: 'Plus tard', style: 'cancel' },
         {
-          text: isLoggedIn ? 'Voir les offres' : 'Se connecter',
+          text: 'Voir les offres',
           onPress: () => {
-            if (isLoggedIn) {
-              router.push('/parent/premium' as any);
-            } else {
-              router.push('/parent/account/login' as any);
-            }
+            router.push('/parent/premium' as any);
           },
         },
       ]
     );
-  }, [featureLabel, isLoggedIn]);
+  }, [featureLabel]);
 
   /**
    * Checks if feature is available, shows prompt if not
@@ -130,7 +126,7 @@ export function usePremiumFeature(feature: PremiumFeature): UsePremiumFeatureRes
  * ```
  */
 export function useBlockedDomainsLimit(currentCount: number) {
-  const { getLimit, isPremium, isLoggedIn } = useSubscription();
+  const { getLimit, isPremium } = useSubscription();
 
   const maxCount = getLimit('maxBlockedDomains');
   const canAddMore = currentCount < maxCount;
@@ -142,18 +138,14 @@ export function useBlockedDomainsLimit(currentCount: number) {
       [
         { text: 'Plus tard', style: 'cancel' },
         {
-          text: isLoggedIn ? 'Voir les offres' : 'Se connecter',
+          text: 'Voir les offres',
           onPress: () => {
-            if (isLoggedIn) {
-              router.push('/parent/premium' as any);
-            } else {
-              router.push('/parent/account/login' as any);
-            }
+            router.push('/parent/premium' as any);
           },
         },
       ]
     );
-  }, [maxCount, isLoggedIn]);
+  }, [maxCount]);
 
   return {
     canAddMore,

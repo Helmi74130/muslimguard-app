@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { translations } from '@/constants/translations';
 import { useSubscription } from '@/contexts/subscription.context';
+import { usePremiumFeature } from '@/hooks/use-premium-feature';
 import { StorageService } from '@/services/storage.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -62,7 +63,8 @@ function SettingItem({
 }
 
 export default function SettingsScreen() {
-  const { isLoggedIn, isPremium, user } = useSubscription();
+  const { isLoggedIn, isPremium, user, isDevPremium, setDevPremium } = useSubscription();
+  const { requireFeature: requireBrowserControl } = usePremiumFeature('browser_control');
   const [readingModeEnabled, setReadingModeEnabled] = useState(false);
   const [browserEnabled, setBrowserEnabled] = useState(true);
 
@@ -74,14 +76,16 @@ export default function SettingsScreen() {
   }, []);
 
   const handleToggleReadingMode = useCallback(async (enabled: boolean) => {
-    await StorageService.updateSettings({ readingModeEnabled: enabled });
     setReadingModeEnabled(enabled);
+    await StorageService.updateSettings({ readingModeEnabled: enabled });
   }, []);
 
   const handleToggleBrowser = useCallback(async (enabled: boolean) => {
-    await StorageService.updateSettings({ browserEnabled: enabled });
+    // Only disabling the browser requires premium (re-enabling is always allowed)
+    if (!enabled && !requireBrowserControl()) return;
     setBrowserEnabled(enabled);
-  }, []);
+    await StorageService.updateSettings({ browserEnabled: enabled });
+  }, [requireBrowserControl]);
 
   const handleResetApp = () => {
     Alert.alert(
@@ -273,6 +277,48 @@ export default function SettingsScreen() {
             color={Colors.success}
           />
         </Card>
+
+        {/* Dev / Testing Section */}
+        {__DEV__ && (
+          <>
+            <Text style={styles.sectionTitle}>DÉVELOPPEUR</Text>
+            <Card variant="outlined" style={[styles.section, { borderColor: Colors.warning + '40' }]}>
+              <View style={styles.settingItem}>
+                <View style={[styles.settingIconContainer, { backgroundColor: Colors.warning + '15' }]}>
+                  <MaterialCommunityIcons name="bug" size={22} color={Colors.warning} />
+                </View>
+                <View style={styles.settingContent}>
+                  <Text style={styles.settingTitle}>Simuler Premium</Text>
+                  <Text style={styles.settingSubtitle}>
+                    {isDevPremium
+                      ? 'Premium simulé actif (dev)'
+                      : 'Tester les fonctionnalités premium'}
+                  </Text>
+                </View>
+                <Switch
+                  value={isDevPremium}
+                  onValueChange={setDevPremium}
+                  trackColor={{ false: Colors.light.border, true: Colors.warning + '60' }}
+                  thumbColor={isDevPremium ? Colors.warning : Colors.light.textSecondary}
+                />
+              </View>
+              <View style={styles.divider} />
+              <View style={styles.settingItem}>
+                <View style={[styles.settingIconContainer, { backgroundColor: Colors.warning + '15' }]}>
+                  <MaterialCommunityIcons name="information" size={22} color={Colors.warning} />
+                </View>
+                <View style={styles.settingContent}>
+                  <Text style={styles.settingTitle}>Statut Premium</Text>
+                  <Text style={styles.settingSubtitle}>
+                    {isPremium
+                      ? `Premium actif ${isDevPremium ? '(simulé)' : '(réel)'}`
+                      : 'Gratuit'}
+                  </Text>
+                </View>
+              </View>
+            </Card>
+          </>
+        )}
 
         {/* Danger Zone */}
         <Card variant="outlined" style={[styles.section, styles.dangerSection]}>

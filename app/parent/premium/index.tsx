@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { useSubscription } from '@/contexts/subscription.context';
 import { BillingService } from '@/services/billing.service';
+import { StorageService } from '@/services/storage.service';
 import { GOOGLE_PLAY_PRODUCTS, ProductInfo } from '@/types/subscription.types';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Redirect, router } from 'expo-router';
@@ -15,6 +16,7 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -25,12 +27,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Premium features list
 const PREMIUM_FEATURES = [
+  { icon: 'web-off', text: 'Contrôle du navigateur' },
   { icon: 'shield-check', text: 'Mode strict (liste blanche)' },
   { icon: 'infinity', text: 'Sites bloqués illimités' },
+  { icon: 'video-plus', text: 'Vidéos personnalisées illimitées' },
+  { icon: 'play-circle', text: 'Temps de vidéo illimité' },
   { icon: 'cellphone-lock', text: 'Mode kiosque' },
   { icon: 'history', text: 'Historique 90 jours' },
   { icon: 'clock-outline', text: 'Restrictions horaires' },
-  { icon: 'account-multiple', text: 'Multi-enfants (bientôt)' },
 ];
 
 export default function PremiumScreen() {
@@ -74,6 +78,24 @@ export default function PremiumScreen() {
     }
   };
 
+  const activateLocally = async (productId: string, purchaseToken: string) => {
+    // Activate premium locally when backend is unavailable
+    const plan = productId === GOOGLE_PLAY_PRODUCTS.annual ? 'annual' : 'monthly';
+    await StorageService.updateSubscriptionState({
+      isPremium: true,
+      subscription: {
+        isPremium: true,
+        status: 'active',
+        planName: plan === 'annual' ? 'Annuel' : 'Mensuel',
+        plan: plan as any,
+        source: 'google_play',
+        willRenew: true,
+      },
+      googlePlayPurchaseToken: purchaseToken,
+      lastVerificationTimestamp: Date.now(),
+    });
+  };
+
   const setupBillingListeners = () => {
     BillingService.setupListeners(
       // On purchase success
@@ -82,7 +104,7 @@ export default function PremiumScreen() {
         setPurchasing(null);
 
         if (purchase.purchaseToken) {
-          // Validate with backend
+          // Try to validate with backend
           const result = await BillingService.validateAndActivate(
             purchase.purchaseToken,
             purchase.productId
@@ -94,10 +116,13 @@ export default function PremiumScreen() {
               { text: 'OK', onPress: () => router.replace('/parent/account') },
             ]);
           } else {
-            Alert.alert(
-              'Erreur',
-              result.error || "Erreur lors de la validation de l'achat. Contactez le support."
-            );
+            // Backend failed but Google Play confirmed the purchase - activate locally
+            console.log('[PremiumScreen] Backend validation failed, activating locally');
+            await activateLocally(purchase.productId, purchase.purchaseToken);
+            await refreshSubscription();
+            Alert.alert('Achat réussi !', 'Votre abonnement Premium est maintenant actif.', [
+              { text: 'OK', onPress: () => router.replace('/parent/account') },
+            ]);
           }
         }
       },
@@ -188,7 +213,10 @@ export default function PremiumScreen() {
         {/* Hero */}
         <View style={styles.hero}>
           <View style={styles.premiumIcon}>
-            <MaterialCommunityIcons name="star" size={50} color={Colors.warning} />
+            <Image
+              source={require('@/assets/images/logomg2.png')}
+              style={styles.logoImage}
+            />
           </View>
           <Text style={styles.heroTitle}>MuslimGuard Premium</Text>
           <Text style={styles.heroSubtitle}>
@@ -326,10 +354,20 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: Colors.warning + '20',
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.lg,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  logoImage: {
+    width: 70,
+    height: 70,
+    resizeMode: 'contain',
   },
   heroTitle: {
     fontSize: 24,

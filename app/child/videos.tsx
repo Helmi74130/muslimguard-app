@@ -10,6 +10,7 @@ import { BorderRadius, Colors, KidColors, Spacing } from '@/constants/theme';
 import { translations } from '@/constants/translations';
 import { StorageService } from '@/services/storage.service';
 import { VideoService } from '@/services/video.service';
+import { FREE_TIER_LIMITS } from '@/types/subscription.types';
 import { Video, VideoCategory } from '@/types/video.types';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -56,6 +57,13 @@ export default function VideosScreen() {
   const [duration, setDuration] = useState(0);
   const progressBarWidth = useRef(0);
 
+  // Watch time limit
+  const [isPremium, setIsPremium] = useState(false);
+  const [watchedMinutes, setWatchedMinutes] = useState(0);
+  const [timeLimitReached, setTimeLimitReached] = useState(false);
+  const watchTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const maxMinutes = FREE_TIER_LIMITS.maxVideoDailyMinutes;
+
   // Helper to generate a stable negative ID from a string
   const getStableId = (str: string): number => {
     let hash = 0;
@@ -71,14 +79,40 @@ export default function VideosScreen() {
     useCallback(() => {
       loadCategories();
       loadFavorites();
+      loadWatchTimeData();
 
       return () => {
         // Stop playback when leaving the screen
         setPlaying(false);
         setActiveVideo(null);
+        // Save accumulated watch time
+        if (watchTimerRef.current) {
+          clearInterval(watchTimerRef.current);
+          watchTimerRef.current = null;
+        }
       };
     }, [])
   );
+
+  // Load premium status and today's watch time
+  const loadWatchTimeData = async () => {
+    try {
+      const [subscriptionState, devPremium, watchedSeconds] = await Promise.all([
+        StorageService.getSubscriptionState(),
+        StorageService.getDevPremium(),
+        StorageService.getVideoWatchTime(),
+      ]);
+      const premium = subscriptionState.isPremium || devPremium;
+      setIsPremium(premium);
+      const mins = Math.floor(watchedSeconds / 60);
+      setWatchedMinutes(mins);
+      if (!premium && mins >= maxMinutes) {
+        setTimeLimitReached(true);
+      }
+    } catch (error) {
+      console.error('Error loading watch time data:', error);
+    }
+  };
 
   // Google Play Store compliance: stop video when app goes to background
   useEffect(() => {
@@ -89,6 +123,34 @@ export default function VideosScreen() {
     });
     return () => sub.remove();
   }, []);
+
+  // Watch time tracker: save 10s every 10s while playing (free tier only)
+  useEffect(() => {
+    if (playing && !isPremium) {
+      watchTimerRef.current = setInterval(async () => {
+        const totalSeconds = await StorageService.addVideoWatchTime(10);
+        const mins = Math.floor(totalSeconds / 60);
+        setWatchedMinutes(mins);
+        if (mins >= maxMinutes) {
+          setTimeLimitReached(true);
+          setPlaying(false);
+          setActiveVideo(null);
+        }
+      }, 10000);
+    } else {
+      if (watchTimerRef.current) {
+        clearInterval(watchTimerRef.current);
+        watchTimerRef.current = null;
+      }
+    }
+
+    return () => {
+      if (watchTimerRef.current) {
+        clearInterval(watchTimerRef.current);
+        watchTimerRef.current = null;
+      }
+    };
+  }, [playing, isPremium]);
 
   const loadCategories = async () => {
     setLoading(true);
@@ -194,6 +256,9 @@ export default function VideosScreen() {
   };
 
   const playVideo = (video: Video) => {
+    // Check time limit for free users
+    if (!isPremium && timeLimitReached) return;
+
     setPlayerReady(false);
     setCurrentTime(0);
     setDuration(0);
@@ -380,6 +445,47 @@ export default function VideosScreen() {
     );
   }
 
+  // ── Time limit reached ──
+  if (timeLimitReached && !isPremium) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
+          </Pressable>
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle}>{t.title}</Text>
+          </View>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View style={styles.centered}>
+          <View style={styles.timeLimitIcon}>
+            <MaterialCommunityIcons name="timer-sand" size={64} color={Colors.warning} />
+          </View>
+          <Text style={styles.errorTitle}>Temps écoulé !</Text>
+          <Text style={styles.errorDesc}>
+            Tu as utilisé tes {maxMinutes} minutes de vidéo pour aujourd'hui. Reviens demain !
+          </Text>
+          <Pressable
+            style={styles.premiumButton}
+            onPress={() => router.push('/pin-entry')}
+          >
+            <MaterialCommunityIcons name="crown" size={20} color="#FFFFFF" />
+            <Text style={styles.retryText}>Passer à Premium</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => router.back()}
+            style={styles.backLink}
+          >
+            <Text style={styles.backLinkText}>Retour</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const remainingMinutes = Math.max(0, maxMinutes - watchedMinutes);
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -389,7 +495,13 @@ export default function VideosScreen() {
         </Pressable>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>{t.title}</Text>
-          <Text style={styles.headerSubtitle}>{t.subtitle}</Text>
+          {!isPremium ? (
+            <Text style={[styles.headerSubtitle, remainingMinutes <= 5 && { color: Colors.warning }]}>
+              {remainingMinutes} min restantes
+            </Text>
+          ) : (
+            <Text style={styles.headerSubtitle}>{t.subtitle}</Text>
+          )}
         </View>
         <View style={styles.headerSpacer} />
       </View>
@@ -802,6 +914,27 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  timeLimitIcon: {
+    marginBottom: Spacing.sm,
+  },
+  premiumButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.warning,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.full,
+    marginTop: Spacing.md,
+  },
+  backLink: {
+    marginTop: Spacing.md,
+    padding: Spacing.sm,
+  },
+  backLinkText: {
+    fontSize: 14,
+    color: Colors.light.textSecondary,
   },
 
   // Player section

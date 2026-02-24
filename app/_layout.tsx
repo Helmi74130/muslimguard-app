@@ -137,6 +137,15 @@ function RootLayoutNav() {
             animation: 'slide_from_bottom',
           }}
         />
+
+        {/* Recovery screen */}
+        <Stack.Screen
+          name="recovery"
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom',
+          }}
+        />
       </Stack>
       <StatusBar style="auto" hidden={hideStatusBar} />
     </ThemeProvider>

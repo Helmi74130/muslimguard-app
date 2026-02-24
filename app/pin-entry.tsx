@@ -147,7 +147,10 @@ export default function PinEntryScreen() {
           )}
 
           {/* Forgot PIN */}
-          <TouchableOpacity style={styles.forgotButton}>
+          <TouchableOpacity
+            style={styles.forgotButton}
+            onPress={() => router.push('/recovery')}
+          >
             <Text style={styles.forgotText}>{t.forgotPin}</Text>
           </TouchableOpacity>
         </View>

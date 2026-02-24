@@ -5,6 +5,7 @@
 
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { translations } from '@/constants/translations';
+import { useSubscription } from '@/contexts/subscription.context';
 import { StorageService } from '@/services/storage.service';
 import { LocalVideo } from '@/types/storage.types';
 import { extractYouTubeId, fetchYouTubeTitle, getYouTubeThumbnail } from '@/utils/youtube';
@@ -27,6 +28,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const t = translations.customVideos;
 
 export default function CustomVideosScreen() {
+  const { getLimit, isPremium } = useSubscription();
+  const maxVideos = getLimit('maxCustomVideos');
   const [videos, setVideos] = useState<LocalVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const [urlInput, setUrlInput] = useState('');
@@ -49,9 +52,27 @@ export default function CustomVideosScreen() {
     }
   };
 
+  const canAddMore = videos.length < maxVideos;
+
   const handleAddVideo = async () => {
     setError(null);
     if (!urlInput.trim()) return;
+
+    // Check video limit (premium gating)
+    if (!canAddMore) {
+      Alert.alert(
+        'Limite atteinte',
+        `Vous avez atteint la limite de ${maxVideos} vidéos. Passez à Premium pour en ajouter sans limite.`,
+        [
+          { text: 'Plus tard', style: 'cancel' },
+          {
+            text: 'Voir les offres',
+            onPress: () => router.push('/parent/premium' as any),
+          },
+        ]
+      );
+      return;
+    }
 
     // Validate YouTube URL
     const videoId = extractYouTubeId(urlInput);
@@ -127,6 +148,22 @@ export default function CustomVideosScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Video limit indicator */}
+        {!isPremium && (
+          <View style={styles.limitBanner}>
+            <MaterialCommunityIcons name="information-outline" size={16} color={Colors.primary} />
+            <Text style={styles.limitBannerText}>
+              {videos.length}/{maxVideos} vidéos utilisées
+              {!canAddMore && ' — '}
+            </Text>
+            {!canAddMore && (
+              <TouchableOpacity onPress={() => router.push('/parent/premium' as any)}>
+                <Text style={styles.limitBannerLink}>Passer à Premium</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
         {/* Add Video Section */}
         <View style={styles.addSection}>
           <Text style={styles.sectionTitle}>{t.addVideo}</Text>
@@ -167,7 +204,7 @@ export default function CustomVideosScreen() {
           <TouchableOpacity
             style={[
               styles.addButton,
-              (!urlInput.trim() || addingVideo) && styles.addButtonDisabled
+              (!urlInput.trim() || addingVideo || !canAddMore) && styles.addButtonDisabled
             ]}
             onPress={handleAddVideo}
             disabled={!urlInput.trim() || addingVideo}
@@ -176,8 +213,8 @@ export default function CustomVideosScreen() {
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
               <>
-                <MaterialCommunityIcons name="plus" size={20} color="#FFFFFF" />
-                <Text style={styles.addButtonText}>{t.add}</Text>
+                <MaterialCommunityIcons name={canAddMore ? 'plus' : 'lock'} size={20} color="#FFFFFF" />
+                <Text style={styles.addButtonText}>{canAddMore ? t.add : 'Premium requis'}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -257,6 +294,24 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  limitBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary + '10',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    gap: 6,
+  },
+  limitBannerText: {
+    fontSize: 13,
+    color: Colors.primary,
+    fontWeight: '500',
+  },
+  limitBannerLink: {
+    fontSize: 13,
+    color: Colors.warning,
+    fontWeight: '700',
   },
   addSection: {
     padding: Spacing.lg,
