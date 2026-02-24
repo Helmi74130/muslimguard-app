@@ -212,7 +212,15 @@ export default function SettingsScreen() {
               <MaterialCommunityIcons name="web" size={22} color={Colors.primary} />
             </View>
             <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>{translations.browserToggle.title}</Text>
+              <View style={styles.settingTitleRow}>
+                <Text style={styles.settingTitle}>{translations.browserToggle.title}</Text>
+                {!isPremium && (
+                  <View style={styles.premiumBadge}>
+                    <MaterialCommunityIcons name="crown" size={10} color={Colors.warning} />
+                    <Text style={styles.premiumBadgeText}>Premium</Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.settingSubtitle}>
                 {browserEnabled
                   ? translations.browserToggle.enabled
@@ -407,6 +415,25 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.light.border,
     marginLeft: Spacing.md + 40 + Spacing.md,
+  },
+  settingTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  premiumBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: Colors.warning + '15',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+  },
+  premiumBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: Colors.warning,
   },
   dangerSection: {
     marginTop: Spacing.xl,

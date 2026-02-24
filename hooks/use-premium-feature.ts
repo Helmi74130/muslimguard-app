@@ -7,7 +7,7 @@ import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import { router } from 'expo-router';
 import { useSubscription } from '@/contexts/subscription.context';
-import { PremiumFeature, PREMIUM_FEATURE_LABELS } from '@/types/subscription.types';
+import { PremiumFeature, PREMIUM_FEATURE_LABELS, PREMIUM_FEATURE_DESCRIPTIONS } from '@/types/subscription.types';
 
 interface UsePremiumFeatureResult {
   /** Whether the feature is available to the current user */
@@ -64,14 +64,15 @@ export function usePremiumFeature(feature: PremiumFeature): UsePremiumFeatureRes
 
   const isAvailable = hasFeature(feature);
   const featureLabel = PREMIUM_FEATURE_LABELS[feature];
+  const featureDescription = PREMIUM_FEATURE_DESCRIPTIONS[feature];
 
   /**
-   * Shows an upgrade prompt alert
+   * Shows an upgrade prompt alert with feature description
    */
   const showUpgradePrompt = useCallback(() => {
     Alert.alert(
-      'Fonctionnalité Premium',
-      `"${featureLabel}" est une fonctionnalité Premium. Passez à MuslimGuard Premium pour y accéder.`,
+      `${featureLabel}`,
+      `${featureDescription}\n\nCette fonctionnalité est réservée aux membres Premium.`,
       [
         { text: 'Plus tard', style: 'cancel' },
         {
@@ -82,7 +83,7 @@ export function usePremiumFeature(feature: PremiumFeature): UsePremiumFeatureRes
         },
       ]
     );
-  }, [featureLabel]);
+  }, [featureLabel, featureDescription]);
 
   /**
    * Checks if feature is available, shows prompt if not

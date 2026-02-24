@@ -17,14 +17,13 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Alert,
   Image,
   ScrollView,
   StyleSheet,
   Switch,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -36,6 +35,7 @@ interface DashboardData {
   strictMode: boolean;
   autoPause: boolean;
   browserEnabled: boolean;
+  kioskEnabled: boolean;
 }
 
 export default function DashboardScreen() {
@@ -44,12 +44,14 @@ export default function DashboardScreen() {
   const { isPremium } = useSubscription();
   const { requireFeature: requireBrowserControl } = usePremiumFeature('browser_control');
   const { requireFeature: requireStrictMode } = usePremiumFeature('strict_mode');
+  const { requireFeature: requireKiosk } = usePremiumFeature('kiosk_mode');
   const [data, setData] = useState<DashboardData>({
     blockedToday: 0,
     totalVisits: 0,
     strictMode: false,
     autoPause: true,
     browserEnabled: true,
+    kioskEnabled: false,
   });
 
   useEffect(() => {
@@ -69,6 +71,7 @@ export default function DashboardScreen() {
           strictMode: settings.strictModeEnabled,
           autoPause: settings.autoPauseDuringPrayer,
           browserEnabled: settings.browserEnabled,
+          kioskEnabled: settings.kioskModeEnabled,
         });
       } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -104,6 +107,13 @@ export default function DashboardScreen() {
     await StorageService.updateSettings({ strictModeEnabled: enabled });
   }, [requireStrictMode]);
 
+  const handleToggleKiosk = useCallback(async (enabled: boolean) => {
+    if (enabled && !requireKiosk()) return;
+    setData(prev => ({ ...prev, kioskEnabled: enabled }));
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await StorageService.updateSettings({ kioskModeEnabled: enabled });
+  }, [requireKiosk]);
+
   const handleToggleAutoPause = useCallback(async (enabled: boolean) => {
     // Update state first to avoid flicker, then persist
     setData(prev => ({ ...prev, autoPause: enabled }));
@@ -112,7 +122,7 @@ export default function DashboardScreen() {
   }, []);
 
   // Protection level
-  const protectionLevel = data.strictMode ? 'high' : data.browserEnabled ? 'medium' : 'high';
+  const protectionLevel = (data.strictMode || !data.browserEnabled || data.kioskEnabled) ? 'high' : 'medium';
   const blockRate = data.totalVisits > 0
     ? Math.round((data.blockedToday / data.totalVisits) * 100)
     : 0;
@@ -215,6 +225,10 @@ export default function DashboardScreen() {
               label="Navigateur"
               active={data.browserEnabled}
             />
+            <StatusBadge
+              label="Kiosque"
+              active={data.kioskEnabled}
+            />
           </View>
         </Card>
 
@@ -244,6 +258,32 @@ export default function DashboardScreen() {
           </View>
         </View>
 
+        {/* Settings shortcut */}
+        <Card
+          variant="outlined"
+          onPress={() => router.push('/parent/settings')}
+          style={styles.settingsActionCard}
+        >
+          <View style={styles.settingsActionContent}>
+            <View style={styles.settingsActionIcon}>
+              <MaterialCommunityIcons
+                name="cog"
+                size={20}
+                color={Colors.light.textSecondary}
+              />
+            </View>
+            <View style={styles.settingsTextContainer}>
+              <Text style={styles.settingsActionTitle}>Tous les paramètres</Text>
+              <Text style={styles.settingsHint}>PIN, historique, liste blanche…</Text>
+            </View>
+            <MaterialCommunityIcons
+              name="chevron-right"
+              size={18}
+              color={Colors.light.textSecondary}
+            />
+          </View>
+        </Card>
+
         {/* Quick Toggles */}
         <Text style={styles.sectionTitle}>Contrôles rapides</Text>
         <Card variant="outlined" style={styles.togglesCard}>
@@ -266,6 +306,15 @@ export default function DashboardScreen() {
           />
           <View style={styles.toggleDivider} />
           <QuickToggle
+            icon="cellphone-lock"
+            label="Mode kiosque"
+            description="Empêcher la sortie de l'application"
+            value={data.kioskEnabled}
+            onToggle={handleToggleKiosk}
+            premium={!isPremium}
+          />
+          <View style={styles.toggleDivider} />
+          <QuickToggle
             icon="clock-check"
             label="Pause prière auto"
             description="Suspendre le web pendant les prières"
@@ -276,71 +325,43 @@ export default function DashboardScreen() {
 
         {/* Quick Actions */}
         <Text style={styles.sectionTitle}>Accès rapide</Text>
-        <View style={styles.actionsContainer}>
-          <Card
-            variant="outlined"
+        <Card variant="outlined" style={styles.quickActionsCard}>
+          <TouchableOpacity
+            style={styles.quickActionItem}
             onPress={() => router.push('/parent/settings/blocklist')}
-            style={styles.actionCard}
+            activeOpacity={0.6}
           >
-            <View style={styles.actionContent}>
-              <View style={styles.actionIconContainer}>
-                <MaterialCommunityIcons
-                  name="shield-lock"
-                  size={24}
-                  color={Colors.primary}
-                />
-              </View>
-              <Text style={styles.actionTitle}>Gérer les blocages</Text>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={20}
-                color={Colors.light.textSecondary}
-              />
+            <View style={styles.quickActionIcon}>
+              <MaterialCommunityIcons name="shield-lock" size={16} color={Colors.primary} />
             </View>
-          </Card>
-          <Card
-            variant="outlined"
+            <Text style={styles.quickActionLabel}>Gérer les blocages</Text>
+            <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.light.textSecondary} />
+          </TouchableOpacity>
+          <View style={styles.quickActionDivider} />
+          <TouchableOpacity
+            style={styles.quickActionItem}
             onPress={() => router.push('/parent/settings/schedule')}
-            style={styles.actionCard}
+            activeOpacity={0.6}
           >
-            <View style={styles.actionContent}>
-              <View style={styles.actionIconContainer}>
-                <MaterialCommunityIcons
-                  name="clock-outline"
-                  size={24}
-                  color={Colors.primary}
-                />
-              </View>
-              <Text style={styles.actionTitle}>Restrictions horaires</Text>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={20}
-                color={Colors.light.textSecondary}
-              />
+            <View style={styles.quickActionIcon}>
+              <MaterialCommunityIcons name="clock-outline" size={16} color={Colors.primary} />
             </View>
-          </Card>
-          <Card
-            variant="outlined"
+            <Text style={styles.quickActionLabel}>Restrictions horaires</Text>
+            <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.light.textSecondary} />
+          </TouchableOpacity>
+          <View style={styles.quickActionDivider} />
+          <TouchableOpacity
+            style={styles.quickActionItem}
             onPress={() => router.push('/parent/settings/custom-videos')}
-            style={styles.actionCard}
+            activeOpacity={0.6}
           >
-            <View style={styles.actionContent}>
-              <View style={styles.actionIconContainer}>
-                <MaterialCommunityIcons
-                  name="video-plus"
-                  size={24}
-                  color={Colors.primary}
-                />
-              </View>
-              <Text style={styles.actionTitle}>Mes vidéos personnalisées</Text>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={20}
-                color={Colors.light.textSecondary}
-              />
+            <View style={styles.quickActionIcon}>
+              <MaterialCommunityIcons name="video-plus" size={16} color={Colors.primary} />
             </View>
-          </Card>
-        </View>
+            <Text style={styles.quickActionLabel}>Mes vidéos personnalisées</Text>
+            <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.light.textSecondary} />
+          </TouchableOpacity>
+        </Card>
 
         {/* Return to Child Mode */}
         <TouchableOpacity
@@ -552,23 +573,24 @@ const styles = StyleSheet.create({
   },
   badgesRow: {
     flexDirection: 'row',
-    gap: Spacing.sm,
+    flexWrap: 'wrap',
+    gap: 6,
   },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
     borderRadius: BorderRadius.full,
-    gap: 6,
+    gap: 4,
   },
   badgeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
   },
   badgeText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
   },
 
@@ -600,32 +622,68 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
   },
 
-  // Quick Actions
-  actionsContainer: {
-    gap: Spacing.sm,
+  // Quick Actions (compact)
+  quickActionsCard: {
+    padding: 0,
     marginBottom: Spacing.xl,
+    overflow: 'hidden',
   },
-  actionCard: {
-    padding: Spacing.md,
-  },
-  actionContent: {
+  quickActionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.md,
+    paddingVertical: 10,
+    paddingHorizontal: Spacing.sm,
+    gap: Spacing.sm,
   },
-  actionIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: BorderRadius.md,
+  quickActionIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: BorderRadius.sm,
     backgroundColor: Colors.primary + '10',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  actionTitle: {
+  quickActionLabel: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '500',
     color: Colors.light.text,
+  },
+  quickActionDivider: {
+    height: 1,
+    backgroundColor: Colors.light.border,
+    marginLeft: Spacing.sm + 30 + Spacing.sm,
+  },
+  settingsActionCard: {
+    padding: Spacing.sm,
+    marginBottom: Spacing.lg,
+    borderStyle: 'dashed' as any,
+  },
+  settingsActionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  settingsActionIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.light.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  settingsTextContainer: {
+    flex: 1,
+  },
+  settingsActionTitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.light.text,
+  },
+  settingsHint: {
+    fontSize: 10,
+    color: Colors.light.textSecondary,
+    marginTop: 1,
   },
 
   // Child Mode Button

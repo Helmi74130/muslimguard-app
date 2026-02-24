@@ -73,6 +73,17 @@ export const PREMIUM_FEATURE_LABELS: Record<PremiumFeature, string> = {
   multi_child: 'Multi-enfants',
 };
 
+/** French descriptions explaining what each premium feature does */
+export const PREMIUM_FEATURE_DESCRIPTIONS: Record<PremiumFeature, string> = {
+  strict_mode: 'Autorise uniquement les sites que vous avez approuvés. Tout le reste est automatiquement bloqué pour une protection maximale.',
+  unlimited_domains: 'Bloquez un nombre illimité de sites et de mots-clés pour un filtrage sur mesure adapté à votre famille.',
+  kiosk_mode: 'Empêche votre enfant de quitter l\'application. L\'écran reste verrouillé sur MuslimGuard.',
+  extended_history: 'Consultez l\'historique de navigation de votre enfant sur 90 jours au lieu de 7 jours.',
+  schedule_restrictions: 'Définissez des plages horaires pendant lesquelles la navigation est autorisée. En dehors de ces horaires, l\'accès est bloqué.',
+  browser_control: 'Désactivez complètement l\'accès au navigateur pour votre enfant. Seules les autres fonctionnalités de l\'app restent accessibles.',
+  multi_child: 'Gérez plusieurs profils enfants avec des paramètres personnalisés pour chacun.',
+};
+
 // =============================================================================
 // USER & AUTHENTICATION
 // =============================================================================
