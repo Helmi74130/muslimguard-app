@@ -821,10 +821,7 @@ export const StorageService = {
     try {
       const videos = await this.getCustomVideos();
 
-      // Check limit
-      if (videos.length >= MAX_CUSTOM_VIDEOS) {
-        return { success: false, error: 'limit_reached' };
-      }
+      // Limit is checked in the UI (premium-aware), not here
 
       // Check for duplicates
       if (videos.some(v => v.youtubeId === video.youtubeId)) {
