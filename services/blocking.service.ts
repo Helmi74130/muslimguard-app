@@ -41,6 +41,16 @@ function extractDomain(url: string): string | null {
 }
 
 /**
+ * Validate that a string looks like a valid domain name (has a TLD)
+ * e.g. "facebook.com" ✓, "google.fr" ✓, "example.co.uk" ✓, "facebook" ✗
+ */
+function isValidDomain(domain: string): boolean {
+  // Must contain at least one dot, and end with a TLD (2+ alpha chars)
+  const domainRegex = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}$/;
+  return domainRegex.test(domain);
+}
+
+/**
  * Get base domain (removes www and subdomains for comparison)
  */
 function getBaseDomain(domain: string): string {
@@ -269,7 +279,7 @@ export const BlockingService = {
     const normalized = domain.toLowerCase().trim();
 
     if (!normalized || normalized.length < 3) {
-      return { success: false, error: 'Invalid domain' };
+      return { success: false, error: 'Domaine invalide' };
     }
 
     // Remove protocol if present
@@ -278,9 +288,13 @@ export const BlockingService = {
       .replace(/^www\./, '')
       .split('/')[0];
 
+    if (!isValidDomain(cleanDomain)) {
+      return { success: false, error: 'Veuillez entrer un domaine valide avec une extension (ex: site.com, site.fr)' };
+    }
+
     const current = await StorageService.getCustomDomains();
     if (current.includes(cleanDomain)) {
-      return { success: false, error: 'Domain already blocked' };
+      return { success: false, error: 'Ce site est déjà bloqué' };
     }
 
     await StorageService.setCustomDomains([cleanDomain, ...current]);
@@ -430,6 +444,10 @@ export const BlockingService = {
       .replace(/^https?:\/\//, '')
       .replace(/^www\./, '')
       .split('/')[0];
+
+    if (!isValidDomain(cleanDomain)) {
+      return { success: false, error: 'Veuillez entrer un domaine valide avec une extension (ex: site.com, site.fr)' };
+    }
 
     const current = await this.getWhitelistDomains();
     if (current.includes(cleanDomain)) {

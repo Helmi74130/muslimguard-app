@@ -16,7 +16,8 @@ export default function ParentLayout() {
       }}
     >
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="settings" />
+      <Stack.Screen name="account" />
+      <Stack.Screen name="premium" />
     </Stack>
   );
 }

@@ -191,6 +191,8 @@ export const translations = {
       title: 'Oups !',
       noInternet: 'Pas de connexion Internet',
       noInternetDesc: 'Vérifie que tu es bien connecté à Internet (Wi-Fi ou données mobiles).',
+      domainNotFound: 'Ce site n\'existe pas',
+      domainNotFoundDesc: 'L\'adresse que tu as entrée ne mène à aucun site. Vérifie l\'orthographe et réessaie.',
       loadFailed: 'Impossible de charger la page',
       loadFailedDesc: 'Cette page n\'a pas pu être chargée. Réessaie plus tard.',
       retry: 'Réessayer',

@@ -184,7 +184,10 @@ export default function VideosScreen() {
 
       // Load all videos (backend + custom)
       const allBackendVideos = await VideoService.getVideos();
-      const customVideos = await StorageService.getCustomVideos();
+      const allCustomVideos = await StorageService.getCustomVideos();
+
+      // Limit custom videos to free tier if not premium
+      const customVideos = isPremium ? allCustomVideos : allCustomVideos.slice(0, FREE_TIER_LIMITS.maxCustomVideos);
 
       // Convert custom videos to Video type
       const mappedCustomVideos: Video[] = customVideos.map(cv => ({
@@ -239,7 +242,8 @@ export default function VideosScreen() {
       }
       // Special case for custom videos
       else if (categoryId === CUSTOM_VIDEOS_CATEGORY_ID) {
-        const customVideos = await StorageService.getCustomVideos();
+        const allCustomVideos = await StorageService.getCustomVideos();
+        const customVideos = isPremium ? allCustomVideos : allCustomVideos.slice(0, FREE_TIER_LIMITS.maxCustomVideos);
         const mappedCustomVideos: Video[] = customVideos.map(cv => ({
           id: getStableId(cv.id),
           youtubeId: cv.youtubeId,
@@ -259,7 +263,8 @@ export default function VideosScreen() {
       // All videos (backend + custom)
       else {
         const allBackendVideos = await VideoService.getVideos();
-        const customVideos = await StorageService.getCustomVideos();
+        const allCustomVideos = await StorageService.getCustomVideos();
+        const customVideos = isPremium ? allCustomVideos : allCustomVideos.slice(0, FREE_TIER_LIMITS.maxCustomVideos);
         const mappedCustomVideos: Video[] = customVideos.map(cv => ({
           id: getStableId(cv.id),
           youtubeId: cv.youtubeId,

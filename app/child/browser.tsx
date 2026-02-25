@@ -53,7 +53,7 @@ export default function BrowserScreen() {
   const [canGoBack, setCanGoBack] = useState(false);
   const [canGoForward, setCanGoForward] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<{ isNoInternet: boolean } | null>(null);
+  const [error, setError] = useState<{ type: 'no_internet' | 'domain_not_found' | 'generic' } | null>(null);
   const [readingMode, setReadingMode] = useState(false);
   const isNavigatingToBlockRef = useRef(false);
 
@@ -416,16 +416,23 @@ export default function BrowserScreen() {
     const errorCode = nativeEvent.code;
     const description = nativeEvent.description || '';
 
+    // Check if it's a DNS resolution failure (domain doesn't exist)
+    const isDomainNotFound =
+      errorCode === -2 && description.includes('ERR_NAME_NOT_RESOLVED') ||
+      description.includes('ERR_NAME_NOT_RESOLVED');
+
     // Check if it's a network error (no internet)
     const isNoInternet =
-      errorCode === -2 || // Android: ERR_INTERNET_DISCONNECTED
-      errorCode === -6 || // Android: ERR_CONNECTION_REFUSED
-      errorCode === -7 || // Android: ERR_CONNECTION_TIMED_OUT
-      description.includes('ERR_INTERNET_DISCONNECTED') ||
-      description.includes('ERR_NAME_NOT_RESOLVED') ||
-      description.includes('NSURLErrorNotConnectedToInternet');
+      !isDomainNotFound && (
+        errorCode === -2 || // Android: ERR_INTERNET_DISCONNECTED
+        errorCode === -6 || // Android: ERR_CONNECTION_REFUSED
+        errorCode === -7 || // Android: ERR_CONNECTION_TIMED_OUT
+        description.includes('ERR_INTERNET_DISCONNECTED') ||
+        description.includes('NSURLErrorNotConnectedToInternet')
+      );
 
-    setError({ isNoInternet });
+    const type = isDomainNotFound ? 'domain_not_found' : isNoInternet ? 'no_internet' : 'generic';
+    setError({ type });
     setIsLoading(false);
   }, []);
 
@@ -567,7 +574,7 @@ export default function BrowserScreen() {
         <View style={styles.errorContainer}>
           <View style={styles.errorIconContainer}>
             <MaterialCommunityIcons
-              name={error.isNoInternet ? 'wifi-off' : 'alert-circle-outline'}
+              name={error.type === 'no_internet' ? 'wifi-off' : error.type === 'domain_not_found' ? 'web-off' : 'alert-circle-outline'}
               size={80}
               color={KidColors.safeGreen}
             />
@@ -576,10 +583,10 @@ export default function BrowserScreen() {
             {t.error.title}
           </Text>
           <Text style={styles.errorHeading}>
-            {error.isNoInternet ? t.error.noInternet : t.error.loadFailed}
+            {error.type === 'no_internet' ? t.error.noInternet : error.type === 'domain_not_found' ? t.error.domainNotFound : t.error.loadFailed}
           </Text>
           <Text style={styles.errorDescription}>
-            {error.isNoInternet ? t.error.noInternetDesc : t.error.loadFailedDesc}
+            {error.type === 'no_internet' ? t.error.noInternetDesc : error.type === 'domain_not_found' ? t.error.domainNotFoundDesc : t.error.loadFailedDesc}
           </Text>
           <View style={styles.errorButtons}>
             <Pressable

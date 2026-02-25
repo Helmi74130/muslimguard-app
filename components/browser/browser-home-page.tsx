@@ -186,11 +186,14 @@ const QUICK_LINKS = [
   },
 ];
 
+const MAX_VISIBLE_SITES = 6;
+
 export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [strictModeEnabled, setStrictModeEnabled] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [whitelistDomains, setWhitelistDomains] = useState<string[]>([]);
+  const [showAllSites, setShowAllSites] = useState(false);
   const [showBgPicker, setShowBgPicker] = useState(false);
   const [selectedBgId, setSelectedBgId] = useState<string>(DEFAULT_BACKGROUND_ID);
   const [browserEnabled, setBrowserEnabled] = useState(true);
@@ -366,7 +369,7 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
                 <Text style={styles.allowedSitesTitle}>{t.allowedSites}</Text>
               </View>
               <View style={styles.allowedSitesGrid}>
-                {whitelistDomains.map((domain) => (
+                {(showAllSites ? whitelistDomains : whitelistDomains.slice(0, MAX_VISIBLE_SITES)).map((domain) => (
                   <Pressable
                     key={domain}
                     style={({ pressed }) => [
@@ -385,6 +388,25 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
                     </Text>
                   </Pressable>
                 ))}
+                {whitelistDomains.length > MAX_VISIBLE_SITES && (
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.allowedTile,
+                      styles.showMoreTile,
+                      pressed && styles.tilePressed,
+                    ]}
+                    onPress={() => setShowAllSites(!showAllSites)}
+                  >
+                    <MaterialCommunityIcons
+                      name={showAllSites ? 'chevron-up' : 'dots-horizontal'}
+                      size={20}
+                      color={Colors.primary}
+                    />
+                    <Text style={styles.showMoreLabel}>
+                      {showAllSites ? 'Réduire' : `+${whitelistDomains.length - MAX_VISIBLE_SITES} sites`}
+                    </Text>
+                  </Pressable>
+                )}
               </View>
             </>
           )}
@@ -802,6 +824,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.light.text,
     maxWidth: 120,
+  },
+  showMoreTile: {
+    borderColor: Colors.primary,
+    borderStyle: 'dashed',
+  },
+  showMoreLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.primary,
   },
 
   // Background Picker Modal
