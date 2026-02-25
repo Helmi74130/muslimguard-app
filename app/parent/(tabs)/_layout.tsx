@@ -7,33 +7,40 @@ import { Colors } from '@/constants/theme';
 import { translations } from '@/constants/translations';
 import { useAppMode } from '@/contexts/app-mode.context';
 import { useAuth } from '@/contexts/auth.context';
+import { StorageService } from '@/services/storage.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router, Tabs } from 'expo-router';
+import { useCallback } from 'react';
 import { Alert } from 'react-native';
 
 export default function ParentTabsLayout() {
   const { switchToChildMode } = useAppMode();
   const { logout } = useAuth();
 
-  const handleChildMode = () => {
-    Alert.alert(
-      'Retour mode enfant',
-      'Voulez-vous verrouiller et retourner en mode enfant ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Confirmer',
-          onPress: () => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            switchToChildMode();
-            logout();
-            router.replace('/');
-          },
-        },
-      ]
-    );
-  };
+  const doSwitch = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    switchToChildMode();
+    logout();
+    router.replace('/');
+  }, [switchToChildMode, logout]);
+
+  const handleChildMode = useCallback(async () => {
+    const settings = await StorageService.getSettings();
+
+    if (settings.kioskModeEnabled) {
+      Alert.alert(
+        'Retour mode enfant',
+        'Voulez-vous verrouiller et retourner en mode enfant ?',
+        [
+          { text: 'Annuler', style: 'cancel' },
+          { text: 'Confirmer', onPress: doSwitch },
+        ]
+      );
+    } else {
+      doSwitch();
+    }
+  }, [doSwitch]);
 
   return (
     <Tabs

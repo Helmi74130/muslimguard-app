@@ -232,6 +232,32 @@ export default function DashboardScreen() {
           </View>
         </Card>
 
+        {/* Settings shortcut */}
+        <Card
+          variant="outlined"
+          onPress={() => router.push('/parent/settings')}
+          style={styles.settingsActionCard}
+        >
+          <View style={styles.settingsActionContent}>
+            <View style={styles.settingsActionIcon}>
+              <MaterialCommunityIcons
+                name="cog"
+                size={24}
+                color={Colors.light.textSecondary}
+              />
+            </View>
+            <View style={styles.settingsTextContainer}>
+              <Text style={styles.settingsActionTitle}>Tous les paramètres</Text>
+              <Text style={styles.settingsHint}>PIN, historique, liste blanche…</Text>
+            </View>
+            <MaterialCommunityIcons
+              name="chevron-right"
+              size={22}
+              color={Colors.light.textSecondary}
+            />
+          </View>
+        </Card>
+
         {/* Today Stats */}
         <Text style={styles.sectionTitle}>Aujourd'hui</Text>
         <View style={styles.statsRow}>
@@ -269,31 +295,6 @@ export default function DashboardScreen() {
           <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.primary} />
         </TouchableOpacity>
 
-        {/* Settings shortcut */}
-        <Card
-          variant="outlined"
-          onPress={() => router.push('/parent/settings')}
-          style={styles.settingsActionCard}
-        >
-          <View style={styles.settingsActionContent}>
-            <View style={styles.settingsActionIcon}>
-              <MaterialCommunityIcons
-                name="cog"
-                size={20}
-                color={Colors.light.textSecondary}
-              />
-            </View>
-            <View style={styles.settingsTextContainer}>
-              <Text style={styles.settingsActionTitle}>Tous les paramètres</Text>
-              <Text style={styles.settingsHint}>PIN, historique, liste blanche…</Text>
-            </View>
-            <MaterialCommunityIcons
-              name="chevron-right"
-              size={18}
-              color={Colors.light.textSecondary}
-            />
-          </View>
-        </Card>
 
         {/* Quick Toggles */}
         <Text style={styles.sectionTitle}>Contrôles rapides</Text>
@@ -699,7 +700,7 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.sm + 30 + Spacing.sm,
   },
   settingsActionCard: {
-    padding: Spacing.sm,
+    padding: Spacing.md,
     marginBottom: Spacing.lg,
     borderStyle: 'dashed' as any,
   },
@@ -709,9 +710,9 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   settingsActionIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: BorderRadius.sm,
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.md,
     backgroundColor: Colors.light.surface,
     justifyContent: 'center',
     alignItems: 'center',
@@ -720,14 +721,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   settingsActionTitle: {
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '600',
     color: Colors.light.text,
   },
   settingsHint: {
-    fontSize: 10,
+    fontSize: 12,
     color: Colors.light.textSecondary,
-    marginTop: 1,
+    marginTop: 2,
   },
 
   // Child Mode Button
