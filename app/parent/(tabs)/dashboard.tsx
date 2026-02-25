@@ -290,7 +290,9 @@ export default function DashboardScreen() {
           <QuickToggle
             icon="web"
             label="Navigateur"
-            description="Autoriser ou bloquer l'accès au web"
+            description={data.browserEnabled
+              ? "Activé — décochez pour bloquer l'accès web"
+              : "Désactivé — cochez pour autoriser l'accès web"}
             value={data.browserEnabled}
             onToggle={handleToggleBrowser}
             premium={!isPremium}
@@ -299,7 +301,9 @@ export default function DashboardScreen() {
           <QuickToggle
             icon="shield-lock"
             label="Mode strict"
-            description="Uniquement les sites de la liste blanche"
+            description={data.strictMode
+              ? "Activé — seuls les sites en liste blanche sont accessibles"
+              : "Désactivé — cochez pour n'autoriser que la liste blanche"}
             value={data.strictMode}
             onToggle={handleToggleStrict}
             premium={!isPremium}
@@ -308,7 +312,9 @@ export default function DashboardScreen() {
           <QuickToggle
             icon="cellphone-lock"
             label="Verrouillage app"
-            description="Empêcher la sortie de l'application"
+            description={data.kioskEnabled
+              ? "Activé — l'enfant ne peut pas quitter l'app"
+              : "Désactivé — cochez pour empêcher la sortie de l'app"}
             value={data.kioskEnabled}
             onToggle={handleToggleKiosk}
             premium={!isPremium}
@@ -317,7 +323,9 @@ export default function DashboardScreen() {
           <QuickToggle
             icon="clock-check"
             label="Pause prière auto"
-            description="Suspendre le web pendant les prières"
+            description={data.autoPause
+              ? "Activé — le web se coupe pendant les prières"
+              : "Désactivé — cochez pour couper le web aux heures de prière"}
             value={data.autoPause}
             onToggle={handleToggleAutoPause}
           />

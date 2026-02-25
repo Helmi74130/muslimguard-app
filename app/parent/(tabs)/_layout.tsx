@@ -37,6 +37,7 @@ export default function ParentTabsLayout() {
 
   return (
     <Tabs
+      initialRouteName="dashboard"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: Colors.primary,
@@ -69,6 +70,15 @@ export default function ParentTabsLayout() {
       }}
     >
       <Tabs.Screen
+        name="settings"
+        options={{
+          title: translations.settings.title,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="cog" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="dashboard"
         options={{
           title: translations.dashboard.title,
@@ -78,33 +88,12 @@ export default function ParentTabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="history"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
         name="prayer"
         options={{
           title: translations.prayer.title,
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="mosque" size={size} color={color} />
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: translations.settings.title,
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="cog" size={size} color={color} />
-          ),
-        }}
-        listeners={{
-          tabPress: (e) => {
-            e.preventDefault();
-            router.push('/parent/settings');
-          },
         }}
       />
       <Tabs.Screen
@@ -120,6 +109,12 @@ export default function ParentTabsLayout() {
             e.preventDefault();
             handleChildMode();
           },
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

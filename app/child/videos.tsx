@@ -62,6 +62,7 @@ export default function VideosScreen() {
   const [watchedMinutes, setWatchedMinutes] = useState(0);
   const [timeLimitReached, setTimeLimitReached] = useState(false);
   const watchTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [resetCountdown, setResetCountdown] = useState('');
   const maxMinutes = FREE_TIER_LIMITS.maxVideoDailyMinutes;
 
   // Helper to generate a stable negative ID from a string
@@ -113,6 +114,28 @@ export default function VideosScreen() {
       console.error('Error loading watch time data:', error);
     }
   };
+
+  // Countdown to midnight reset when time limit is reached
+  useEffect(() => {
+    if (!timeLimitReached || isPremium) return;
+
+    const updateCountdown = () => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0);
+      const diff = midnight.getTime() - now.getTime();
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setResetCountdown(
+        `${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`
+      );
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [timeLimitReached, isPremium]);
 
   // Google Play Store compliance: stop video when app goes to background
   useEffect(() => {
@@ -466,6 +489,12 @@ export default function VideosScreen() {
           <Text style={styles.errorDesc}>
             Tu as utilisé tes {maxMinutes} minutes de vidéo pour aujourd'hui. Reviens demain !
           </Text>
+          <View style={styles.countdownContainer}>
+            <MaterialCommunityIcons name="clock-outline" size={16} color={Colors.primary} />
+            <Text style={styles.countdownText}>
+              Prochaine réinitialisation dans {resetCountdown}
+            </Text>
+          </View>
           <Pressable
             style={styles.premiumButton}
             onPress={() => router.push('/pin-entry')}
@@ -935,6 +964,21 @@ const styles = StyleSheet.create({
   backLinkText: {
     fontSize: 14,
     color: Colors.light.textSecondary,
+  },
+  countdownContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: Spacing.lg,
+    backgroundColor: Colors.primary + '10',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+  },
+  countdownText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.primary,
   },
 
   // Player section

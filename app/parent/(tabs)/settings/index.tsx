@@ -114,18 +114,7 @@ export default function SettingsScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <MaterialCommunityIcons
-              name="arrow-left"
-              size={24}
-              color={Colors.light.text}
-            />
-          </TouchableOpacity>
           <Text style={styles.title}>{t.title}</Text>
-          <View style={styles.placeholder} />
         </View>
 
         {/* Account Section */}
@@ -357,20 +346,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     marginBottom: Spacing.lg,
-  },
-  backButton: {
-    padding: Spacing.sm,
-    marginLeft: -Spacing.sm,
   },
   title: {
     fontSize: 20,
     fontWeight: '700',
     color: Colors.light.text,
-  },
-  placeholder: {
-    width: 40,
   },
   sectionTitle: {
     fontSize: 13,
