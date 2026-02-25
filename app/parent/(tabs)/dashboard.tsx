@@ -226,7 +226,7 @@ export default function DashboardScreen() {
               active={data.browserEnabled}
             />
             <StatusBadge
-              label="Kiosque"
+              label="Verrouillé"
               active={data.kioskEnabled}
             />
           </View>
@@ -307,7 +307,7 @@ export default function DashboardScreen() {
           <View style={styles.toggleDivider} />
           <QuickToggle
             icon="cellphone-lock"
-            label="Mode kiosque"
+            label="Verrouillage app"
             description="Empêcher la sortie de l'application"
             value={data.kioskEnabled}
             onToggle={handleToggleKiosk}

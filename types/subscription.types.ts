@@ -66,7 +66,7 @@ export const PREMIUM_TIER_LIMITS = {
 export const PREMIUM_FEATURE_LABELS: Record<PremiumFeature, string> = {
   strict_mode: 'Mode strict (liste blanche)',
   unlimited_domains: 'Domaines illimités',
-  kiosk_mode: 'Mode kiosque',
+  kiosk_mode: 'Verrouillage app',
   extended_history: 'Historique étendu (90 jours)',
   schedule_restrictions: 'Restrictions horaires',
   browser_control: 'Contrôle du navigateur',

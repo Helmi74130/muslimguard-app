@@ -45,7 +45,7 @@ export const translations = {
       slide2: {
         title: 'Protection intelligente',
         features: [
-          { title: 'Verrouillage Kiosque', desc: 'Sortie impossible sans votre code secret.' },
+          { title: 'Verrouillage App', desc: 'Sortie impossible sans votre code secret.' },
           { title: 'Pause Prières', desc: 'Blocage automatique aux heures de prière.' },
           { title: 'YouTube 200% Safe', desc: 'Zéro pub, zéro commentaire, zéro dérive.' },
           { title: 'Navigation Blanche', desc: 'Seuls les sites que vous validez sont accessibles.' },
@@ -496,16 +496,16 @@ export const translations = {
 
   // Kiosk Mode
   kiosk: {
-    title: 'Mode kiosque',
+    title: 'Verrouillage app',
     description: 'Empêche l\'enfant de quitter MuslimGuard',
-    enabled: 'Mode kiosque activé',
-    disabled: 'Mode kiosque désactivé',
+    enabled: 'Verrouillage app activé',
+    disabled: 'Verrouillage app désactivé',
     hideStatusBar: 'Masquer la barre de statut',
     hideStatusBarDesc: 'Empêche l\'accès aux notifications et paramètres rapides',
     screenPinning: 'Épinglage d\'écran',
     screenPinningDesc: 'Android demandera une confirmation lors de l\'activation',
     testPinning: 'Tester l\'épinglage',
-    instructions: 'Quand le mode kiosque est activé, l\'enfant ne pourra pas quitter l\'application. Le parent devra entrer son code PIN pour désactiver le mode kiosque.',
+    instructions: 'Quand le verrouillage app est activé, l\'enfant ne pourra pas quitter l\'application. Le parent devra entrer son code PIN pour le désactiver.',
   },
 
   // Errors

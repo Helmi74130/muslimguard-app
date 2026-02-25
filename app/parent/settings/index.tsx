@@ -248,7 +248,7 @@ export default function SettingsScreen() {
           <View style={styles.divider} />
           <SettingItem
             icon="cellphone-lock"
-            title="Mode kiosque"
+            title="Verrouillage app"
             subtitle="Empêcher la sortie de l'application"
             onPress={() => router.push('/parent/settings/kiosk')}
           />

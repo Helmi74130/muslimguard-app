@@ -32,7 +32,7 @@ const PREMIUM_FEATURES = [
   { icon: 'infinity', text: 'Sites bloqués illimités' },
   { icon: 'video-plus', text: 'Vidéos personnalisées illimitées' },
   { icon: 'play-circle', text: 'Temps de vidéo illimité' },
-  { icon: 'cellphone-lock', text: 'Mode kiosque' },
+  { icon: 'cellphone-lock', text: 'Verrouillage app' },
   { icon: 'history', text: 'Historique 90 jours' },
   { icon: 'clock-outline', text: 'Restrictions horaires' },
 ];
