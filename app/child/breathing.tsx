@@ -3,23 +3,23 @@
  * Guided breathing with multiple techniques and animated circle
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
   Animated,
-  Easing,
   Dimensions,
+  Easing,
+  Pressable,
   ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import * as Haptics from 'expo-haptics';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CIRCLE_MAX = SCREEN_WIDTH * 0.55;
@@ -310,8 +310,8 @@ export default function BreathingScreen() {
 
         {/* Header */}
         <View style={styles.selHeader}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn}>
-            <MaterialCommunityIcons name="arrow-left" size={22} color={Colors.primary} />
+          <Pressable onPress={() => router.back()} style={styles.selBackBtn}>
+            <MaterialCommunityIcons name="arrow-left" size={26} color={Colors.primary} />
           </Pressable>
         </View>
 
@@ -412,8 +412,8 @@ export default function BreathingScreen() {
 
       {/* Header */}
       <View style={styles.exHeader}>
-        <Pressable onPress={goBack} style={[styles.backBtn, { backgroundColor: tech.color + '15' }]}>
-          <MaterialCommunityIcons name="arrow-left" size={22} color={tech.color} />
+        <Pressable onPress={goBack} style={styles.exBackBtn}>
+          <MaterialCommunityIcons name="arrow-left" size={26} color={tech.color} />
         </Pressable>
         <View style={styles.exHeaderCenter}>
           <Text style={[styles.exHeaderLabel, { color: tech.color }]}>{tech.label}</Text>
@@ -519,19 +519,14 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xs,
   },
-  backBtn: {
+  selBackBtn: {
     width: 44,
     height: 44,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+    marginLeft: -Spacing.xs,
   },
+
   selContent: {
     paddingBottom: Spacing.xl,
   },
@@ -681,8 +676,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
+    paddingTop: Spacing.xs,
     paddingBottom: Spacing.xs,
+  },
+  exBackBtn: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -Spacing.xs,
   },
   exHeaderCenter: {
     flex: 1,

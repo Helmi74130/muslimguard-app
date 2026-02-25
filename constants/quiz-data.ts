@@ -203,6 +203,55 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
         explanation: 'Le Coran mentionne que Nouh (عَلَيْهِ ٱلسَّلَامُ) est resté 950 ans parmi son peuple pour les appeler à Allah (Sourate Al-Ankabout, 29:14).',
         difficulty: 'hard',
       },
+      {
+        question: 'Quel est le nom de la seule sourate qui ne commence pas par la Basmala (Bismillah) ?',
+        choices: ['Sourate At-Tawbah', 'Sourate Al-Anfal', 'Sourate Al-Qiyamah', 'Sourate Al-Hujurat'],
+        correctIndex: 0,
+        explanation: 'La Sourate At-Tawbah (Sourate 9) est la seule qui ne débute pas par la formule "Bismillah Ar-Rahman Ar-Rahim".',
+        difficulty: 'hard'
+      },
+      {
+        question: 'Dans quelle sourate la Basmala (Bismillah) apparaît-elle deux fois ?',
+        choices: ['Sourate Al-Baqara', 'Sourate An-Naml', 'Sourate Al-Isra', 'Sourate Al-Alaq'],
+        correctIndex: 1,
+        explanation: 'Elle apparaît au début de la Sourate An-Naml (27) et à l\'intérieur, au verset 30, dans la lettre du prophète Souleymane.',
+        difficulty: 'hard'
+      },
+      {
+        question: 'Quel est le verset le plus long du Coran ?',
+        choices: ['Ayat Al-Kursi', 'Le verset de la dette (Al-Dayn)', 'Le dernier verset de la Sourate Al-Fath', 'Le verset du voile'],
+        correctIndex: 1,
+        explanation: 'Le verset 282 de la Sourate Al-Baqara, appelé "Ayat al-Dayn", est le plus long du Coran.',
+        difficulty: 'hard'
+      },
+      {
+        question: 'Combien d\'années la révélation du Coran a-t-elle duré au total ?',
+        choices: ['10 ans', '23 ans', '40 ans', '13 ans'],
+        correctIndex: 1,
+        explanation: 'La révélation a duré environ 23 ans : 13 ans à La Mecque et 10 ans à Médine.',
+        difficulty: 'hard'
+      },
+      {
+        question: 'Quelle est la seule sourate qui contient deux versets de "Sajda" (prosternation) ?',
+        choices: ['Sourate Al-Hajj', 'Sourate Al-A\'raf', 'Sourate Maryam', 'Sourate Fussilat'],
+        correctIndex: 0,
+        explanation: 'La Sourate Al-Hajj.',
+        difficulty: 'hard'
+      },
+      {
+        question: 'Combien de fois le nom du Prophète Muhammad (ﷺ) est-il explicitement mentionné dans le Coran ?',
+        choices: ['4 fois', '5 fois', '25 fois', '12 fois'],
+        correctIndex: 0,
+        explanation: 'Son nom "Muhammad" apparaît 4 fois (3:144, 33:40, 47:2, 48:29). Il apparaît aussi une fois sous le nom "Ahmad" (61:6).',
+        difficulty: 'hard'
+      },
+      {
+        question: 'Combien de prophètes sont mentionnés par leur nom propre dans le Coran ?',
+        choices: ['15', '25', '313', '124 000'],
+        correctIndex: 1,
+        explanation: 'Le Coran mentionne explicitement 25 prophètes par leur nom, d\'Adam (عَلَيْهِ ٱلسَّلَامُ) à Muhammad (ﷺ).',
+        difficulty: 'hard'
+      },
     ],
   },
   {
@@ -695,6 +744,75 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
         choices: ['4', '5', '6', '7'],
         correctIndex: 2,
         explanation: 'Le Prophète (ﷺ) a eu 6 enfants avec Khadija : Al-Qasim, Zaynab, Ruqayya, Umm Kulthum, Fatima et Abdullah.',
+        difficulty: 'hard',
+      },
+    ],
+  },
+  {
+    id: 'tawhid',
+    label: 'Tawhid (Unicité)',
+    icon: 'shield-star', // Ou 'star-crescent' selon ta bibliothèque d'icônes
+    color: '#00695C',
+    colorLight: '#E0F2F1',
+    gradient: ['#00695C', '#4DB6AC'],
+    questions: [
+      // === EASY ===
+      {
+        question: 'Que signifie le mot "Tawhid" ?',
+        choices: ['La prière', 'L\'unicité d\'Allah', 'Le pèlerinage', 'Le jeûne'],
+        correctIndex: 1,
+        explanation: 'Le Tawhid vient de la racine arabe "Wahid" qui signifie "Un". C\'est le fait de reconnaître qu\'Allah est l\'Unique.',
+        difficulty: 'easy',
+      },
+      {
+        question: 'Quelle est la première partie de la Chahada ?',
+        choices: ['Allahu Akbar', 'SubhanAllah', 'La ilaha illa Allah', 'Alhamdulillah'],
+        correctIndex: 2,
+        explanation: '"La ilaha illa Allah" signifie "Nulle divinité n\'est digne d\'être adorée en dehors d\'Allah".',
+        difficulty: 'easy',
+      },
+
+      // === NORMAL ===
+      {
+        question: 'Comment appelle-t-on le fait d\'associer un partenaire à Allah ?',
+        choices: ['Le Koufr', 'Le Chirk', 'Le Nifaq', 'Le Fisq'],
+        correctIndex: 1,
+        explanation: 'Le Chirk est l\'opposé du Tawhid. C\'est le péché le plus grave en Islam car il brise le principe d\'unicité.',
+        difficulty: 'normal',
+      },
+      {
+        question: 'Quel type de Tawhid concerne l\'unicité d\'Allah dans Ses actes (Création, Subsistance) ?',
+        choices: ['Tawhid al-Uluhiyyah', 'Tawhid al-Asma wa Sifat', 'Tawhid ar-Rububiyyah', 'Tawhid al-Ibadah'],
+        correctIndex: 2,
+        explanation: 'Le Tawhid ar-Rububiyyah est la reconnaissance qu\'Allah est le seul Seigneur, Créateur et Maître de l\'univers.',
+        difficulty: 'normal',
+      },
+
+      // === HARD ===
+      {
+        question: 'Quelle est la différence entre le Tawhid ar-Rububiyyah et le Tawhid al-Uluhiyyah ?',
+        choices: [
+          'Il n\'y a aucune différence',
+          'L\'un concerne les Noms et l\'autre les Attributs',
+          'Le premier concerne les actes d\'Allah, le second les actes d\'adoration des créatures',
+          'Le premier est pour les anges, le second pour les hommes'
+        ],
+        correctIndex: 2,
+        explanation: 'Ar-Rububiyyah concerne ce qu\'Allah fait (créer, nourrir), tandis que Al-Uluhiyyah concerne ce que nous faisons pour Lui (prier, sacrifier).',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Quel type de Chirk est décrit comme étant "plus caché que le pas d\'une fourmi noire sur une pierre noire" ?',
+        choices: ['Le Chirk majeur', 'Le Chirk mineur (Ar-Riya)', 'L\'apostasie', 'L\'hypocrisie'],
+        correctIndex: 1,
+        explanation: 'Il s\'agit d\'Ar-Riya (l\'ostentation), faire une bonne action pour être vu des gens. C\'est un Chirk mineur très subtil.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Dans quelle sourate se trouve la description la plus concise du Tawhid ?',
+        choices: ['Sourate Al-Fatiha', 'Sourate Al-Baqara', 'Sourate Al-Ikhlas', 'Sourate An-Nas'],
+        correctIndex: 2,
+        explanation: 'Sourate Al-Ikhlas (Le Monothéisme Pur) définit Allah comme Unique, sans enfant et sans égal.',
         difficulty: 'hard',
       },
     ],

@@ -121,7 +121,7 @@ export default function ParentTabsLayout() {
           title: 'Mode enfant',
           tabBarLabel: 'Enfant',
           tabBarIcon: ({ color, focused }) => (
-            <MaterialCommunityIcons name="teddy-bear" size={focused ? 28 : 22} color={color} />
+            <MaterialCommunityIcons name="account-child" size={focused ? 28 : 22} color={color} />
           ),
         }}
         listeners={{
