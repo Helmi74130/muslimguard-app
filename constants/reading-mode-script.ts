@@ -25,6 +25,17 @@ export const READING_MODE_PRELOAD_SCRIPT = `
     '  width: 0 !important; height: 0 !important;',
     '  overflow: hidden !important;',
     '}',
+    '.mg-media-placeholder {',
+    '  display: flex !important; visibility: visible !important;',
+    '  align-items: center; justify-content: center; gap: 6px;',
+    '  padding: 8px 12px; background: #f5f0e8 !important;',
+    '  border: 1px dashed #d4c9b8; border-radius: 8px;',
+    '  color: #9a8c7c; font-family: -apple-system, sans-serif;',
+    '  font-size: 12px; min-height: 44px; margin: 4px 0;',
+    '  width: auto !important; height: auto !important;',
+    '  max-width: 100%; overflow: hidden !important;',
+    '}',
+    '.mg-media-placeholder svg { flex-shrink: 0; }',
     '/* Hide Google search tabs (Images, Videos, News, Books, Tools, etc.) */',
     'div[role="navigation"] { display: none !important; }',
     'a[href*="tbm="], a[href*="udm="] { display: none !important; }',
@@ -36,6 +47,62 @@ export const READING_MODE_PRELOAD_SCRIPT = `
     '}',
   ].join('\\n');
   (document.head || document.documentElement).appendChild(style);
+
+  // SVG icon: Material Design "image-off" (works inside WebView unlike RN icons)
+  var mgSvg = '<svg class="mg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#9a8c7c">' +
+    '<path d="M21 17.2V5c0-1.1-.9-2-2-2H6.8l2 2H19v10.2l2 2M20.7 22l-1-1H5c-1.1 0-2-.9-2-2V4.3L2 3.3 3.3 2 22 20.7 20.7 22M16.8 18l-4.4-4.4L11 15.5 8.5 12.5 5 17h11.8z"/>' +
+    '</svg>';
+
+  function mgReplacePlaceholders() {
+    // First pass: replace container elements (figure, picture)
+    var containers = document.querySelectorAll('figure, picture');
+    for (var i = 0; i < containers.length; i++) {
+      var el = containers[i];
+      if (el.closest && el.closest('.mg-media-placeholder')) continue;
+      var ph = document.createElement('div');
+      ph.className = 'mg-media-placeholder';
+      ph.innerHTML = mgSvg + '<span>Image masquée</span>';
+      if (el.parentNode) el.parentNode.replaceChild(ph, el);
+    }
+    // Second pass: replace remaining standalone media
+    var media = document.querySelectorAll('img, video, iframe, canvas, object, embed');
+    for (var i = 0; i < media.length; i++) {
+      var el = media[i];
+      if (el.closest && el.closest('.mg-media-placeholder')) continue;
+      var ph = document.createElement('div');
+      ph.className = 'mg-media-placeholder';
+      ph.innerHTML = mgSvg + '<span>Image masquée</span>';
+      if (el.parentNode) el.parentNode.replaceChild(ph, el);
+    }
+  }
+
+  // Run when DOM is ready + delayed for dynamic content
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mgReplacePlaceholders);
+  } else {
+    mgReplacePlaceholders();
+  }
+  setTimeout(mgReplacePlaceholders, 500);
+  setTimeout(mgReplacePlaceholders, 1500);
+
+  // MutationObserver to catch lazy-loaded images (debounced)
+  var mgTimer = null;
+  var mgObs = new MutationObserver(function() {
+    if (mgTimer) return;
+    mgTimer = setTimeout(function() {
+      mgTimer = null;
+      mgReplacePlaceholders();
+    }, 400);
+  });
+  var mgTryObs = function() {
+    if (document.body) {
+      mgObs.observe(document.body, { childList: true, subtree: true });
+    } else {
+      setTimeout(mgTryObs, 50);
+    }
+  };
+  mgTryObs();
+  setTimeout(function() { mgObs.disconnect(); }, 15000);
 
   // Post-load: hide remaining Google filter elements by text/structure
   if (window.location.hostname.indexOf('google.') !== -1) {

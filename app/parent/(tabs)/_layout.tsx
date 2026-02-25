@@ -70,20 +70,22 @@ export default function ParentTabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="settings"
+        name="dashboard"
         options={{
-          title: translations.settings.title,
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="cog" size={size} color={color} />
+          title: translations.dashboard.title,
+          tabBarLabel: 'Accueil',
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialCommunityIcons name="view-dashboard" size={focused ? 28 : 22} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="dashboard"
+        name="history"
         options={{
-          title: translations.dashboard.title,
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="view-dashboard" size={size} color={color} />
+          title: 'Statistiques',
+          tabBarLabel: 'Stats',
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialCommunityIcons name="chart-bar" size={focused ? 28 : 22} color={color} />
           ),
         }}
       />
@@ -91,8 +93,18 @@ export default function ParentTabsLayout() {
         name="prayer"
         options={{
           title: translations.prayer.title,
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="mosque" size={size} color={color} />
+          tabBarLabel: 'Prières',
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialCommunityIcons name="mosque" size={focused ? 28 : 22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: translations.settings.title,
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialCommunityIcons name="cog" size={focused ? 28 : 22} color={color} />
           ),
         }}
       />
@@ -100,8 +112,9 @@ export default function ParentTabsLayout() {
         name="child-mode"
         options={{
           title: 'Mode enfant',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="teddy-bear" size={size} color={color} />
+          tabBarLabel: 'Enfant',
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialCommunityIcons name="teddy-bear" size={focused ? 28 : 22} color={color} />
           ),
         }}
         listeners={{
@@ -109,12 +122,6 @@ export default function ParentTabsLayout() {
             e.preventDefault();
             handleChildMode();
           },
-        }}
-      />
-      <Tabs.Screen
-        name="history"
-        options={{
-          href: null,
         }}
       />
     </Tabs>

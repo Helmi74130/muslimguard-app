@@ -258,6 +258,17 @@ export default function DashboardScreen() {
           </View>
         </View>
 
+        {/* View stats link */}
+        <TouchableOpacity
+          style={styles.viewStatsButton}
+          onPress={() => router.push('/parent/(tabs)/history')}
+          activeOpacity={0.6}
+        >
+          <MaterialCommunityIcons name="chart-line" size={16} color={Colors.primary} />
+          <Text style={styles.viewStatsText}>Voir les statistiques</Text>
+          <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.primary} />
+        </TouchableOpacity>
+
         {/* Settings shortcut */}
         <Card
           variant="outlined"
@@ -355,6 +366,18 @@ export default function DashboardScreen() {
               <MaterialCommunityIcons name="clock-outline" size={16} color={Colors.primary} />
             </View>
             <Text style={styles.quickActionLabel}>Restrictions horaires</Text>
+            <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.light.textSecondary} />
+          </TouchableOpacity>
+          <View style={styles.quickActionDivider} />
+          <TouchableOpacity
+            style={styles.quickActionItem}
+            onPress={() => router.push('/parent/(tabs)/history')}
+            activeOpacity={0.6}
+          >
+            <View style={styles.quickActionIcon}>
+              <MaterialCommunityIcons name="chart-bar" size={16} color={Colors.primary} />
+            </View>
+            <Text style={styles.quickActionLabel}>Statistiques</Text>
             <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.light.textSecondary} />
           </TouchableOpacity>
           <View style={styles.quickActionDivider} />
@@ -628,6 +651,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: Colors.light.textSecondary,
+  },
+  viewStatsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: -Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  viewStatsText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.primary,
   },
 
   // Quick Actions (compact)
