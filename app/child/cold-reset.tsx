@@ -26,8 +26,8 @@ const CIRCLE_SIZE = SCREEN_WIDTH * 0.55;
 const TIMER_DURATION = 30;
 
 const TIPS = [
-  'Va te laver les mains \u00e0 l\u2019eau tr\u00e8s froide pendant 30 secondes',
-  'Demande un verre d\u2019eau avec deux gla\u00e7ons et bois-le tr\u00e8s doucement',
+  'Va te laver les mains à l\u2019eau très froide pendant 30 secondes',
+  'Demande un verre d\u2019eau avec deux glaçons et bois-le très doucement',
 ];
 
 type Phase = 'choose' | 'running' | 'done';
@@ -183,7 +183,7 @@ export default function ColdResetScreen() {
 
           <Text style={styles.chooseTitle}>Reset par le froid</Text>
           <Text style={styles.chooseSubtitle}>
-            Le froid aide ton corps {'\u00e0'} se r{'\u00e9'}initialiser.{'\n'}Choisis une action :
+            Le froid aide ton corps à se réinitialiser.{'\n'}Choisis une action :
           </Text>
 
           {TIPS.map((tip, i) => (
@@ -215,7 +215,7 @@ export default function ColdResetScreen() {
           <View style={styles.whyBox}>
             <MaterialCommunityIcons name="lightbulb-on-outline" size={18} color="#F59E0B" />
             <Text style={styles.whyText}>
-              Le froid force ton syst{'\u00e8'}me nerveux {'\u00e0'} se "r{'\u00e9'}initialiser".
+              Le froid force ton système nerveux à se "réinitialiser".
               C'est un signal plus fort que la tristesse !
             </Text>
           </View>
@@ -326,7 +326,7 @@ export default function ColdResetScreen() {
         {phase === 'done' ? (
           <>
             <Text style={styles.doneMessage}>
-              Tu as {'\u00e9'}t{'\u00e9'} courageux ! Ton corps se sent d{'\u00e9'}j{'\u00e0'} mieux.
+              Tu as été courageux ! Ton corps se sent déjà mieux.
             </Text>
             <Pressable
               onPress={handleBack}

@@ -98,6 +98,10 @@ const EMOTIONS: Emotion[] = [
     gradient: ['#6B7280', '#9CA3AF'],
     message: 'C\'est normal, chaque jour est différent.',
     dua: 'Chaque jour est un cadeau d\'Allah',
+    suggestions: [
+      { label: 'Micro-Mission 2 min', icon: 'target', route: '/child/micro-mission' },
+      { label: 'Regarder MuslimTube', icon: 'play-circle', route: '/child/videos' },
+    ],
   },
   {
     id: 'sad',
@@ -130,7 +134,10 @@ const EMOTIONS: Emotion[] = [
     gradient: ['#EF4444', '#F87171'],
     message: 'La colère vient du Shaytan. Calme-toi doucement.',
     dua: 'A\'oudhou billahi min ash-shaytan ar-rajim',
-    suggestions: [{ label: 'Respirer pour se calmer', icon: 'heart-flash', route: '/child/breathing' }],
+    suggestions: [
+      { label: 'Libère ta colère', icon: 'fire', route: '/child/anger-release' },
+      { label: 'Respirer pour se calmer', icon: 'heart-flash', route: '/child/breathing' },
+    ],
   },
   {
     id: 'anxious',
@@ -365,31 +372,6 @@ export default function EmotionsScreen() {
                   </Text>
                 </View>
 
-                {/* Suggestion links */}
-                {selectedEmotion.suggestions && selectedEmotion.suggestions.map((sug, idx) => (
-                  <Pressable
-                    key={idx}
-                    style={({ pressed }) => [
-                      styles.suggestionButton,
-                      { backgroundColor: selectedEmotion.color + '15' },
-                      pressed && { opacity: 0.7 }
-                    ]}
-                    onPress={() => {
-                      if (sug.route === '__dua_modal__') {
-                        setShowDuaModal(true);
-                      } else {
-                        router.push(sug.route as any);
-                      }
-                    }}
-                  >
-                    <MaterialCommunityIcons name={sug.icon} size={18} color={selectedEmotion.color} />
-                    <Text style={[styles.suggestionText, { color: selectedEmotion.color }]}>
-                      {sug.label}
-                    </Text>
-                    <MaterialCommunityIcons name="chevron-right" size={18} color={selectedEmotion.color} />
-                  </Pressable>
-                ))}
-
                 {/* Save button */}
                 {!justSaved ? (
                   <Pressable
@@ -420,6 +402,31 @@ export default function EmotionsScreen() {
                     </View>
                   </View>
                 )}
+
+                {/* Suggestion links */}
+                {selectedEmotion.suggestions && selectedEmotion.suggestions.map((sug, idx) => (
+                  <Pressable
+                    key={idx}
+                    style={({ pressed }) => [
+                      styles.suggestionButton,
+                      { backgroundColor: selectedEmotion.color + '15' },
+                      pressed && { opacity: 0.7 }
+                    ]}
+                    onPress={() => {
+                      if (sug.route === '__dua_modal__') {
+                        setShowDuaModal(true);
+                      } else {
+                        router.push(sug.route as any);
+                      }
+                    }}
+                  >
+                    <MaterialCommunityIcons name={sug.icon} size={18} color={selectedEmotion.color} />
+                    <Text style={[styles.suggestionText, { color: selectedEmotion.color }]}>
+                      {sug.label}
+                    </Text>
+                    <MaterialCommunityIcons name="chevron-right" size={18} color={selectedEmotion.color} />
+                  </Pressable>
+                ))}
               </LinearGradient>
             </Animated.View>
           )}

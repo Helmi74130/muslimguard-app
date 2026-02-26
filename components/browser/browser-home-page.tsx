@@ -184,6 +184,13 @@ const QUICK_LINKS = [
     colorIndex: 0,
     isInternal: true,
   },
+  {
+    label: t.links.microMission,
+    url: 'micro-mission',
+    icon: 'target' as const,
+    colorIndex: 1,
+    isInternal: true,
+  },
 ];
 
 const MAX_VISIBLE_SITES = 6;

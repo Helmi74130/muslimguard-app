@@ -186,6 +186,7 @@ export const translations = {
       stopwatch: 'Chrono',
       emotions: 'Mes émotions',
       ablutions: 'Ablutions',
+      microMission: 'Micro-Mission',
     },
     error: {
       title: 'Oups !',
