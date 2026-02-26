@@ -147,8 +147,8 @@ const EMOTIONS: Emotion[] = [
     color: '#8B5CF6',
     colorLight: '#EDE9FE',
     gradient: ['#8B5CF6', '#A78BFA'],
-    message: 'N\'aie pas peur. Allah veille toujours sur toi.',
-    dua: 'Hasbunallahu wa ni\'mal wakeel',
+    message: 'Ton cerveau a reçu trop d\'infos d\'un coup',
+    dua: 'On va s\'occuper d\'une seule chose à la fois',
     suggestions: [{ label: 'Respirer pour se calmer', icon: 'heart-flash', route: '/child/breathing' }],
   },
   {
@@ -404,29 +404,33 @@ export default function EmotionsScreen() {
                 )}
 
                 {/* Suggestion links */}
-                {selectedEmotion.suggestions && selectedEmotion.suggestions.map((sug, idx) => (
-                  <Pressable
-                    key={idx}
-                    style={({ pressed }) => [
-                      styles.suggestionButton,
-                      { backgroundColor: selectedEmotion.color + '15' },
-                      pressed && { opacity: 0.7 }
-                    ]}
-                    onPress={() => {
-                      if (sug.route === '__dua_modal__') {
-                        setShowDuaModal(true);
-                      } else {
-                        router.push(sug.route as any);
-                      }
-                    }}
-                  >
-                    <MaterialCommunityIcons name={sug.icon} size={18} color={selectedEmotion.color} />
-                    <Text style={[styles.suggestionText, { color: selectedEmotion.color }]}>
-                      {sug.label}
-                    </Text>
-                    <MaterialCommunityIcons name="chevron-right" size={18} color={selectedEmotion.color} />
-                  </Pressable>
-                ))}
+                {selectedEmotion.suggestions && (
+                  <View style={styles.suggestionsList}>
+                    {selectedEmotion.suggestions.map((sug, idx) => (
+                      <Pressable
+                        key={idx}
+                        style={({ pressed }) => [
+                          styles.suggestionButton,
+                          { backgroundColor: selectedEmotion.color + '15' },
+                          pressed && { opacity: 0.7 }
+                        ]}
+                        onPress={() => {
+                          if (sug.route === '__dua_modal__') {
+                            setShowDuaModal(true);
+                          } else {
+                            router.push(sug.route as any);
+                          }
+                        }}
+                      >
+                        <MaterialCommunityIcons name={sug.icon} size={18} color={selectedEmotion.color} />
+                        <Text style={[styles.suggestionText, { color: selectedEmotion.color }]}>
+                          {sug.label}
+                        </Text>
+                        <MaterialCommunityIcons name="chevron-right" size={18} color={selectedEmotion.color} />
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
               </LinearGradient>
             </Animated.View>
           )}
@@ -530,7 +534,7 @@ export default function EmotionsScreen() {
           onRequestClose={() => setShowDuaModal(false)}
         >
           <Pressable style={styles.modalOverlay} onPress={() => setShowDuaModal(false)}>
-            <Pressable style={styles.modalContent} onPress={() => {}}>
+            <Pressable style={styles.modalContent} onPress={() => { }}>
               <LinearGradient
                 colors={[selectedEmotion.colorLight, '#FFFFFF']}
                 style={styles.modalGradient}
@@ -766,6 +770,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontStyle: 'italic',
   },
+  suggestionsList: {
+    width: '100%',
+    marginTop: Spacing.lg,
+    gap: Spacing.sm,
+  },
   suggestionButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -773,7 +782,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.xl,
-    marginBottom: Spacing.xl,
     width: '100%',
   },
   suggestionText: {
