@@ -14,6 +14,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -36,7 +37,8 @@ interface Emotion {
   gradient: [string, string];
   message: string;
   dua: string;
-  suggestion?: { label: string; route: string };
+  duaFull?: { arabic: string; transliteration: string; translation: string };
+  suggestions?: { label: string; icon: keyof typeof MaterialCommunityIcons.glyphMap; route: string }[];
 }
 
 const EMOTIONS: Emotion[] = [
@@ -50,6 +52,10 @@ const EMOTIONS: Emotion[] = [
     gradient: ['#F59E0B', '#FBBF24'],
     message: 'Quel bonheur ! Allah t\'a donné une belle journée.',
     dua: 'Alhamdulillah pour cette joie !',
+    suggestions: [
+      { label: 'Regarder MuslimTube', icon: 'play-circle', route: '/child/videos' },
+      { label: 'Faire un dessin', icon: 'palette', route: '/child/drawing' },
+    ],
   },
   {
     id: 'calm',
@@ -60,7 +66,12 @@ const EMOTIONS: Emotion[] = [
     colorLight: '#DBEAFE',
     gradient: ['#3B82F6', '#60A5FA'],
     message: 'Le calme est une bénédiction d\'Allah.',
-    dua: 'Alhamdulillah \'ala kulli hal',
+    dua: 'Alhamdulillah',
+    suggestions: [
+      { label: 'Faire un quiz', icon: 'head-question', route: '/child/quiz' },
+      { label: 'Lire le Coran', icon: 'book-open-variant', route: '/child/quran' },
+      { label: 'Noms d\'Allah', icon: 'star-crescent', route: '/child/allah-names' },
+    ],
   },
   {
     id: 'grateful',
@@ -71,7 +82,11 @@ const EMOTIONS: Emotion[] = [
     colorLight: '#D1FAE5',
     gradient: ['#10B981', '#34D399'],
     message: 'Dire merci à Allah, c\'est la plus belle chose.',
-    dua: 'Dis Alhamdulillah 3 fois',
+    dua: 'Alhamdulillah',
+    suggestions: [
+      { label: 'Lire le Coran', icon: 'book-open-variant', route: '/child/quran' },
+      { label: 'Noms d\'Allah', icon: 'star-crescent', route: '/child/allah-names' },
+    ],
   },
   {
     id: 'neutral',
@@ -94,7 +109,16 @@ const EMOTIONS: Emotion[] = [
     gradient: ['#6366F1', '#818CF8'],
     message: 'C\'est ok d\'être triste. Allah est avec toi.',
     dua: '« Après la difficulté vient la facilité » (94:5)',
-    suggestion: { label: 'Respirer pour se calmer', route: '/child/breathing' },
+    duaFull: {
+      arabic: 'اللّهُـمَّ إِنِّي أَعْوذُ بِكَ مِنَ الهَـمِّ وَالْحُـزْنِ، والعَجْـزِ والكَسَلِ والبُخْـلِ والجُـبْنِ، وضَلْـعِ الـدَّيْنِ وغَلَبَـةِ الرِّجال',
+      transliteration: 'Allâhumma innî a\'ûdhu bika mina-l-hammi wa-l-hazani, wa-l-\'ajzi wa-l-kasali, wa-l-bukhli wa-l-jubni, wa dala\'i d-dayni wa ghalabati r-rijâl.',
+      translation: 'Ô Allah, je cherche refuge auprès de Toi contre le souci et la tristesse, l\'incapacité et la paresse, l\'avarice et la lâcheté, le poids des dettes et la domination des hommes.',
+    },
+    suggestions: [
+      { label: 'Voir l\'invocation complète', icon: 'book-open-page-variant', route: '__dua_modal__' },
+      { label: 'Exercice de l\'eau froide', icon: 'snowflake', route: '/child/cold-reset' },
+      { label: 'Respirer pour se calmer', icon: 'heart-flash', route: '/child/breathing' },
+    ],
   },
   {
     id: 'angry',
@@ -106,7 +130,7 @@ const EMOTIONS: Emotion[] = [
     gradient: ['#EF4444', '#F87171'],
     message: 'La colère vient du Shaytan. Calme-toi doucement.',
     dua: 'A\'oudhou billahi min ash-shaytan ar-rajim',
-    suggestion: { label: 'Respirer pour se calmer', route: '/child/breathing' },
+    suggestions: [{ label: 'Respirer pour se calmer', icon: 'heart-flash', route: '/child/breathing' }],
   },
   {
     id: 'anxious',
@@ -118,7 +142,7 @@ const EMOTIONS: Emotion[] = [
     gradient: ['#8B5CF6', '#A78BFA'],
     message: 'N\'aie pas peur. Allah veille toujours sur toi.',
     dua: 'Hasbunallahu wa ni\'mal wakeel',
-    suggestion: { label: 'Respirer pour se calmer', route: '/child/breathing' },
+    suggestions: [{ label: 'Respirer pour se calmer', icon: 'heart-flash', route: '/child/breathing' }],
   },
   {
     id: 'tired',
@@ -168,6 +192,7 @@ export default function EmotionsScreen() {
   const [selectedEmotion, setSelectedEmotion] = useState<Emotion | null>(null);
   const [justSaved, setJustSaved] = useState(false);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [showDuaModal, setShowDuaModal] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
@@ -340,23 +365,30 @@ export default function EmotionsScreen() {
                   </Text>
                 </View>
 
-                {/* Suggestion link */}
-                {selectedEmotion.suggestion && (
+                {/* Suggestion links */}
+                {selectedEmotion.suggestions && selectedEmotion.suggestions.map((sug, idx) => (
                   <Pressable
+                    key={idx}
                     style={({ pressed }) => [
                       styles.suggestionButton,
                       { backgroundColor: selectedEmotion.color + '15' },
                       pressed && { opacity: 0.7 }
                     ]}
-                    onPress={() => router.push(selectedEmotion.suggestion!.route as any)}
+                    onPress={() => {
+                      if (sug.route === '__dua_modal__') {
+                        setShowDuaModal(true);
+                      } else {
+                        router.push(sug.route as any);
+                      }
+                    }}
                   >
-                    <MaterialCommunityIcons name="heart-flash" size={18} color={selectedEmotion.color} />
+                    <MaterialCommunityIcons name={sug.icon} size={18} color={selectedEmotion.color} />
                     <Text style={[styles.suggestionText, { color: selectedEmotion.color }]}>
-                      {selectedEmotion.suggestion.label}
+                      {sug.label}
                     </Text>
                     <MaterialCommunityIcons name="chevron-right" size={18} color={selectedEmotion.color} />
                   </Pressable>
-                )}
+                ))}
 
                 {/* Save button */}
                 {!justSaved ? (
@@ -481,6 +513,64 @@ export default function EmotionsScreen() {
           </View>
         </ScrollView>
       </SafeAreaView>
+
+      {/* Dua Full Modal */}
+      {selectedEmotion?.duaFull && (
+        <Modal
+          visible={showDuaModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowDuaModal(false)}
+        >
+          <Pressable style={styles.modalOverlay} onPress={() => setShowDuaModal(false)}>
+            <Pressable style={styles.modalContent} onPress={() => {}}>
+              <LinearGradient
+                colors={[selectedEmotion.colorLight, '#FFFFFF']}
+                style={styles.modalGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+              >
+                <View style={styles.modalHandle} />
+
+                <MaterialCommunityIcons
+                  name="star-four-points"
+                  size={28}
+                  color={selectedEmotion.color}
+                  style={{ marginBottom: Spacing.md }}
+                />
+
+                {/* Arabic */}
+                <Text style={[styles.modalArabic, { color: selectedEmotion.color }]}>
+                  {selectedEmotion.duaFull.arabic}
+                </Text>
+
+                {/* Transliteration */}
+                <Text style={styles.modalTranslit}>
+                  {selectedEmotion.duaFull.transliteration}
+                </Text>
+
+                {/* Translation */}
+                <View style={[styles.modalTranslationBox, { borderColor: selectedEmotion.color + '25' }]}>
+                  <Text style={styles.modalTranslation}>
+                    {selectedEmotion.duaFull.translation}
+                  </Text>
+                </View>
+
+                <Pressable
+                  onPress={() => setShowDuaModal(false)}
+                  style={({ pressed }) => [
+                    styles.modalCloseBtn,
+                    { backgroundColor: selectedEmotion.color },
+                    pressed && { opacity: 0.85 },
+                  ]}
+                >
+                  <Text style={styles.modalCloseBtnText}>Fermer</Text>
+                </Pressable>
+              </LinearGradient>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      )}
     </LinearGradient>
   );
 }
@@ -844,5 +934,79 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: Colors.light.textSecondary,
+  },
+
+  // Dua Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 24,
+    overflow: 'hidden',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+  },
+  modalGradient: {
+    padding: Spacing.xl,
+    alignItems: 'center',
+    borderRadius: 24,
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#D1D5DB',
+    marginBottom: Spacing.lg,
+  },
+  modalArabic: {
+    fontSize: 22,
+    fontWeight: '700',
+    textAlign: 'center',
+    lineHeight: 38,
+    marginBottom: Spacing.lg,
+    writingDirection: 'rtl',
+  },
+  modalTranslit: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.light.textSecondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    lineHeight: 22,
+    marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.sm,
+  },
+  modalTranslationBox: {
+    borderWidth: 1,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.md,
+    marginBottom: Spacing.xl,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  },
+  modalTranslation: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.light.text,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  modalCloseBtn: {
+    paddingVertical: 14,
+    paddingHorizontal: Spacing.xxl,
+    borderRadius: BorderRadius.full,
+  },
+  modalCloseBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
