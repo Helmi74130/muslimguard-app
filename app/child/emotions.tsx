@@ -149,7 +149,10 @@ const EMOTIONS: Emotion[] = [
     gradient: ['#8B5CF6', '#A78BFA'],
     message: 'Ton cerveau a reçu trop d\'infos d\'un coup',
     dua: 'On va s\'occuper d\'une seule chose à la fois',
-    suggestions: [{ label: 'Respirer pour se calmer', icon: 'heart-flash', route: '/child/breathing' }],
+    suggestions: [
+      { label: 'Respirer pour se calmer', icon: 'heart-flash', route: '/child/breathing' },
+      { label: 'Métronome Cardiaque', icon: 'heart-pulse', route: '/child/cardiac-metronome' },
+    ],
   },
   {
     id: 'tired',
@@ -160,7 +163,7 @@ const EMOTIONS: Emotion[] = [
     colorLight: '#F1F5F9',
     gradient: ['#94A3B8', '#CBD5E1'],
     message: 'Repose-toi, ton corps a besoin de récupérer.',
-    dua: 'Bismika Allahumma amootu wa ahya',
+    dua: 'Mission finie, pose l\'écran.',
   },
 ];
 
