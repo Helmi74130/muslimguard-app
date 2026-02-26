@@ -282,8 +282,7 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       'weibo.com', 'vk.com', 'tumblr.com', 'line.me', 'kik.com', 'imo.im'
     ],
     keywords: [
-      'facebook', 'instagram', 'twitter', 'tiktok', 'snapchat', 'linkedin', 'pinterest', 'reddit',
-      'discord', 'whatsapp', 'telegram', 'messenger', 'weibo', 'tumblr'
+
     ],
   },
 
