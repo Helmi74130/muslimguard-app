@@ -24,23 +24,44 @@ export interface CalligraphyModel {
 export const CALLIGRAPHY_MODELS: CalligraphyModel[] = [
   {
     id: 'allah',
-    arabic: 'الله',
+    arabic: '',
     name: 'Allah',
     translation: 'Allah',
     image: require('../assets/calligraphy/allah.png'),
   },
   {
     id: 'muhammad',
-    arabic: 'محمد ﷺ',
+    arabic: 'مُحَمَّد',
     name: 'Muhammad ﷺ',
     translation: 'Le Prophète Mohammed, paix et salut sur lui',
     image: require('../assets/calligraphy/muhammad.png'),
   },
   {
     id: 'bismillah',
-    arabic: 'بسم الله الرحمن الرحيم',
+    arabic: ' بِسْمِ ٱللَّٰهِ',
     name: 'Bismillah',
-    translation: 'Au nom de Dieu, le Tout Miséricordieux, le Très Miséricordieux',
+    translation: 'Au nom d\'Allah',
     image: require('../assets/calligraphy/bismillah.png'),
+  },
+  {
+    id: 'sabr',
+    arabic: 'صَبْرٌ',
+    name: 'Sabr',
+    translation: 'La patience',
+    image: require('../assets/calligraphy/sabr.png'),
+  },
+  {
+    id: 'allahouakbar',
+    arabic: 'أَللهُ أَكْبَر',
+    name: 'Allahou Akbar',
+    translation: 'Allah est le plus grand',
+    image: require('../assets/calligraphy/allahouakbar.png'),
+  },
+  {
+    id: 'ramadanmubarak',
+    arabic: 'رَمَضَانُ مُبَارَكٌ',
+    name: 'Ramadan Mubarak',
+    translation: 'Bonne fête de Ramadan',
+    image: require('../assets/calligraphy/ramadanmubarak.png'),
   },
 ];
