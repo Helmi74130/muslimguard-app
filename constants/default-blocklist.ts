@@ -3,7 +3,7 @@
  * Organized by category - parents see categories with toggle, never the raw lists
  */
 
-export type BlockCategoryId = 'adult' | 'violence' | 'insults' | 'gambling' | 'dating' | 'alcohol' | 'drugs';
+export type BlockCategoryId = 'adult' | 'violence' | 'insults' | 'gambling' | 'dating' | 'alcohol' | 'drugs' | 'social' | 'music';
 
 export interface BlockCategory {
   id: BlockCategoryId;
@@ -55,6 +55,7 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       'analingus', 'deepthroat', 'gorge profonde', 'masturbation', 'masturbate',
       'masturber', 'handjob', 'fingering', 'doigté', 'doubles penetration',
       'swinger', 'échangisme', 'squirt', 'squirting', 'gloryhole', 'rimjob',
+      'missionnaire', 'cowgirl', 'reverse cowgirl', 'doggy style', 'levrette',
       // Categories
       'milf', 'cougar', 'incest', 'inceste', 'stepmom', 'stepdaughter',
       'shemale', 'tranny', 'ladyboy', 'transsexual', 'transsexuel', 'bdsm',
@@ -72,7 +73,16 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
     nameFr: 'Violence & contenu choquant',
     descriptionFr: 'Contenus violents, gore et images choquantes',
     icon: 'alert-octagon',
-    domains: [],
+    domains: [
+      'bestgore.com', 'liveleak.com', 'shockvideo.com', 'horrorchannel.com',
+      'rotflmao.com', 'goregrish.com', 'violentworld.com', 'deathtube.com',
+      'extremetube.com', 'morbidreality.com', 'cannibalclub.com', 'worldslastvideos.com',
+      'bestgore.fun', 'kaotic.com', 'gorecenter.com', 'deepgoretube.site',
+      'theync.com', 'deadhouse.org', 'seegore.com', 'watchpeopledie.tv',
+      'xgore.net', 'gorebay.com', 'goresee.com', 'crazyshit.com',
+      'goredb.com', 'hoodsite.com', 'shocksites.com', 'shockgore.com',
+      'deadinside.com', 'goretube.com'
+    ],
     keywords: [
       // General
       'gore', 'sanglant', 'snuff', 'morbid', 'morbide',
@@ -84,7 +94,7 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       // Violence acts (FR)
       'meurtre', 'tuerie', 'décapitation', 'exécution',
       'démembrement', 'égorgement', 'egorgement', 'pendaison',
-      'scarification', 'autopsie', 'éviscération', 
+      'scarification', 'autopsie', 'éviscération',
       'brûlé vif', 'fusillade', 'attentat', 'égorger', 'assassinat',
       // Macabre anatomy
       'viscera', 'viscères',
@@ -106,7 +116,7 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
     domains: [],
     keywords: [
       // French insults
-      'salope',  'putain', 'putin', 'connard', 'connasse', 'conard',
+      'salope', 'putain', 'putin', 'connard', 'connasse', 'conard',
       'conase', 'abruti', 'debile', 'enfoire', 'enfoirée', 'salaud', 'merde',
       'merdeux', 'merdeuse', 'garce', 'crevard', 'crevure', 'trouduc',
       'trou du cul', 'fdp', 'fils de pute', 'nique ta mere', 'ntm', 'pute',
@@ -157,10 +167,10 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       // General (FR)
       'paris sportifs', 'pronostics', 'prono', 'pronos',
       'loto', 'loterie', 'jeu d argent', 'jeux d argent',
-      'machine a sous','ticket de grattage', 'tiercé', 'quinté', 'hippique', 'course de chevaux',
+      'machine a sous', 'ticket de grattage', 'tiercé', 'quinté', 'hippique', 'course de chevaux',
       // Platforms
       'bet365', '888casino', 'william hill', 'unibet', 'bwin', 'betway', 'pokerstars',
-      'winamax', 'betclic','joabet', 'parions sport',
+      'winamax', 'betclic', 'joabet', 'parions sport',
       'partouche', 'barriere', 'circus casino', 'stake', 'roobet', 'bc.game',
       // Crypto gambling
       'crypto casino', 'bitcoin casino', 'csgo betting', 'skin gambling',
@@ -221,7 +231,7 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
     ],
     keywords: [
       'alcohol', 'alcool', 'liquor', 'liqueur', 'beer', 'biere', 'wine',
-      'vodka', 'whiskey', 'whisky','tequila', 'absinthe',
+      'vodka', 'whiskey', 'whisky', 'tequila', 'absinthe',
       'champagne', 'cocktail', 'spiritueux', 'spirits', 'brewery', 'brasserie',
       'drunk', 'ivresse', 'ivrogne', 'aperitif', 'apéro', 'distillery', 'distillerie',
     ],
@@ -258,6 +268,46 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       'trafic', 'stoner', 'junkie', 'tripping', 'défonce', 'défoncé',
     ],
   },
+
+  // ==================== RÉSEAUX SOCIAUX ====================
+  {
+    id: 'social',
+    nameFr: 'Réseaux sociaux',
+    descriptionFr: 'Sites et applications de réseaux sociaux et messageries sociales',
+    icon: 'account-group',
+    domains: [
+      'facebook.com', 'instagram.com', 'twitter.com', 'x.com', 'tiktok.com',
+      'snapchat.com', 'linkedin.com', 'pinterest.com', 'reddit.com',
+      'discord.com', 'whatsapp.com', 'telegram.org', 'messenger.com',
+      'weibo.com', 'vk.com', 'tumblr.com', 'line.me', 'kik.com', 'imo.im'
+    ],
+    keywords: [
+      'facebook', 'instagram', 'twitter', 'tiktok', 'snapchat', 'linkedin', 'pinterest', 'reddit',
+      'discord', 'whatsapp', 'telegram', 'messenger', 'weibo', 'tumblr'
+    ],
+  },
+
+  // ==================== MUSIQUE ====================
+{
+  id: 'music',
+  nameFr: 'Musique',
+  descriptionFr: 'Sites et applications de streaming, téléchargement ou partage de musique',
+  icon: 'music',
+  domains: [
+    'spotify.com', 'apple.com/music', 'deezer.com', 'soundcloud.com', 'bandcamp.com',
+    'tidal.com', 'youtube.com/music', 'audiomack.com', 'mixcloud.com', 'napster.com',
+    'pandora.com', 'last.fm', 'amazon.com/music', 'shazam.com', 'reverbnation.com'
+  ],
+  keywords: [
+    // General (EN)
+    'music', 'playlist', 'song', 'track', 'artist', 'concert',
+    // General (FR)
+    'musique','album', 'playlist', 'chanson', 'concert',
+    // Platforms
+    'spotify', 'apple music', 'deezer', 'soundcloud', 'bandcamp', 'tidal', 'youtube music', 
+    'audiomack', 'mixcloud', 'napster', 'pandora', 'last.fm', 'amazon music', 'shazam', 'reverbnation'
+  ],
+},
 ];
 
 /**

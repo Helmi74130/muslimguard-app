@@ -4,7 +4,7 @@
  * Spins a wheel of quick physical/sensory missions to re-engage the brain.
  */
 
-import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { Colors, Spacing } from '@/constants/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -37,17 +37,17 @@ const MISSIONS: Mission[] = [
     color: '#F59E0B',
   },
   {
-    text: 'Fais l\u2019équilibre sur une jambe le temps de compter jusqu\u2019à 20.',
+    text: 'Fais l\'équilibre sur une jambe le temps de compter jusqu\'à 20.',
     icon: 'human-handsup',
     color: '#EF4444',
   },
   {
-    text: 'Trouve un objet qui pèse plus lourd qu\u2019une pomme.',
+    text: 'Trouve un objet qui pèse plus lourd qu\'une pomme.',
     icon: 'scale-balance',
     color: '#8B5CF6',
   },
   {
-    text: 'Dessine un sourire sur une feuille avec les yeux fermés.',
+    text: 'Dessine une voiture sur une feuille avec les yeux fermés.',
     icon: 'draw',
     color: '#10B981',
   },
@@ -62,7 +62,7 @@ const MISSIONS: Mission[] = [
     color: '#EC4899',
   },
   {
-    text: 'Compte à voix haute de 20 à 0 en arrière le plus vite possible.',
+    text: 'Compte  à voix haute de 20 à 0 en arrière le plus vite possible.',
     icon: 'numeric',
     color: '#0891B2',
   },
@@ -72,7 +72,7 @@ const MISSIONS: Mission[] = [
     color: '#6366F1',
   },
   {
-    text: 'Remplis un verre d\u2019eau et transporte-le sans en renverser une goutte.',
+    text: 'Remplis un verre d\'eau et transporte-le sans en renverser une goutte.',
     icon: 'cup-water',
     color: '#059669',
   },
@@ -81,6 +81,362 @@ const MISSIONS: Mission[] = [
     icon: 'hand-clap',
     color: '#D97706',
   },
+  {
+    text: 'Trouve un objet qui est plus petit que ton pouce.',
+    icon: 'magnify',
+    color: '#F472B6',
+  },
+  {
+    text: 'Cherche un objet qui fait du bruit quand on le touche ou le secoue.',
+    icon: 'bell-ring',
+    color: '#A855F7',
+  },
+  {
+    text: 'Trouve deux objets qui ont exactement la même forme.',
+    icon: 'shape-outline',
+    color: '#14B8A6',
+  },
+  {
+    text: 'Ferme les yeux et écoute : quel est le premier bruit que tu entends ?',
+    icon: 'ear-hearing',
+    color: '#94A3B8',
+  },
+  {
+    text: 'Mime une émotion (joie, colère ou surprise) devant un miroir.',
+    icon: 'emoticon-happy',
+    color: '#F87171',
+  },
+  {
+    text: 'Range 3 objets qui traînent à leur place en moins de 30 secondes.',
+    icon: 'broom',
+    color: '#22C55E',
+  },
+  {
+    text: 'Va faire un énorme câlin à quelqu\'un ou à ton doudou.',
+    icon: 'heart',
+    color: '#FB7185',
+  },
+  {
+    text: 'Prépare tes vêtements pour demain et pose-les sur une chaise.',
+    icon: 'tshirt-crew',
+    color: '#F59E0B',
+  },
+  {
+    text: 'Va demander à un adulte : "Comment s\'est passée ta journée ?"',
+    icon: 'chat-question',
+    color: '#EC4899', // Rose affection
+  },
+  {
+    text: 'Fais un beau dessin rapide pour quelqu\'un que tu aimes.',
+    icon: 'account-heart',
+    color: '#EF4444',
+  },
+  {
+    text: 'Va dire un secret gentil à l\'oreille d\'un de tes parents.',
+    icon: 'account-voice',
+    color: '#8B5CF6',
+  },
+  {
+    text: 'Trouve un objet plus grand que toi et un objet plus petit que ta main.',
+    icon: 'arrow-up-down-bold',
+    color: '#3B82F6',
+  },
+  {
+    text: 'Va chercher un fruit ou un légume et décris sa couleur et sa forme.',
+    icon: 'food-apple',
+    color: '#F97316',
+  },
+  {
+    text: 'Épèle ton prénom à voix haute devant un miroir.',
+    icon: 'alphabetical',
+    color: '#06B6D4',
+  },
+  {
+    text: 'Reste immobile pendant 30 secondes.',
+    icon: 'human-handsdown',
+    color: '#64748B',
+  },
+  {
+    text: 'Marche dans la maison en faisant semblant d\'être sur la Lune (au ralenti !).',
+    icon: 'atlassian', // Évoque un peu le mouvement spatial
+    color: '#8B5CF6',
+  },
+  {
+    text: 'Traverse le salon en faisant le crabe (marche sur le côté avec les pinces !).',
+    icon: 'walk',
+    color: '#EF4444',
+  },
+  {
+    text: 'Va toucher le frigo sans que personne ne te voie ou ne t\'entende. Chut !',
+    icon: 'incognito',
+    color: '#64748B',
+  },
+  {
+    text: 'Parle uniquement en chuchotant jusqu\'à ta prochaine mission.',
+    icon: 'volume-low',
+    color: '#14B8A6',
+  },
+  {
+    text: 'Mesure la longueur de ton lit en utilisant tes mains (une main après l\'autre). Combien en comptes-tu ?',
+    icon: 'hand-back-right',
+    color: '#3B82F6',
+  },
+  {
+    text: 'Trouve un objet qui est plus grand que toi, mais plus petit qu\'une porte.',
+    icon: 'arrow-up-down',
+    color: '#10B981',
+  },
+  {
+    text: 'Trouve un objet dans la maison qui commence par la lettre "B".',
+    icon: 'alpha-b-circle',
+    color: '#F59E0B',
+  },
+  {
+    text: 'Cite 3 animaux qui vivent dans l\'eau le plus vite possible !',
+    icon: 'waves',
+    color: '#06B6D4',
+  },
+  {
+    text: 'Écris ton prénom dans les airs avec ton doigt, comme si tu avais un stylo.',
+    icon: 'auto-fix',
+    color: '#8B5CF6',
+  },
+  {
+    text: 'Va observer une plante de près. Est-ce que ses feuilles sont douces ou piquantes ?',
+    icon: 'leaf',
+    color: '#059669',
+  },
+  {
+    text: 'Trouve un objet transparent (on voit à travers) et un objet opaque (on ne voit pas à travers).',
+    icon: 'eye-outline',
+    color: '#64748B',
+  },
+  {
+    text: 'Mets ta main sur une fenêtre : est-ce qu\'elle est froide ou chaude ? Pourquoi à ton avis ?',
+    icon: 'thermometer',
+    color: '#FB923C',
+  },
+  {
+    text: 'Observe les vêtements que tu portes. Ferme les yeux et essaye de dire toutes les couleurs sans regarder !',
+    icon: 'eye-off',
+    color: '#EC4899',
+  },
+  {
+    text: 'Trouve deux objets qui font le même bruit quand tu tapes doucement dessus.',
+    icon: 'ear-hearing',
+    color: '#14B8A6',
+  },
+  {
+    text: 'Récite la sourate Al-Fatiha ou ta sourate préférée à voix haute.',
+    icon: 'book-open-variant',
+    color: '#8B5CF6',
+  },
+  {
+    text: 'Va dire "Salam Alaykoum" à quelqu\'un dans la maison avec un grand respect.',
+    icon: 'account-voice',
+    color: '#6366F1',
+  },
+  {
+    text: 'Aide tes parents à mettre la table ou à ranger un objet sans qu\'ils te le demandent.',
+    icon: 'hand-heart',
+    color: '#EC4899',
+  },
+  {
+    text: 'Trouve une chaussure qui traîne et remets-la bien droite à côté de l\'autre.',
+    icon: 'shoe-sneaker',
+    color: '#64748B',
+  },
+  {
+    text: 'Prépare une petite boîte pour y mettre des pièces de monnaie (Sadaqa) pour les pauvres.',
+    icon: 'hand-coin',
+    color: '#F59E0B',
+  },
+  {
+    text: 'Apprends à dire "Jazak Allahu Khayran" pour remercier quelqu\'un aujourd\'hui.',
+    icon: 'account-heart',
+    color: '#EC4899',
+  },
+  {
+    text: 'Regarde 5 objets sur une table, ferme les yeux, et demande à un parent d\'en cacher un. Devine lequel !',
+    icon: 'brain',
+    color: '#8B5CF6',
+  },
+  {
+    text: 'Trouve un objet qui a une forme de triangle (regarde bien partout !).',
+    icon: 'triangle-outline',
+    color: '#F87171',
+  },
+  {
+    text: 'Compte combien il y a de chaises dans toute la maison et reviens donner le chiffre.',
+    icon: 'counter',
+    color: '#6366F1',
+  },
+  {
+    text: 'Assieds-toi pour boire ton prochain verre d\'eau et bois-le en 3 petites gorgées.',
+    icon: 'cup-water',
+    color: '#0EA5E9',
+  },
+  {
+    text: 'Va dire "Salam Alaykoum" avec ton plus beau sourire à la première personne que tu croises.',
+    icon: 'account-voice',
+    color: '#8B5CF6',
+  },
+  {
+    text: 'Mets un peu d\'eau dans une assiette et souffle dessus. Que se passe-t-il ?',
+    icon: 'weather-windy',
+    color: '#3B82F6',
+  },
+  {
+    text: 'Cherche un objet qui a une texture rugueuse et un autre qui est tout lisse.',
+    icon: 'texture',
+    color: '#6366F1',
+  },
+  {
+    text: 'Prépare un petit mot gentil ("Je t\'aime") et cache-le sous l\'oreiller d\'un parent.',
+    icon: 'email-heart-outline',
+    color: '#EC4899',
+  },
+  {
+    text: 'Essaie de dire "Le chasseur sache chasser" 3 fois sans te tromper.',
+    icon: 'chat-outline',
+    color: '#FB923C',
+  },
+  {
+    text: 'Mime un lion qui essaye de ne pas faire de bruit pour ne pas réveiller sa proie.',
+    icon: 'cat',
+    color: '#4ADE80',
+  },
+  {
+    text: 'Mime un robot qui n\'a plus de batterie et qui s\'éteint tout doucement.',
+    icon: 'robot-dead',
+    color: '#64748B',
+  },
+  {
+    text: 'Fais semblant d\'être un pop-corn qui chauffe et qui finit par exploser (Saute !).',
+    icon: 'popcorn',
+    color: '#FB923C',
+  },
+  {
+    text: 'Mime quelqu\'un qui essaie de manger une soupe brûlante sans se brûler.',
+    icon: 'noodles',
+    color: '#EF4444',
+  },
+  {
+    text: 'Fais semblant de marcher dans de la colle extra-forte : tes pieds restent collés !',
+    icon: 'shoe-print',
+    color: '#10B981',
+  },
+  {
+    text: 'Mime que tu portes un sac de 100 kilos sur ton dos. C\'est lourd !',
+    icon: 'weight',
+    color: '#475569',
+  },
+  {
+    text: 'Fais semblant de te battre contre un vent très fort qui essaie de te faire reculer.',
+    icon: 'weather-windy',
+    color: '#6366F1',
+  },
+  {
+    text: 'Prends une feuille de papier et un livre. Lâche-les en même temps. Lequel touche le sol en premier ?',
+    icon: 'book-open-variant',
+    color: '#EF4444',
+  },
+  {
+    text: 'Frotte un ballon (ou une règle en plastique) sur tes cheveux, puis approche-le de petits morceaux de papier.',
+    icon: 'lightning-bolt',
+    color: '#F59E0B',
+  },
+  {
+    text: 'Remplis un bol d\'eau et cherche 3 objets : un qui coule et un qui flotte.',
+    icon: 'water',
+    color: '#3B82F6',
+  },
+  {
+    text: 'Prends une lampe de poche dans le noir et fais grandir ton ombre sur le mur. Comment faire pour qu\'elle soit géante ?',
+    icon: 'flashlight',
+    color: '#FACC15',
+  },
+  {
+    text: 'Regarde à travers un verre d\'eau : est-ce que les objets derrière changent de taille ou de sens ?',
+    icon: 'shimmer',
+    color: '#06B6D4',
+  },
+  {
+    text: 'Trouve un objet qui reflète ton visage comme un miroir (une cuillère, une fenêtre, une casserole).',
+    icon: 'mirror',
+    color: '#94A3B8',
+  },
+  {
+    text: 'Mets un glaçon dans un verre d\'eau chaude. Chronomètre : combien de temps met-il pour disparaître ?',
+    icon: 'timer-outline',
+    color: '#60A5FA',
+  },
+  {
+    text: 'Mélange un peu de sel dans de l\'eau. Où est passé le sel ? Est-ce qu\'on peut encore le voir ?',
+    icon: 'shaker-outline',
+    color: '#10B981',
+  },
+  {
+    text: 'Va toucher le métal du frigo et le tissu du canapé. Lequel te semble le plus froid ? (Indice : ils sont à la même température !)',
+    icon: 'thermometer-minus',
+    color: '#6366F1',
+  },
+  {
+    text: 'Trouve une fleur ou une plante et compte combien elle a de pétales ou de feuilles.',
+    icon: 'flower',
+    color: '#EC4899',
+  },
+  {
+    text: 'Prends ton pouls (pose deux doigts sur ton poignet ou ton cou). Saute 10 fois. Est-ce que ça bat plus vite ?',
+    icon: 'heart-pulse',
+    color: '#FB7185',
+  },
+  {
+  text: 'Construis la tour la plus haute possible avec des objets qui ne cassent pas (coussins, boîtes).',
+  icon: 'castle',
+  color: '#EF4444',
+},
+{
+  text: 'Fais un pont entre deux chaises en utilisant seulement ce que tu trouves autour de toi.',
+  icon: 'bridge',
+  color: '#6366F1',
+},
+{
+  text: 'Crée un cercle parfait sur le sol en utilisant tes jouets ou tes chaussures.',
+  icon: 'vibrate', // Évoque la forme circulaire
+  color: '#EC4899',
+},
+{
+  text: 'Assieds-toi et ferme les yeux. Essaie de deviner 3 bruits différents autour de toi.',
+  icon: 'ear-hearing',
+  color: '#14B8A6',
+},
+{
+  text: 'Tiens une cuillère dans ta main et essaie de ne pas bouger du tout pendant 30 secondes.',
+  icon: 'timer-sand',
+  color: '#64748B',
+},
+{
+  text: 'Dessine un escargot très, très lentement, sans jamais lever ton crayon.',
+  icon: 'snail',
+  color: '#FB923C',
+},
+{
+  text: 'Regarde le ciel : est-ce qu\'il y a des nuages ? À quoi ressemblent leurs formes ?',
+  icon: 'cloud-search',
+  color: '#0EA5E9',
+},
+{
+  text: 'Cherche l\'endroit le plus ensoleillé de la pièce et reste-y 10 secondes pour "recharger tes batteries".',
+  icon: 'weather-sunny',
+  color: '#FACC15',
+},
+{
+  text: 'Trouve un objet qui est mouillé (dans la cuisine ou la salle de bain) et un objet bien sec.',
+  icon: 'water-percent',
+  color: '#38BDF8',
+},
+
 ];
 
 type Phase = 'ready' | 'spinning' | 'mission' | 'timer' | 'done';
@@ -500,11 +856,12 @@ const styles = StyleSheet.create({
   spinBtnWrap: {
     width: '100%',
     borderRadius: 18,
-    elevation: 6,
+    backgroundColor: '#6B7280', // Fond nécessaire pour l'élévation sur Android
+    elevation: 8,
     shadowColor: '#6B7280',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
   },
   spinBtn: {
     flexDirection: 'row',
@@ -577,18 +934,20 @@ const styles = StyleSheet.create({
   },
   missionCard: {
     borderRadius: 24,
-    elevation: 8,
+    backgroundColor: '#FFFFFF', // FIX: Prévient le bug du carré blanc sur Android
+    elevation: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.15,
-    shadowRadius: 12,
+    shadowRadius: 20,
   },
   missionCardInner: {
     padding: Spacing.xl,
     borderRadius: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+    overflow: 'hidden',
   },
   missionIconCircle: {
     width: 80,

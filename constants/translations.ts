@@ -164,7 +164,7 @@ export const translations = {
     strictMode: 'Mode strict',
     allowedSites: 'Sites autorisés',
     noAllowedSites: 'Aucun site autorisé',
-    greeting: 'Bismillah',
+    greeting: '',
     links: {
       quran: 'Coran',
       allahNames: 'Noms d\'Allah',
@@ -305,12 +305,12 @@ export const translations = {
     },
     // Content filter (page content scanning)
     contentFilter: {
-      title: 'Filtrage du contenu des pages',
-      description: 'Analyse le texte des pages web pour détecter les mots-clés bloqués',
+      title: 'Analyse du contenu des pages',
+      description: 'Analyse le texte des pages web en temps réel pour détecter les mots-clés bloqués',
       off: 'Désactivé',
       offDesc: 'Les mots-clés sont vérifiés uniquement dans l\'URL',
       block: 'Bloquer la page',
-      blockDesc: 'Bloque entièrement la page si un mot-clé est détecté dans le contenu',
+      blockDesc: 'Bloque entièrement la page si un mot-clé est détecté dans le contenu d\'une page',
       blur: 'Flouter le contenu',
       blurDesc: 'Floute les passages contenant des mots-clés bloqués',
     },
