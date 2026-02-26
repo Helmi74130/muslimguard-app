@@ -256,6 +256,14 @@ export const BlockingService = {
     return [...new Set([...categoryKeywords, ...custom])];
   },
 
+  /**
+   * Get blocked keywords from enabled categories only (always hard-blocked)
+   */
+  async getCategoryBlockedKeywords(): Promise<string[]> {
+    const enabled = await this.getEnabledCategories();
+    return getKeywordsForCategories(enabled);
+  },
+
   // ==================== CUSTOM ITEMS (parent-added) ====================
 
   /**

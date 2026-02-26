@@ -34,7 +34,8 @@ interface CachedData {
   settings: AppSettings | null;
   schedule: ScheduleData | null;
   blockedDomains: string[];
-  blockedKeywords: string[];
+  categoryKeywords: string[];
+  customKeywords: string[];
   whitelistDomains: string[]; // For strict mode
   strictModeEnabled: boolean;
   readingModeEnabled: boolean;
@@ -68,7 +69,8 @@ export default function BrowserScreen() {
     settings: null,
     schedule: null,
     blockedDomains: [],
-    blockedKeywords: [],
+    categoryKeywords: [],
+    customKeywords: [],
     whitelistDomains: [],
     strictModeEnabled: false,
     readingModeEnabled: false,
@@ -82,11 +84,12 @@ export default function BrowserScreen() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [settings, schedule, domains, keywords, whitelist, strictMode, prayerStatus, subscriptionState, devPremium] = await Promise.all([
+        const [settings, schedule, domains, catKeywords, custKeywords, whitelist, strictMode, prayerStatus, subscriptionState, devPremium] = await Promise.all([
           StorageService.getSettings(),
           StorageService.getSchedule(),
           BlockingService.getBlockedDomains(),
-          BlockingService.getBlockedKeywords(),
+          BlockingService.getCategoryBlockedKeywords(),
+          BlockingService.getCustomKeywords(),
           BlockingService.getWhitelistDomains(),
           BlockingService.isStrictModeEnabled(),
           PrayerService.isInPrayerPauseWindow(),
@@ -100,7 +103,8 @@ export default function BrowserScreen() {
           settings,
           schedule,
           blockedDomains: domains,
-          blockedKeywords: keywords,
+          categoryKeywords: catKeywords,
+          customKeywords: custKeywords,
           whitelistDomains: whitelist,
           strictModeEnabled: strictMode,
           readingModeEnabled: settings?.readingModeEnabled ?? false,
@@ -241,15 +245,28 @@ export default function BrowserScreen() {
       }
     }
 
-    // Check keywords (applies even in strict mode for extra safety)
-    // In blur mode, skip URL keyword blocking - let the page load and
-    // the content filter script will blur matching text on the page.
+    // Check category keywords - ALWAYS block in URL regardless of content filter mode
+    for (const keyword of cached.categoryKeywords) {
+      try {
+        const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp('\\b' + escaped + '\\b', 'i');
+        if (regex.test(urlLower)) {
+          return { blocked: true, reason: 'keyword', blockedBy: keyword };
+        }
+      } catch {
+        if (urlLower.includes(keyword.toLowerCase())) {
+          return { blocked: true, reason: 'keyword', blockedBy: keyword };
+        }
+      }
+    }
+
+    // Check custom keywords - subject to content filter mode
+    // In blur mode, skip URL blocking to let the page load for content blurring.
     // In off/block mode, block the URL entirely if a keyword is found.
     if (cached.contentFilterMode !== 'blur') {
-      for (const keyword of cached.blockedKeywords) {
+      for (const keyword of cached.customKeywords) {
         try {
           const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          // Enforce word boundaries on both sides to avoid false positives like "puteaux"
           const regex = new RegExp('\\b' + escaped + '\\b', 'i');
           if (regex.test(urlLower)) {
             return { blocked: true, reason: 'keyword', blockedBy: keyword };
@@ -667,14 +684,26 @@ export default function BrowserScreen() {
               `;
               webViewRef.current?.injectJavaScript(clearStorageScript);
 
-              if (filterMode !== 'off' && cachedDataRef.current.blockedKeywords.length > 0) {
-                // Reset flag so script can re-run on new pages
-                webViewRef.current?.injectJavaScript('window.__muslimGuardContentFilter = false; true;');
-                const script = generateContentFilterScript(
-                  cachedDataRef.current.blockedKeywords,
-                  filterMode
+              // Category keywords: ALWAYS scan in 'block' mode (hard block)
+              if (cachedDataRef.current.categoryKeywords.length > 0) {
+                webViewRef.current?.injectJavaScript('window.__mgCategoryFilter = false; true;');
+                const catScript = generateContentFilterScript(
+                  cachedDataRef.current.categoryKeywords,
+                  'block',
+                  '__mgCategoryFilter'
                 );
-                webViewRef.current?.injectJavaScript(script);
+                webViewRef.current?.injectJavaScript(catScript);
+              }
+
+              // Custom keywords: follow the parent's content filter mode choice
+              if (filterMode !== 'off' && cachedDataRef.current.customKeywords.length > 0) {
+                webViewRef.current?.injectJavaScript('window.__mgCustomFilter = false; true;');
+                const customScript = generateContentFilterScript(
+                  cachedDataRef.current.customKeywords,
+                  filterMode,
+                  '__mgCustomFilter'
+                );
+                webViewRef.current?.injectJavaScript(customScript);
               }
             }}
             onError={handleError}

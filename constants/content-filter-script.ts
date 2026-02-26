@@ -20,11 +20,13 @@ function escapeRegex(str: string): string {
  * Generate the content filter injection script
  * @param keywords - Array of blocked keywords
  * @param mode - 'block' to block entire page, 'blur' to blur matching content
+ * @param flagName - Global flag name to prevent duplicate execution (allows multiple independent scripts)
  * @returns JavaScript string to inject into WebView
  */
 export function generateContentFilterScript(
   keywords: string[],
-  mode: 'block' | 'blur'
+  mode: 'block' | 'blur',
+  flagName: string = '__muslimGuardContentFilter'
 ): string {
   if (keywords.length === 0) return 'true;';
 
@@ -36,14 +38,17 @@ export function generateContentFilterScript(
   const patternSource = '\\b(?:' + escaped.join('|') + ')\\b';
   const patternJson = JSON.stringify(patternSource);
   const modeJson = JSON.stringify(mode);
+  const flagJson = JSON.stringify(flagName);
 
   return `
 (function() {
   'use strict';
 
+  var FLAG = ${flagJson};
+
   // Avoid running multiple times on same page
-  if (window.__muslimGuardContentFilter) return;
-  window.__muslimGuardContentFilter = true;
+  if (window[FLAG]) return;
+  window[FLAG] = true;
 
   // Only skip Google utility apps where content filtering is not useful
   var skipDomains = [
