@@ -157,7 +157,7 @@ export const translations = {
     searchPlaceholder: 'Rechercher sur Internet...',
     homeTitle: 'Bienvenue !',
     homeSubtitle: 'Que veux-tu explorer aujourd\'hui ?',
-    quickLinks: 'Applications',
+    quickLinks: 'Mes Applications',
     searchButton: 'Rechercher',
     homeButton: 'Accueil',
     safeSearch: 'Recherche sécurisée activée',
@@ -605,6 +605,26 @@ export const translations = {
     deleteBlocklist: 'Voulez-vous vraiment supprimer cet élément ?',
     resetApp: 'Voulez-vous vraiment réinitialiser l\'application ? Toutes les données seront perdues.',
     exitParentMode: 'Voulez-vous retourner au mode enfant ?',
+  },
+
+  // Onboarding tour (tooltips)
+  onboardingTour: {
+    next: 'Suivant',
+    previous: 'Précédent',
+    skip: 'Passer',
+    finish: 'Compris !',
+    // Child browser steps
+    childSearch: 'Voici le navigateur sécurisé MuslimGuard. Vous pouvez modifier la liste des accès ou désactiver la navigation à tout moment depuis votre Tableau de Bord Parent.',
+    childSafeBadge: 'Ce badge confirme que le filtrage est actif. Les contenus inappropriés sont bloqués.',
+    childApps: 'Un univers d\'applications ludo-éducatives créées par MuslimGuard pour vos enfants. Profitez d\'une expérience totalement fermée, sans pub, sans algorithmes cachés, juste du contenu de qualité.',
+    childParentAccess: 'Ici c\'est le Mode Parent. Vous y trouverez le paramétrage, les statistiques, le tableau de bord et bien plus encore.',
+    // Parent dashboard steps
+    parentProtection: 'Voyez en un coup d\'œil le niveau de protection actif pour votre enfant.',
+    parentStats: 'Suivez l\'activité de votre enfant : nombre de visites et tentatives bloquées.',
+    parentToggles: 'Activez ou désactivez les protections principales en un seul geste.',
+    parentActions: 'Accédez rapidement aux réglages importants : blocage, horaires, vidéos.',
+    parentChildMode: 'Appuyez ici pour passer en mode enfant sécurisé. Un PIN sera nécessaire pour en sortir.',
+    parentTabBar: 'Utilisez ce menu pour naviguer entre le tableau de bord, les statistiques, les horaires de prière et les paramètres.',
   },
 } as const;
 

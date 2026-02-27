@@ -13,6 +13,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
+
+const CopilotView = walkthroughable(View);
 
 interface BrowserToolbarProps {
   canGoBack: boolean;
@@ -87,14 +90,18 @@ export function BrowserToolbar({
         <View style={styles.navSpacer} />
 
         {/* Subtle parent access */}
-        <TouchableOpacity style={styles.parentBtn} onPress={onParentAccess}>
-          <MaterialCommunityIcons
-            name="shield-account-outline"
-            size={24}
-            color={Colors.light.textSecondary}
-          />
-          <Text style={styles.parentBtnText}>{translations.childHome.parentMode}</Text>
-        </TouchableOpacity>
+        <CopilotStep text={translations.onboardingTour.childParentAccess} order={3} name="child-parent-access">
+          <CopilotView collapsable={false} style={styles.parentBtn}>
+            <TouchableOpacity style={styles.parentBtnInner} onPress={onParentAccess}>
+              <MaterialCommunityIcons
+                name="shield-account-outline"
+                size={24}
+                color={Colors.light.textSecondary}
+              />
+              <Text style={styles.parentBtnText}>{translations.childHome.parentMode}</Text>
+            </TouchableOpacity>
+          </CopilotView>
+        </CopilotStep>
       </View>
     </View>
   );
@@ -138,9 +145,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   parentBtn: {
+    minWidth: 60,
+  },
+  parentBtnInner: {
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 60,
   },
   parentBtnText: {
     fontSize: 10,

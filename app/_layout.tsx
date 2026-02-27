@@ -8,8 +8,11 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { BackHandler } from 'react-native';
+import { BackHandler, LogBox } from 'react-native';
 import 'react-native-reanimated';
+
+// Suppress react-native-copilot measureLayout warning (New Architecture/Fabric issue)
+LogBox.ignoreLogs(['ref.measureLayout must be called with a ref to a native component']);
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';

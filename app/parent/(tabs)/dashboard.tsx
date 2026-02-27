@@ -15,7 +15,7 @@ import { StorageService } from '@/services/storage.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -25,9 +25,18 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import {
+  CopilotProvider,
+  CopilotStep,
+  useCopilot,
+  walkthroughable,
+} from 'react-native-copilot';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { CopilotTooltip, CopilotScrollContext } from '@/components/onboarding/copilot-tooltip';
 
 const t = translations.dashboard;
+const tour = translations.onboardingTour;
+const CopilotView = walkthroughable(View);
 
 interface DashboardData {
   blockedToday: number;
@@ -38,13 +47,51 @@ interface DashboardData {
   kioskEnabled: boolean;
 }
 
+// Y offsets for each copilot step order (approximate scroll targets)
+const STEP_SCROLL_Y: Record<number, number> = {
+  1: 0,     // parent-protection
+  2: 280,   // parent-stats
+  3: 480,   // parent-toggles
+  4: 820,   // parent-actions
+  5: 1100,  // parent-child-mode
+  6: 99999, // parent-tab-bar (scroll to bottom)
+};
+
 export default function DashboardScreen() {
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const scrollToStep = useCallback(async (stepOrder: number) => {
+    const y = STEP_SCROLL_Y[stepOrder];
+    if (y != null) {
+      scrollViewRef.current?.scrollTo({ y, animated: false });
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }, []);
+
+  return (
+    <CopilotScrollContext.Provider value={{ scrollToStep }}>
+      <CopilotProvider
+        tooltipComponent={CopilotTooltip}
+        overlay="svg"
+        backdropColor="rgba(0, 0, 0, 0.7)"
+        tooltipStyle={{ borderRadius: 16 }}
+        arrowColor="#FFFFFF"
+      >
+        <DashboardContent scrollViewRef={scrollViewRef} />
+      </CopilotProvider>
+    </CopilotScrollContext.Provider>
+  );
+}
+
+function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<ScrollView | null> }) {
+  const { start, copilotEvents } = useCopilot();
   const { switchToChildMode } = useAppMode();
   const { logout } = useAuth();
   const { isPremium } = useSubscription();
   const { requireFeature: requireBrowserControl } = usePremiumFeature('browser_control');
   const { requireFeature: requireStrictMode } = usePremiumFeature('strict_mode');
   const { requireFeature: requireKiosk } = usePremiumFeature('kiosk_mode');
+  const [parentTourDone, setParentTourDone] = useState(true);
   const [data, setData] = useState<DashboardData>({
     blockedToday: 0,
     totalVisits: 0,
@@ -73,6 +120,7 @@ export default function DashboardScreen() {
           browserEnabled: settings.browserEnabled,
           kioskEnabled: settings.kioskModeEnabled,
         });
+        setParentTourDone(settings.parentTourDone);
       } catch (error) {
         console.error('Error loading dashboard data:', error);
       }
@@ -82,6 +130,27 @@ export default function DashboardScreen() {
     const interval = setInterval(loadData, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  // Auto-start onboarding tour on first visit
+  useEffect(() => {
+    if (parentTourDone) return;
+    const timer = setTimeout(() => {
+      start();
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [parentTourDone]);
+
+  // Persist tour completion on stop
+  useEffect(() => {
+    const onStop = () => {
+      StorageService.updateSettings({ parentTourDone: true });
+      setParentTourDone(true);
+    };
+    copilotEvents.on('stop', onStop);
+    return () => {
+      copilotEvents.off('stop', onStop);
+    };
+  }, [copilotEvents]);
 
   const handleChildMode = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -130,6 +199,7 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -178,59 +248,51 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         )}
 
-        {/* Protection Status */}
-        <Text style={styles.sectionTitle}>État de protection</Text>
-        <Card variant="outlined" style={styles.protectionCard}>
-          <View style={styles.protectionHeader}>
-            <View
-              style={[
-                styles.protectionIconContainer,
-                {
-                  backgroundColor:
-                    protectionLevel === 'high'
-                      ? Colors.success + '15'
-                      : Colors.warning + '15',
-                },
-              ]}
-            >
-              <MaterialCommunityIcons
-                name={protectionLevel === 'high' ? 'shield-check' : 'shield-alert'}
-                size={28}
-                color={protectionLevel === 'high' ? Colors.success : Colors.warning}
-              />
-            </View>
-            <View style={styles.protectionTextContainer}>
-              <Text style={styles.protectionTitle}>
-                {protectionLevel === 'high'
-                  ? 'Protection élevée'
-                  : 'Protection partielle'}
-              </Text>
-              <Text style={styles.protectionSubtitle}>
-                {protectionLevel === 'high'
-                  ? 'Tous les filtres sont actifs'
-                  : 'Certains filtres peuvent être renforcés'}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.badgesRow}>
-            <StatusBadge
-              label="Mode strict"
-              active={data.strictMode}
-            />
-            <StatusBadge
-              label="Pause prière"
-              active={data.autoPause}
-            />
-            <StatusBadge
-              label="Navigateur"
-              active={data.browserEnabled}
-            />
-            <StatusBadge
-              label="Verrouillé"
-              active={data.kioskEnabled}
-            />
-          </View>
-        </Card>
+        {/* Step 1 — Protection Status */}
+        <CopilotStep text={tour.parentProtection} order={1} name="parent-protection">
+          <CopilotView collapsable={false}>
+            <Text style={styles.sectionTitle}>État de protection</Text>
+            <Card variant="outlined" style={styles.protectionCard}>
+              <View style={styles.protectionHeader}>
+                <View
+                  style={[
+                    styles.protectionIconContainer,
+                    {
+                      backgroundColor:
+                        protectionLevel === 'high'
+                          ? Colors.success + '15'
+                          : Colors.warning + '15',
+                    },
+                  ]}
+                >
+                  <MaterialCommunityIcons
+                    name={protectionLevel === 'high' ? 'shield-check' : 'shield-alert'}
+                    size={28}
+                    color={protectionLevel === 'high' ? Colors.success : Colors.warning}
+                  />
+                </View>
+                <View style={styles.protectionTextContainer}>
+                  <Text style={styles.protectionTitle}>
+                    {protectionLevel === 'high'
+                      ? 'Protection élevée'
+                      : 'Protection partielle'}
+                  </Text>
+                  <Text style={styles.protectionSubtitle}>
+                    {protectionLevel === 'high'
+                      ? 'Tous les filtres sont actifs'
+                      : 'Certains filtres peuvent être renforcés'}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.badgesRow}>
+                <StatusBadge label="Mode strict" active={data.strictMode} />
+                <StatusBadge label="Pause prière" active={data.autoPause} />
+                <StatusBadge label="Navigateur" active={data.browserEnabled} />
+                <StatusBadge label="Verrouillé" active={data.kioskEnabled} />
+              </View>
+            </Card>
+          </CopilotView>
+        </CopilotStep>
 
         {/* Settings shortcut */}
         <Card
@@ -240,49 +302,45 @@ export default function DashboardScreen() {
         >
           <View style={styles.settingsActionContent}>
             <View style={styles.settingsActionIcon}>
-              <MaterialCommunityIcons
-                name="cog"
-                size={24}
-                color={Colors.light.textSecondary}
-              />
+              <MaterialCommunityIcons name="cog" size={24} color={Colors.light.textSecondary} />
             </View>
             <View style={styles.settingsTextContainer}>
               <Text style={styles.settingsActionTitle}>Tous les paramètres</Text>
               <Text style={styles.settingsHint}>PIN, historique, liste blanche…</Text>
             </View>
-            <MaterialCommunityIcons
-              name="chevron-right"
-              size={22}
-              color={Colors.light.textSecondary}
-            />
+            <MaterialCommunityIcons name="chevron-right" size={22} color={Colors.light.textSecondary} />
           </View>
         </Card>
 
-        {/* Today Stats */}
-        <Text style={styles.sectionTitle}>Aujourd'hui</Text>
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{data.totalVisits}</Text>
-            <Text style={styles.statLabel}>Visites</Text>
-          </View>
-          <View style={[styles.statCard, styles.statCardBlocked]}>
-            <Text style={[styles.statNumber, { color: Colors.error }]}>
-              {data.blockedToday}
-            </Text>
-            <Text style={styles.statLabel}>Bloqués</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text
-              style={[
-                styles.statNumber,
-                { color: blockRate > 50 ? Colors.error : Colors.primary },
-              ]}
-            >
-              {blockRate}%
-            </Text>
-            <Text style={styles.statLabel}>Taux</Text>
-          </View>
-        </View>
+        {/* Step 2 — Today Stats */}
+        <CopilotStep text={tour.parentStats} order={2} name="parent-stats">
+          <CopilotView collapsable={false}>
+            <Text style={styles.sectionTitle}>Aujourd'hui</Text>
+            <View style={styles.statsRow}>
+              <View style={styles.statCard}>
+                <Text style={styles.statNumber}>{data.totalVisits}</Text>
+                <Text style={styles.statLabel}>Visites</Text>
+              </View>
+              <View style={[styles.statCard, styles.statCardBlocked]}>
+                <Text style={[styles.statNumber, { color: Colors.error }]}>
+                  {data.blockedToday}
+                </Text>
+                <Text style={styles.statLabel}>Bloqués</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text
+                  style={[
+                    styles.statNumber,
+                    { color: blockRate > 50 ? Colors.error : Colors.primary },
+                  ]}
+                >
+                  {blockRate}%
+                </Text>
+                <Text style={styles.statLabel}>Taux</Text>
+              </View>
+            </View>
+          </CopilotView>
+        </CopilotStep>
 
         {/* View stats link */}
         <TouchableOpacity
@@ -295,126 +353,146 @@ export default function DashboardScreen() {
           <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.primary} />
         </TouchableOpacity>
 
+        {/* Step 3 — Quick Toggles */}
+        <CopilotStep text={tour.parentToggles} order={3} name="parent-toggles">
+          <CopilotView collapsable={false}>
+            <Text style={styles.sectionTitle}>Contrôles rapides</Text>
+            <Card variant="outlined" style={styles.togglesCard}>
+              <QuickToggle
+                icon="web"
+                label="Navigateur"
+                description={data.browserEnabled
+                  ? "Activé — décochez pour bloquer l'accès web"
+                  : "Désactivé — cochez pour autoriser l'accès web"}
+                value={data.browserEnabled}
+                onToggle={handleToggleBrowser}
+                premium={!isPremium}
+              />
+              <View style={styles.toggleDivider} />
+              <QuickToggle
+                icon="shield-lock"
+                label="Mode strict"
+                description={data.strictMode
+                  ? "Activé — seuls les sites en liste blanche sont accessibles"
+                  : "Désactivé — cochez pour n'autoriser que la liste blanche"}
+                value={data.strictMode}
+                onToggle={handleToggleStrict}
+                premium={!isPremium}
+              />
+              <View style={styles.toggleDivider} />
+              <QuickToggle
+                icon="cellphone-lock"
+                label="Verrouillage app"
+                description={data.kioskEnabled
+                  ? "Activé — l'enfant ne peut pas quitter l'app"
+                  : "Désactivé — cochez pour empêcher la sortie de l'app"}
+                value={data.kioskEnabled}
+                onToggle={handleToggleKiosk}
+                premium={!isPremium}
+              />
+              <View style={styles.toggleDivider} />
+              <QuickToggle
+                icon="clock-check"
+                label="Pause prière auto"
+                description={data.autoPause
+                  ? "Activé — le web se coupe pendant les prières"
+                  : "Désactivé — cochez pour couper le web aux heures de prière"}
+                value={data.autoPause}
+                onToggle={handleToggleAutoPause}
+              />
+            </Card>
+          </CopilotView>
+        </CopilotStep>
 
-        {/* Quick Toggles */}
-        <Text style={styles.sectionTitle}>Contrôles rapides</Text>
-        <Card variant="outlined" style={styles.togglesCard}>
-          <QuickToggle
-            icon="web"
-            label="Navigateur"
-            description={data.browserEnabled
-              ? "Activé — décochez pour bloquer l'accès web"
-              : "Désactivé — cochez pour autoriser l'accès web"}
-            value={data.browserEnabled}
-            onToggle={handleToggleBrowser}
-            premium={!isPremium}
-          />
-          <View style={styles.toggleDivider} />
-          <QuickToggle
-            icon="shield-lock"
-            label="Mode strict"
-            description={data.strictMode
-              ? "Activé — seuls les sites en liste blanche sont accessibles"
-              : "Désactivé — cochez pour n'autoriser que la liste blanche"}
-            value={data.strictMode}
-            onToggle={handleToggleStrict}
-            premium={!isPremium}
-          />
-          <View style={styles.toggleDivider} />
-          <QuickToggle
-            icon="cellphone-lock"
-            label="Verrouillage app"
-            description={data.kioskEnabled
-              ? "Activé — l'enfant ne peut pas quitter l'app"
-              : "Désactivé — cochez pour empêcher la sortie de l'app"}
-            value={data.kioskEnabled}
-            onToggle={handleToggleKiosk}
-            premium={!isPremium}
-          />
-          <View style={styles.toggleDivider} />
-          <QuickToggle
-            icon="clock-check"
-            label="Pause prière auto"
-            description={data.autoPause
-              ? "Activé — le web se coupe pendant les prières"
-              : "Désactivé — cochez pour couper le web aux heures de prière"}
-            value={data.autoPause}
-            onToggle={handleToggleAutoPause}
-          />
-        </Card>
+        {/* Step 4 — Quick Actions */}
+        <CopilotStep text={tour.parentActions} order={4} name="parent-actions">
+          <CopilotView collapsable={false}>
+            <Text style={styles.sectionTitle}>Accès rapide</Text>
+            <Card variant="outlined" style={styles.quickActionsCard}>
+              <TouchableOpacity
+                style={styles.quickActionItem}
+                onPress={() => router.push('/parent/settings/blocklist')}
+                activeOpacity={0.6}
+              >
+                <View style={styles.quickActionIcon}>
+                  <MaterialCommunityIcons name="shield-lock" size={16} color={Colors.primary} />
+                </View>
+                <Text style={styles.quickActionLabel}>Gérer les blocages</Text>
+                <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.light.textSecondary} />
+              </TouchableOpacity>
+              <View style={styles.quickActionDivider} />
+              <TouchableOpacity
+                style={styles.quickActionItem}
+                onPress={() => router.push('/parent/settings/schedule')}
+                activeOpacity={0.6}
+              >
+                <View style={styles.quickActionIcon}>
+                  <MaterialCommunityIcons name="clock-outline" size={16} color={Colors.primary} />
+                </View>
+                <Text style={styles.quickActionLabel}>Restrictions horaires</Text>
+                <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.light.textSecondary} />
+              </TouchableOpacity>
+              <View style={styles.quickActionDivider} />
+              <TouchableOpacity
+                style={styles.quickActionItem}
+                onPress={() => router.push('/parent/(tabs)/history')}
+                activeOpacity={0.6}
+              >
+                <View style={styles.quickActionIcon}>
+                  <MaterialCommunityIcons name="chart-bar" size={16} color={Colors.primary} />
+                </View>
+                <Text style={styles.quickActionLabel}>Statistiques</Text>
+                <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.light.textSecondary} />
+              </TouchableOpacity>
+              <View style={styles.quickActionDivider} />
+              <TouchableOpacity
+                style={styles.quickActionItem}
+                onPress={() => router.push('/parent/settings/custom-videos')}
+                activeOpacity={0.6}
+              >
+                <View style={styles.quickActionIcon}>
+                  <MaterialCommunityIcons name="video-plus" size={16} color={Colors.primary} />
+                </View>
+                <Text style={styles.quickActionLabel}>Mes vidéos personnalisées</Text>
+                <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.light.textSecondary} />
+              </TouchableOpacity>
+            </Card>
+          </CopilotView>
+        </CopilotStep>
 
-        {/* Quick Actions */}
-        <Text style={styles.sectionTitle}>Accès rapide</Text>
-        <Card variant="outlined" style={styles.quickActionsCard}>
-          <TouchableOpacity
-            style={styles.quickActionItem}
-            onPress={() => router.push('/parent/settings/blocklist')}
-            activeOpacity={0.6}
-          >
-            <View style={styles.quickActionIcon}>
-              <MaterialCommunityIcons name="shield-lock" size={16} color={Colors.primary} />
-            </View>
-            <Text style={styles.quickActionLabel}>Gérer les blocages</Text>
-            <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.light.textSecondary} />
-          </TouchableOpacity>
-          <View style={styles.quickActionDivider} />
-          <TouchableOpacity
-            style={styles.quickActionItem}
-            onPress={() => router.push('/parent/settings/schedule')}
-            activeOpacity={0.6}
-          >
-            <View style={styles.quickActionIcon}>
-              <MaterialCommunityIcons name="clock-outline" size={16} color={Colors.primary} />
-            </View>
-            <Text style={styles.quickActionLabel}>Restrictions horaires</Text>
-            <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.light.textSecondary} />
-          </TouchableOpacity>
-          <View style={styles.quickActionDivider} />
-          <TouchableOpacity
-            style={styles.quickActionItem}
-            onPress={() => router.push('/parent/(tabs)/history')}
-            activeOpacity={0.6}
-          >
-            <View style={styles.quickActionIcon}>
-              <MaterialCommunityIcons name="chart-bar" size={16} color={Colors.primary} />
-            </View>
-            <Text style={styles.quickActionLabel}>Statistiques</Text>
-            <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.light.textSecondary} />
-          </TouchableOpacity>
-          <View style={styles.quickActionDivider} />
-          <TouchableOpacity
-            style={styles.quickActionItem}
-            onPress={() => router.push('/parent/settings/custom-videos')}
-            activeOpacity={0.6}
-          >
-            <View style={styles.quickActionIcon}>
-              <MaterialCommunityIcons name="video-plus" size={16} color={Colors.primary} />
-            </View>
-            <Text style={styles.quickActionLabel}>Mes vidéos personnalisées</Text>
-            <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.light.textSecondary} />
-          </TouchableOpacity>
-        </Card>
-
-        {/* Return to Child Mode */}
-        <TouchableOpacity
-          style={styles.childModeButton}
-          onPress={handleChildMode}
-          activeOpacity={0.9}
-        >
-          <Image
-            source={require('@/assets/images/ours.png')}
-            style={styles.childModeImage}
-            resizeMode="contain"
-          />
-          <View style={styles.childModeTextContainer}>
-            <Text style={styles.childModeLabel}>Mode enfant</Text>
-            <Text style={styles.childModeTitle}>{t.childMode}</Text>
-            <TouchableOpacity style={styles.childModePlayButton} onPress={handleChildMode}>
-              <MaterialCommunityIcons name="play" size={18} color="#FFFFFF" />
-              <Text style={styles.childModePlayText}>C'est parti !</Text>
+        {/* Step 5 — Return to Child Mode */}
+        <CopilotStep text={tour.parentChildMode} order={5} name="parent-child-mode">
+          <CopilotView collapsable={false}>
+            <TouchableOpacity
+              style={styles.childModeButton}
+              onPress={handleChildMode}
+              activeOpacity={0.9}
+            >
+              <Image
+                source={require('@/assets/images/ours.png')}
+                style={styles.childModeImage}
+                resizeMode="contain"
+              />
+              <View style={styles.childModeTextContainer}>
+                <Text style={styles.childModeLabel}>Mode enfant</Text>
+                <Text style={styles.childModeTitle}>{t.childMode}</Text>
+                <TouchableOpacity style={styles.childModePlayButton} onPress={handleChildMode}>
+                  <MaterialCommunityIcons name="play" size={18} color="#FFFFFF" />
+                  <Text style={styles.childModePlayText}>C'est parti !</Text>
+                </TouchableOpacity>
+              </View>
             </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
+          </CopilotView>
+        </CopilotStep>
+
+        {/* Step 6 — Tab Bar Navigation */}
+        <CopilotStep text={tour.parentTabBar} order={6} name="parent-tab-bar">
+          <CopilotView collapsable={false} style={styles.tabBarIndicator}>
+            <MaterialCommunityIcons name="arrow-down" size={18} color={Colors.primary} />
+            <Text style={styles.tabBarIndicatorText}>Menu de navigation</Text>
+            <MaterialCommunityIcons name="arrow-down" size={18} color={Colors.primary} />
+          </CopilotView>
+        </CopilotStep>
       </ScrollView>
     </SafeAreaView>
   );
@@ -845,5 +923,18 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.light.border,
     marginLeft: Spacing.md + 36 + Spacing.md,
+  },
+  tabBarIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  tabBarIndicatorText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.primary,
   },
 });

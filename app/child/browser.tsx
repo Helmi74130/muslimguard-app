@@ -5,6 +5,7 @@
 
 import { BrowserHomePage } from '@/components/browser/browser-home-page';
 import { BrowserToolbar } from '@/components/browser/browser-toolbar';
+import { CopilotTooltip } from '@/components/onboarding/copilot-tooltip';
 import { generateContentFilterScript } from '@/constants/content-filter-script';
 import { READING_MODE_PRELOAD_SCRIPT, READING_MODE_SCRIPT } from '@/constants/reading-mode-script';
 import { BorderRadius, Colors, KidColors, Spacing } from '@/constants/theme';
@@ -18,6 +19,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as Speech from 'expo-speech';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { CopilotProvider, useCopilot } from 'react-native-copilot';
 import {
   Pressable,
   StatusBar,
@@ -48,6 +50,21 @@ interface CachedData {
 const t = translations.kidBrowser;
 
 export default function BrowserScreen() {
+  return (
+    <CopilotProvider
+      tooltipComponent={CopilotTooltip}
+      overlay="svg"
+      backdropColor="rgba(0, 0, 0, 0.7)"
+      tooltipStyle={{ borderRadius: 16 }}
+      arrowColor="#FFFFFF"
+    >
+      <BrowserScreenContent />
+    </CopilotProvider>
+  );
+}
+
+function BrowserScreenContent() {
+  const { start, copilotEvents } = useCopilot();
   const webViewRef = useRef<WebView>(null);
   const [showHomePage, setShowHomePage] = useState(true);
   const [currentUrl, setCurrentUrl] = useState('');
@@ -56,6 +73,7 @@ export default function BrowserScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<{ type: 'no_internet' | 'domain_not_found' | 'generic' } | null>(null);
   const [readingMode, setReadingMode] = useState(false);
+  const [childTourDone, setChildTourDone] = useState(true); // default true to avoid flash
   const isNavigatingToBlockRef = useRef(false);
 
   // TTS state
@@ -114,6 +132,7 @@ export default function BrowserScreen() {
           isPremium,
         };
         setReadingMode(settings?.readingModeEnabled ?? false);
+        setChildTourDone(settings?.childTourDone ?? true);
       } catch (error) {
         console.error('Error loading cached data:', error);
       }
@@ -131,6 +150,27 @@ export default function BrowserScreen() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Auto-start onboarding tour on first visit
+  useEffect(() => {
+    if (childTourDone || !showHomePage) return;
+    const timer = setTimeout(() => {
+      start();
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [childTourDone, showHomePage]);
+
+  // Persist tour completion on stop
+  useEffect(() => {
+    const onStop = () => {
+      StorageService.updateSettings({ childTourDone: true });
+      setChildTourDone(true);
+    };
+    copilotEvents.on('stop', onStop);
+    return () => {
+      copilotEvents.off('stop', onStop);
+    };
+  }, [copilotEvents]);
 
   // When readingMode loads (async), inject scripts into already-loaded page
   useEffect(() => {

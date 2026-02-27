@@ -40,6 +40,8 @@ export interface AppSettings {
   browserEnabled: boolean; // Show/hide browser access in child mode
   childBackground: string; // Background ID for child home screen
   contentFilterMode: ContentFilterMode; // Page content keyword scanning
+  childTourDone: boolean; // Mini-onboarding tour seen on child browser
+  parentTourDone: boolean; // Mini-onboarding tour seen on parent dashboard
 }
 
 // Default settings
@@ -64,6 +66,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   browserEnabled: true, // Browser visible by default
   childBackground: 'default', // Default background
   contentFilterMode: 'off', // Content filter disabled by default
+  childTourDone: false,
+  parentTourDone: false,
 };
 
 // Blocklist data

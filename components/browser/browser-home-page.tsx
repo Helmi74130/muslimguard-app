@@ -19,7 +19,7 @@ import { StorageService } from '@/services/storage.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Image,
   ImageBackground,
@@ -32,8 +32,15 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import {
+  CopilotStep,
+  useCopilot,
+  walkthroughable,
+} from 'react-native-copilot';
 
 const t = translations.kidBrowser;
+const tour = translations.onboardingTour;
+const CopilotView = walkthroughable(View);
 
 interface BrowserHomePageProps {
   onSearch: (url: string) => void;
@@ -196,6 +203,8 @@ const QUICK_LINKS = [
 const MAX_VISIBLE_SITES = 6;
 
 export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps) {
+  const { copilotEvents } = useCopilot();
+  const scrollViewRef = useRef<ScrollView>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [strictModeEnabled, setStrictModeEnabled] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
@@ -207,6 +216,7 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
   const [customPhotoUri, setCustomPhotoUri] = useState<string | null>(null);
   const [galleryPhotos, setGalleryPhotos] = useState<MediaLibrary.Asset[]>([]);
   const [showGalleryPicker, setShowGalleryPicker] = useState(false);
+
 
   // Load strict mode status, whitelist, browser setting, and premium status
   useEffect(() => {
@@ -236,6 +246,22 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
 
     loadData();
   }, []);
+
+  // Scroll to step on change
+  useEffect(() => {
+    const onStep = (step?: { name: string }) => {
+      if (!step) return;
+      if (step.name === 'child-apps') {
+        scrollViewRef.current?.scrollTo({ y: 300, animated: true });
+      } else {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      }
+    };
+    copilotEvents.on('stepChange', onStep);
+    return () => {
+      copilotEvents.off('stepChange', onStep);
+    };
+  }, [copilotEvents]);
 
   const loadGalleryPhotos = async () => {
     try {
@@ -286,6 +312,7 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
 
   const renderScrollContent = () => (
     <ScrollView
+      ref={scrollViewRef}
       style={styles.scrollView}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
@@ -302,7 +329,8 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
 
       {/* Search Bar (hidden when browser disabled or strict mode) */}
       {browserEnabled && !effectiveStrictMode && (
-        <View style={styles.searchContainer}>
+        <CopilotStep text={tour.childSearch} order={1} name="child-search" active={browserEnabled && !effectiveStrictMode}>
+        <CopilotView collapsable={false} style={styles.searchContainer}>
           <View style={styles.searchBar}>
             <MaterialCommunityIcons
               name="magnify"
@@ -347,7 +375,8 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
               <Text style={styles.safeBadgeText}>{t.safeSearch}</Text>
             </View>
           </View>
-        </View>
+        </CopilotView>
+        </CopilotStep>
       )}
 
       {/* Strict Mode Banner + Allowed Sites */}
@@ -421,7 +450,8 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
       )}
 
       {/* Applications */}
-      <View style={styles.quickLinksSection}>
+      <CopilotStep text={tour.childApps} order={2} name="child-apps">
+      <CopilotView collapsable={false} style={styles.quickLinksSection}>
         <Text style={[styles.quickLinksTitle, dark && styles.textLight]}>{t.quickLinks}</Text>
         <View style={styles.quickLinksGrid}>
           {QUICK_LINKS.map((link) => (
@@ -461,7 +491,8 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
             </Pressable>
           ))}
         </View>
-      </View>
+      </CopilotView>
+      </CopilotStep>
 
       {/* Background Picker Modal */}
       <Modal
