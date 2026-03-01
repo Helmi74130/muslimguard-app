@@ -54,7 +54,6 @@ const STEP_SCROLL_Y: Record<number, number> = {
   3: 480,   // parent-toggles
   4: 820,   // parent-actions
   5: 1100,  // parent-child-mode
-  6: 99999, // parent-tab-bar (scroll to bottom)
 };
 
 export default function DashboardScreen() {
@@ -485,14 +484,6 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
           </CopilotView>
         </CopilotStep>
 
-        {/* Step 6 — Tab Bar Navigation */}
-        <CopilotStep text={tour.parentTabBar} order={6} name="parent-tab-bar">
-          <CopilotView collapsable={false} style={[styles.tabBarIndicator, { marginBottom: -25, paddingBottom: 25 }]}>
-            <MaterialCommunityIcons name="arrow-down" size={18} color={Colors.primary} />
-            <Text style={styles.tabBarIndicatorText}>Menu de navigation</Text>
-            <MaterialCommunityIcons name="arrow-down" size={18} color={Colors.primary} />
-          </CopilotView>
-        </CopilotStep>
       </ScrollView>
     </SafeAreaView>
   );
@@ -923,18 +914,5 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.light.border,
     marginLeft: Spacing.md + 36 + Spacing.md,
-  },
-  tabBarIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-    paddingVertical: Spacing.md,
-    marginBottom: Spacing.md,
-  },
-  tabBarIndicatorText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.primary,
   },
 });
