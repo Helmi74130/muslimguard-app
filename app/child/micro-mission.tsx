@@ -21,8 +21,102 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const WHEEL_SIZE = SCREEN_WIDTH * 0.7;
+
+// ─── Confetti config ──────────────────────────────────
+const CONFETTI_COUNT = 35;
+const CONFETTI_COLORS = ['#F59E0B', '#EF4444', '#8B5CF6', '#10B981', '#3B82F6', '#EC4899', '#6366F1', '#14B8A6'];
+const CONFETTI_SHAPES = ['square', 'circle', 'strip'] as const;
+
+interface ConfettiPiece {
+  x: number;       // start X (0-1 ratio)
+  color: string;
+  size: number;
+  shape: typeof CONFETTI_SHAPES[number];
+  delay: number;
+  drift: number;    // horizontal drift
+  rotation: number; // max rotation degrees
+}
+
+function generateConfetti(): ConfettiPiece[] {
+  return Array.from({ length: CONFETTI_COUNT }, () => ({
+    x: Math.random(),
+    color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+    size: 6 + Math.random() * 8,
+    shape: CONFETTI_SHAPES[Math.floor(Math.random() * CONFETTI_SHAPES.length)],
+    delay: Math.random() * 400,
+    drift: (Math.random() - 0.5) * 120,
+    rotation: 360 + Math.random() * 720,
+  }));
+}
+
+function ConfettiOverlay() {
+  const pieces = useRef(generateConfetti()).current;
+  const anims = useRef(pieces.map(() => new Animated.Value(0))).current;
+
+  useEffect(() => {
+    const animations = anims.map((anim, i) =>
+      Animated.timing(anim, {
+        toValue: 1,
+        duration: 2000 + Math.random() * 1000,
+        delay: pieces[i].delay,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      })
+    );
+    Animated.stagger(30, animations).start();
+  }, []);
+
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {pieces.map((piece, i) => {
+        const translateY = anims[i].interpolate({
+          inputRange: [0, 1],
+          outputRange: [-20, SCREEN_HEIGHT + 40],
+        });
+        const translateX = anims[i].interpolate({
+          inputRange: [0, 0.5, 1],
+          outputRange: [0, piece.drift * 0.6, piece.drift],
+        });
+        const rotate = anims[i].interpolate({
+          inputRange: [0, 1],
+          outputRange: ['0deg', `${piece.rotation}deg`],
+        });
+        const opacity = anims[i].interpolate({
+          inputRange: [0, 0.1, 0.8, 1],
+          outputRange: [0, 1, 1, 0],
+        });
+
+        const shapeStyle =
+          piece.shape === 'circle'
+            ? { borderRadius: piece.size / 2 }
+            : piece.shape === 'strip'
+              ? { width: piece.size * 0.4, height: piece.size * 1.8, borderRadius: 2 }
+              : { borderRadius: 2 };
+
+        return (
+          <Animated.View
+            key={i}
+            style={[
+              {
+                position: 'absolute',
+                left: piece.x * SCREEN_WIDTH,
+                top: 0,
+                width: piece.size,
+                height: piece.size,
+                backgroundColor: piece.color,
+                transform: [{ translateY }, { translateX }, { rotate }],
+                opacity,
+              },
+              shapeStyle,
+            ]}
+          />
+        );
+      })}
+    </View>
+  );
+}
 
 interface Mission {
   text: string;
@@ -445,6 +539,8 @@ export default function MicroMissionScreen() {
   const [phase, setPhase] = useState<Phase>('ready');
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const [seconds, setSeconds] = useState(120);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const spinAnim = useRef(new Animated.Value(0)).current;
   const bounceAnim = useRef(new Animated.Value(1)).current;
@@ -512,16 +608,30 @@ export default function MicroMissionScreen() {
       }
       if (remaining <= 0) {
         if (timerRef.current) clearInterval(timerRef.current);
+        setElapsedTime(120);
+        setShowConfetti(true);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setPhase('done');
       }
     }, 1000);
   };
 
+  const completeMission = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    progressAnim.stopAnimation();
+    const elapsed = 120 - seconds;
+    setElapsedTime(elapsed);
+    setShowConfetti(true);
+    setPhase('done');
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  };
+
   const reset = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     setPhase('ready');
     setSelectedMission(null);
+    setShowConfetti(false);
+    setElapsedTime(0);
     spinAnim.setValue(0);
   };
 
@@ -723,16 +833,45 @@ export default function MicroMissionScreen() {
               <View style={styles.doneSection}>
                 <MaterialCommunityIcons name="check-circle" size={48} color="#10B981" />
                 <Text style={styles.doneText}>Mission accomplie !</Text>
+                {elapsedTime > 0 && (
+                  <Text style={styles.elapsedText}>
+                    Terminé en {formatTime(elapsedTime)}
+                  </Text>
+                )}
                 <Text style={styles.doneSubtext}>
-                  Bravo, tu as relancé la machine !
+                  {elapsedTime < 60
+                    ? 'Waouh, rapide comme l\'éclair !'
+                    : elapsedTime < 120
+                      ? 'Bravo, bien joué champion !'
+                      : 'Bravo, tu as relancé la machine !'}
                 </Text>
               </View>
             )}
           </LinearGradient>
         </Animated.View>
 
+        {/* Confetti */}
+        {showConfetti && phase === 'done' && <ConfettiOverlay />}
+
         {/* Actions */}
         <View style={styles.actions}>
+          {phase === 'timer' && (
+            <Pressable
+              onPress={completeMission}
+              style={({ pressed }) => [styles.actionBtnWrap, pressed && { opacity: 0.85 }]}
+            >
+              <LinearGradient
+                colors={['#10B981', '#34D399']}
+                style={styles.actionBtn}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <MaterialCommunityIcons name="check-bold" size={22} color="#FFFFFF" />
+                <Text style={styles.actionBtnText}>Mission accomplie !</Text>
+              </LinearGradient>
+            </Pressable>
+          )}
+
           {phase === 'mission' && (
             <>
               <Pressable
@@ -1006,6 +1145,11 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: '#10B981',
+  },
+  elapsedText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#6B7280',
   },
   doneSubtext: {
     fontSize: 15,
