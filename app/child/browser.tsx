@@ -16,7 +16,7 @@ import { PrayerService } from '@/services/prayer.service';
 import { StorageService } from '@/services/storage.service';
 import { AppSettings, ContentFilterMode, ScheduleData } from '@/types/storage.types';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import * as Speech from 'expo-speech';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CopilotProvider, useCopilot } from 'react-native-copilot';
@@ -65,6 +65,8 @@ export default function BrowserScreen() {
 
 function BrowserScreenContent() {
   const { start, copilotEvents } = useCopilot();
+  const startRef = useRef(start);
+  startRef.current = start;
   const webViewRef = useRef<WebView>(null);
   const [showHomePage, setShowHomePage] = useState(true);
   const [currentUrl, setCurrentUrl] = useState('');
@@ -151,14 +153,17 @@ function BrowserScreenContent() {
     return () => clearInterval(interval);
   }, []);
 
-  // Auto-start onboarding tour on first visit
-  useEffect(() => {
-    if (childTourDone || !showHomePage) return;
-    const timer = setTimeout(() => {
-      start();
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [childTourDone, showHomePage]);
+  // Auto-start onboarding tour on first visit (only when screen is focused)
+  // Use startRef to avoid re-triggering when start() reference changes on re-renders
+  useFocusEffect(
+    useCallback(() => {
+      if (childTourDone || !showHomePage) return;
+      const timer = setTimeout(() => {
+        startRef.current();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }, [childTourDone, showHomePage])
+  );
 
   // Persist tour completion on stop
   useEffect(() => {

@@ -146,6 +146,8 @@ const styles = StyleSheet.create({
   },
   parentBtn: {
     minWidth: 60,
+    marginTop: -50,
+    paddingTop: 50,
   },
   parentBtnInner: {
     alignItems: 'center',
