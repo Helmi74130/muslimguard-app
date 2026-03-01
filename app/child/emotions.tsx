@@ -4,6 +4,7 @@
  * Includes Islamic du'as and 7-day history
  */
 
+import { ConfettiOverlay } from '@/components/ui/confetti';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { StorageService } from '@/services/storage.service';
 import { EmotionEntry } from '@/types/storage.types';
@@ -585,6 +586,8 @@ export default function EmotionsScreen() {
           </Pressable>
         </Modal>
       )}
+      {/* Confetti on happy validation */}
+      {justSaved && selectedEmotion?.id === 'happy' && <ConfettiOverlay />}
     </LinearGradient>
   );
 }
