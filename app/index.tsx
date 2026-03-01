@@ -3,21 +3,27 @@
  * Handles initial routing based on app state
  */
 
-import { useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
 import { Redirect } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAppMode } from '@/contexts/app-mode.context';
-import { Colors } from '@/constants/theme';
 
 export default function Index() {
   const { isOnboardingComplete, isLoading, mode } = useAppMode();
 
-  // Show loading while checking state
+  // Show gradient splash while checking state
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
+      <LinearGradient
+        colors={['#001a33', '#003463', '#0a5a9e']}
+        style={styles.container}
+      >
+        <Image
+          source={require('../assets/images/splash-icon.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </LinearGradient>
     );
   }
 
@@ -40,6 +46,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.light.background,
+  },
+  logo: {
+    width: 200,
+    height: 200,
   },
 });

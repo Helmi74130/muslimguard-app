@@ -476,7 +476,7 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
                 <Text style={styles.childModeLabel}>Mode enfant</Text>
                 <Text style={styles.childModeTitle}>{t.childMode}</Text>
                 <TouchableOpacity style={styles.childModePlayButton} onPress={handleChildMode}>
-                  <MaterialCommunityIcons name="play" size={18} color="#FFFFFF" />
+                  <MaterialCommunityIcons name="teddy-bear" size={18} color="#FFFFFF" />
                   <Text style={styles.childModePlayText}>C'est parti !</Text>
                 </TouchableOpacity>
               </View>
@@ -809,12 +809,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: Spacing.xl,
-    elevation: 4,
+    elevation: 12,
     shadowColor: '#E8C878',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.7,
+    shadowRadius: 24,
+    borderWidth: 1,
+    borderColor: '#E8C878',
   },
   childModeImage: {
     width: 130,
@@ -852,6 +853,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: BorderRadius.full,
     gap: 8,
+    elevation: 6,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
   },
   childModePlayText: {
     color: '#FFFFFF',
