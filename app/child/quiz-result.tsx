@@ -3,6 +3,7 @@
  * Shows score, stars, and replay option
  */
 
+import { ConfettiOverlay } from '@/components/ui/confetti';
 import { DIFFICULTY_CONFIG, QUIZ_CATEGORIES, QuizDifficulty } from '@/constants/quiz-data';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -142,6 +143,7 @@ export default function QuizResultScreen() {
           </Pressable>
         </View>
       </SafeAreaView>
+      {stars >= 2 && <ConfettiOverlay />}
     </LinearGradient>
   );
 }
