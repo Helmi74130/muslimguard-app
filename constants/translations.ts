@@ -620,9 +620,9 @@ export const translations = {
     childParentAccess: 'Ici c\'est le Mode Parent. Vous y trouverez le paramétrage, les statistiques, le tableau de bord et bien plus encore.',
     // Parent dashboard steps
     parentProtection: 'Voyez en un coup d\'œil le niveau de protection actif pour votre enfant.',
-    parentStats: 'Suivez l\'activité de votre enfant : nombre de visites et tentatives bloquées.',
-    parentToggles: 'Activez ou désactivez les protections principales en un seul geste.',
-    parentActions: 'Accédez rapidement aux réglages importants : blocage, horaires, vidéos.',
+    parentStats: 'Visualisez en temps réel la protection de votre enfant. Consultez le nombre de sites visités, le total des menaces bloquées par MuslimGuard et le taux de sécurité global de la journée.',
+    parentToggles: 'Gérez l\'essentiel en un clic, sans ouvrir les paramètres. Activez/désactivez le navigateur, passez en Mode Strict ou verrouillez l\'appareil instantanément depuis votre Tableau de Bord.',
+    parentActions: 'Configurez les horaires, gérez le blocage des applications ou personnalisez l\'accès vidéo directement depuis votre écran de contrôle rapide.',
     parentChildMode: 'Appuyez ici pour passer en mode enfant sécurisé. Un PIN sera nécessaire pour en sortir.',
     parentTabBar: 'Utilisez ce menu pour naviguer entre le tableau de bord, les statistiques, les horaires de prière et les paramètres.',
   },

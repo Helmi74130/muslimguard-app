@@ -250,7 +250,7 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
 
         {/* Step 1 — Protection Status */}
         <CopilotStep text={tour.parentProtection} order={1} name="parent-protection">
-          <CopilotView collapsable={false}>
+          <CopilotView collapsable={false} style={{ marginBottom: -25, paddingBottom: 25 }}>
             <Text style={styles.sectionTitle}>État de protection</Text>
             <Card variant="outlined" style={styles.protectionCard}>
               <View style={styles.protectionHeader}>
@@ -314,7 +314,7 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
 
         {/* Step 2 — Today Stats */}
         <CopilotStep text={tour.parentStats} order={2} name="parent-stats">
-          <CopilotView collapsable={false}>
+          <CopilotView collapsable={false} style={{ marginBottom: -25, paddingBottom: 25 }}>
             <Text style={styles.sectionTitle}>Aujourd'hui</Text>
             <View style={styles.statsRow}>
               <View style={styles.statCard}>
@@ -355,7 +355,7 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
 
         {/* Step 3 — Quick Toggles */}
         <CopilotStep text={tour.parentToggles} order={3} name="parent-toggles">
-          <CopilotView collapsable={false}>
+          <CopilotView collapsable={false} style={{ marginBottom: -25, paddingBottom: 25 }}>
             <Text style={styles.sectionTitle}>Contrôles rapides</Text>
             <Card variant="outlined" style={styles.togglesCard}>
               <QuickToggle
@@ -406,7 +406,7 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
 
         {/* Step 4 — Quick Actions */}
         <CopilotStep text={tour.parentActions} order={4} name="parent-actions">
-          <CopilotView collapsable={false}>
+          <CopilotView collapsable={false} style={{ marginBottom: -25, paddingBottom: 25 }}>
             <Text style={styles.sectionTitle}>Accès rapide</Text>
             <Card variant="outlined" style={styles.quickActionsCard}>
               <TouchableOpacity
@@ -462,7 +462,7 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
 
         {/* Step 5 — Return to Child Mode */}
         <CopilotStep text={tour.parentChildMode} order={5} name="parent-child-mode">
-          <CopilotView collapsable={false}>
+          <CopilotView collapsable={false} style={{ marginBottom: -25, paddingBottom: 25 }}>
             <TouchableOpacity
               style={styles.childModeButton}
               onPress={handleChildMode}
@@ -487,7 +487,7 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
 
         {/* Step 6 — Tab Bar Navigation */}
         <CopilotStep text={tour.parentTabBar} order={6} name="parent-tab-bar">
-          <CopilotView collapsable={false} style={styles.tabBarIndicator}>
+          <CopilotView collapsable={false} style={[styles.tabBarIndicator, { marginBottom: -25, paddingBottom: 25 }]}>
             <MaterialCommunityIcons name="arrow-down" size={18} color={Colors.primary} />
             <Text style={styles.tabBarIndicatorText}>Menu de navigation</Text>
             <MaterialCommunityIcons name="arrow-down" size={18} color={Colors.primary} />
