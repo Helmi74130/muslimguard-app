@@ -3,6 +3,7 @@
  * Clean overview: protection status, today's stats, quick actions
  */
 
+import { CopilotScrollContext, CopilotTooltip } from '@/components/onboarding/copilot-tooltip';
 import { Card } from '@/components/ui/card';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { translations } from '@/constants/translations';
@@ -32,7 +33,6 @@ import {
   walkthroughable,
 } from 'react-native-copilot';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CopilotTooltip, CopilotScrollContext } from '@/components/onboarding/copilot-tooltip';
 
 const t = translations.dashboard;
 const tour = translations.onboardingTour;
@@ -54,6 +54,7 @@ const STEP_SCROLL_Y: Record<number, number> = {
   3: 480,   // parent-toggles
   4: 820,   // parent-actions
   5: 1100,  // parent-child-mode
+  6: 1200,  // parent-tab-bar
 };
 
 export default function DashboardScreen() {
@@ -190,7 +191,8 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
   }, []);
 
   // Protection level
-  const protectionLevel = (data.strictMode || !data.browserEnabled || data.kioskEnabled) ? 'high' : 'medium';
+  const activeCount = [data.strictMode, data.autoPause, data.kioskEnabled].filter(Boolean).length;
+  const protectionLevel = (data.strictMode && data.kioskEnabled) ? 'super' : (data.strictMode || activeCount >= 3) ? 'high' : 'medium';
   const blockRate = data.totalVisits > 0
     ? Math.round((data.blockedToday / data.totalVisits) * 100)
     : 0;
@@ -258,35 +260,40 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
                     styles.protectionIconContainer,
                     {
                       backgroundColor:
-                        protectionLevel === 'high'
-                          ? Colors.success + '15'
-                          : Colors.warning + '15',
+                        protectionLevel === 'super'
+                          ? Colors.primary + '15'
+                          : protectionLevel === 'high'
+                            ? Colors.success + '15'
+                            : Colors.warning + '15',
                     },
                   ]}
                 >
                   <MaterialCommunityIcons
-                    name={protectionLevel === 'high' ? 'shield-check' : 'shield-alert'}
+                    name={protectionLevel === 'super' ? 'shield-lock' : protectionLevel === 'high' ? 'shield-check' : 'shield-alert'}
                     size={28}
-                    color={protectionLevel === 'high' ? Colors.success : Colors.warning}
+                    color={protectionLevel === 'super' ? Colors.primary : protectionLevel === 'high' ? Colors.success : Colors.warning}
                   />
                 </View>
                 <View style={styles.protectionTextContainer}>
                   <Text style={styles.protectionTitle}>
-                    {protectionLevel === 'high'
-                      ? 'Protection élevée'
-                      : 'Protection partielle'}
+                    {protectionLevel === 'super'
+                      ? 'Super protection'
+                      : protectionLevel === 'high'
+                        ? 'Protection élevée'
+                        : 'Protection partielle'}
                   </Text>
                   <Text style={styles.protectionSubtitle}>
-                    {protectionLevel === 'high'
-                      ? 'Tous les filtres sont actifs'
-                      : 'Certains filtres peuvent être renforcés'}
+                    {protectionLevel === 'super'
+                      ? 'Mode strict et verrouillage actifs'
+                      : protectionLevel === 'high'
+                        ? 'Tous les filtres sont actifs'
+                        : 'Certains filtres peuvent être renforcés'}
                   </Text>
                 </View>
               </View>
               <View style={styles.badgesRow}>
                 <StatusBadge label="Mode strict" active={data.strictMode} />
                 <StatusBadge label="Pause prière" active={data.autoPause} />
-                <StatusBadge label="Navigateur" active={data.browserEnabled} />
                 <StatusBadge label="Verrouillé" active={data.kioskEnabled} />
               </View>
             </Card>
@@ -482,6 +489,11 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
               </View>
             </TouchableOpacity>
           </CopilotView>
+        </CopilotStep>
+
+        {/* Step 6 — Tab Bar */}
+        <CopilotStep text={tour.parentTabBar} order={6} name="parent-tab-bar">
+          <CopilotView collapsable={false} style={styles.tabBarTarget} />
         </CopilotStep>
 
       </ScrollView>
@@ -920,5 +932,9 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.light.border,
     marginLeft: Spacing.md + 36 + Spacing.md,
+  },
+  tabBarTarget: {
+    height: 10,
+    marginTop: Spacing.xl,
   },
 });
