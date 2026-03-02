@@ -16,6 +16,8 @@ import { BorderRadius, Colors, KidColors, Spacing } from '@/constants/theme';
 import { translations } from '@/constants/translations';
 import { BlockingService } from '@/services/blocking.service';
 import { StorageService } from '@/services/storage.service';
+import AllahNamesIcon from '@/assets/icons/allah-names.svg';
+import QuranIcon from '@/assets/icons/quran.svg';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
 import { router } from 'expo-router';
@@ -62,6 +64,7 @@ const QUICK_LINKS = [
     icon: 'book-open-variant' as const,
     colorIndex: 0,
     isInternal: true,
+    customIcon: QuranIcon,
   },
   {
     label: t.links.allahNames,
@@ -69,6 +72,7 @@ const QUICK_LINKS = [
     icon: 'star-crescent' as const,
     colorIndex: 1,
     isInternal: true,
+    customIcon: AllahNamesIcon,
   },
   {
     label: t.links.drawing,
@@ -479,11 +483,19 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
                   borderColor: 'rgba(0,0,0,0.05)'
                 },
               ]}>
-                <MaterialCommunityIcons
-                  name={link.icon}
-                  size={32}
-                  color={link.customColor || KidColors.tileIcons[link.colorIndex]}
-                />
+                {link.customIcon ? (
+                  <link.customIcon
+                    width={32}
+                    height={32}
+                    fill={link.customColor || KidColors.tileIcons[link.colorIndex]}
+                  />
+                ) : (
+                  <MaterialCommunityIcons
+                    name={link.icon}
+                    size={32}
+                    color={link.customColor || KidColors.tileIcons[link.colorIndex]}
+                  />
+                )}
               </View>
               <Text style={[styles.appLabel, dark && styles.textLight]} numberOfLines={1}>
                 {link.label}
