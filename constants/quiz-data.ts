@@ -25,6 +25,7 @@ export interface QuizCategory {
   id: string;
   label: string;
   icon: string; // MaterialCommunityIcons name
+  image: any; // require() image source
   color: string;
   colorLight: string;
   gradient: [string, string];
@@ -42,6 +43,7 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
     id: 'prophets',
     label: 'Les Prophètes',
     icon: 'family-tree',
+    image: require('@/assets/quiz/prophetes.png'),
     color: '#1565C0',
     colorLight: '#E3F2FD',
     gradient: ['#1565C0', '#42A5F5'],
@@ -258,6 +260,7 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
     id: 'pillars',
     label: 'Piliers de l\'Islam',
     icon: 'pillar',
+    image: require('@/assets/quiz/5pilliers.png'),
     color: '#2E7D32',
     colorLight: '#E8F5E9',
     gradient: ['#2E7D32', '#66BB6A'],
@@ -558,6 +561,7 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
     id: 'quran',
     label: 'Le Coran',
     icon: 'book-open-page-variant',
+    image: require('@/assets/quiz/coran.png'),
     color: '#6A1B9A',
     colorLight: '#F3E5F5',
     gradient: ['#6A1B9A', '#AB47BC'],
@@ -655,6 +659,7 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
     id: 'sira',
     label: 'Le Prophète (ﷺ)',
     icon: 'mosque',
+    image: require('@/assets/quiz/muhammed.png'),
     color: '#E65100',
     colorLight: '#FFF3E0',
     gradient: ['#E65100', '#FFA726'],
@@ -751,7 +756,8 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
   {
     id: 'tawhid',
     label: 'Tawhid (Unicité)',
-    icon: 'shield-star', // Ou 'star-crescent' selon ta bibliothèque d'icônes
+    icon: 'shield-star',
+    image: require('@/assets/quiz/tawhid.png'),
     color: '#00695C',
     colorLight: '#E0F2F1',
     gradient: ['#00695C', '#4DB6AC'],
@@ -821,6 +827,7 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
     id: 'manners',
     label: 'Bonnes manières',
     icon: 'hand-heart',
+    image: require('@/assets/quiz/bonnemaniere.png'),
     color: '#C62828',
     colorLight: '#FFEBEE',
     gradient: ['#C62828', '#EF5350'],

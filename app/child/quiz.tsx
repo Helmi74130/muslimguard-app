@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -83,23 +84,18 @@ export default function QuizScreen() {
                 ]}
                 onPress={() => router.push(`/child/quiz-difficulty?categoryId=${cat.id}` as any)}
               >
-                {/* Icon */}
-                <LinearGradient
-                  colors={[cat.colorLight, '#FFFFFF']}
-                  style={styles.categoryIcon}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <MaterialCommunityIcons
-                    name={cat.icon as any}
-                    size={32}
-                    color={cat.color}
+                {/* Image */}
+                <View style={[styles.categoryImageWrapper, { backgroundColor: cat.colorLight }]}>
+                  <Image
+                    source={cat.image}
+                    style={styles.categoryImage}
+                    resizeMode="contain"
                   />
-                </LinearGradient>
+                </View>
 
                 {/* Info */}
                 <View style={styles.categoryInfo}>
-                  <Text style={styles.categoryLabel}>{cat.label}</Text>
+                  <Text style={[styles.categoryLabel, { color: cat.color }]}>{cat.label}</Text>
                   <Text style={styles.categoryCount}>
                     {cat.questions.length} question{cat.questions.length > 1 ? 's' : ''}
                   </Text>
@@ -110,7 +106,7 @@ export default function QuizScreen() {
                         <MaterialCommunityIcons
                           key={i}
                           name={i <= stars ? 'star' : 'star-outline'}
-                          size={18}
+                          size={16}
                           color={i <= stars ? '#FBBF24' : '#D1D5DB'}
                         />
                       ))}
@@ -122,7 +118,7 @@ export default function QuizScreen() {
                 {/* Arrow */}
                 <MaterialCommunityIcons
                   name="chevron-right"
-                  size={24}
+                  size={22}
                   color={Colors.light.textSecondary}
                 />
               </Pressable>
@@ -180,50 +176,52 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.md,
+    borderRadius: 20,
+    paddingRight: Spacing.md,
     marginBottom: Spacing.md,
     elevation: 4,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    shadowRadius: 6,
+    overflow: 'hidden',
   },
   categoryCardPressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.98 }],
+    opacity: 0.85,
+    transform: [{ scale: 0.97 }],
   },
-  categoryIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+  categoryImageWrapper: {
+    width: 130,
+    height: 130,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
   },
+  categoryImage: {
+    width: '100%' as any,
+    height: '100%' as any,
+  },
   categoryInfo: {
     flex: 1,
+    paddingVertical: Spacing.md,
   },
   categoryLabel: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: Colors.light.text,
+    fontSize: 18,
+    fontWeight: '800',
   },
   categoryCount: {
-    fontSize: 13,
+    fontSize: 14,
     color: Colors.light.textSecondary,
-    marginTop: 2,
+    marginTop: 5,
   },
   starsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 5,
     gap: 2,
   },
   scoreText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: Colors.light.textSecondary,
     marginLeft: 6,

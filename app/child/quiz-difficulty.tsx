@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
+  ImageBackground,
   Pressable,
   StyleSheet,
   Text,
@@ -60,29 +61,28 @@ export default function QuizDifficultyScreen() {
       style={styles.container}
     >
       <SafeAreaView style={{ flex: 1 }}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
-          </Pressable>
-          <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle}>{category.label}</Text>
-            <Text style={styles.headerSubtitle}>Choisis ton niveau</Text>
-          </View>
-          <View style={{ width: 40 }} />
-        </View>
-
-        {/* Category icon */}
-        <View style={styles.categoryIconContainer}>
+        {/* Hero Banner */}
+        <ImageBackground
+          source={category.image}
+          style={styles.heroBanner}
+          imageStyle={styles.heroBannerImage}
+          resizeMode="cover"
+        >
           <LinearGradient
-            colors={category.gradient}
-            style={styles.categoryIconCircle}
+            colors={['rgba(0,0,0,0.35)', category.gradient[0] + 'DD']}
+            style={styles.heroBannerOverlay}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            end={{ x: 0, y: 1 }}
           >
-            <MaterialCommunityIcons name={category.icon as any} size={48} color="#FFFFFF" />
+            <Pressable onPress={() => router.back()} style={styles.backButton}>
+              <MaterialCommunityIcons name="arrow-left" size={22} color="#FFFFFF" />
+            </Pressable>
+            <View style={styles.heroTextContainer}>
+              <Text style={styles.heroTitle}>{category.label}</Text>
+              <Text style={styles.heroSubtitle}>Choisis ton niveau</Text>
+            </View>
           </LinearGradient>
-        </View>
+        </ImageBackground>
 
         {/* Difficulty cards */}
         <View style={styles.content}>
@@ -97,48 +97,71 @@ export default function QuizDifficultyScreen() {
             return (
               <Pressable
                 key={diff}
-                style={({ pressed }) => [
-                  styles.difficultyCard,
-                  pressed && styles.difficultyCardPressed,
-                  { borderLeftColor: config.color, borderLeftWidth: 4 },
-                ]}
+                style={({ pressed }) => [pressed && styles.difficultyCardPressed]}
                 onPress={() => router.push(`/child/quiz-play?categoryId=${categoryId}&difficulty=${diff}` as any)}
               >
-                {/* Icon */}
                 <LinearGradient
                   colors={config.gradient}
-                  style={styles.diffIcon}
+                  style={styles.difficultyCard}
                   start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                  end={{ x: 1, y: 0 }}
                 >
-                  <MaterialCommunityIcons name={config.icon as any} size={28} color="#FFFFFF" />
-                </LinearGradient>
+                  {/* Watermark icon */}
+                  <View style={styles.diffWatermark}>
+                    <MaterialCommunityIcons name={config.icon as any} size={80} color="rgba(255,255,255,0.12)" />
+                  </View>
 
-                {/* Info */}
-                <View style={styles.diffInfo}>
-                  <Text style={styles.diffLabel}>{config.label}</Text>
-                  <Text style={styles.diffCount}>
-                    {questionsCount} question{questionsCount > 1 ? 's' : ''}
-                    {diff === 'hard' ? ' • ⏱ 15s' : ''}
-                  </Text>
-                  {/* Stars */}
-                  {hasPlayed && (
-                    <View style={styles.starsRow}>
-                      {[1, 2, 3].map((i) => (
-                        <MaterialCommunityIcons
-                          key={i}
-                          name={i <= stars ? 'star' : 'star-outline'}
-                          size={16}
-                          color={i <= stars ? '#FBBF24' : '#D1D5DB'}
-                        />
-                      ))}
-                      <Text style={styles.scoreText}>{bestScore}%</Text>
+                  {/* Content */}
+                  <View style={styles.diffContent}>
+                    {/* Top row: label + stars icons */}
+                    <View style={styles.diffTopRow}>
+                      <View style={styles.diffStarsDisplay}>
+                        {[1, 2, 3].map((i) => (
+                          <MaterialCommunityIcons
+                            key={i}
+                            name={i <= (diff === 'easy' ? 1 : diff === 'normal' ? 2 : 3) as number ? 'star' : 'star-outline'}
+                            size={16}
+                            color="rgba(255,255,255,0.5)"
+                          />
+                        ))}
+                      </View>
+                      {diff === 'hard' && (
+                        <View style={styles.diffTimerBadge}>
+                          <MaterialCommunityIcons name="timer-outline" size={12} color="#FFFFFF" />
+                          <Text style={styles.diffTimerText}>15s</Text>
+                        </View>
+                      )}
                     </View>
-                  )}
-                </View>
 
-                {/* Arrow */}
-                <MaterialCommunityIcons name="chevron-right" size={24} color={Colors.light.textSecondary} />
+                    <Text style={styles.diffLabel}>{config.label}</Text>
+                    <Text style={styles.diffCount}>
+                      {questionsCount} question{questionsCount > 1 ? 's' : ''}
+                    </Text>
+
+                    {/* Score row */}
+                    {hasPlayed && (
+                      <View style={styles.diffScoreRow}>
+                        <View style={styles.diffScoreBarBg}>
+                          <View style={[styles.diffScoreBarFill, { width: `${bestScore}%` }]} />
+                        </View>
+                        <View style={styles.diffScoreBadge}>
+                          {[1, 2, 3].map((i) => (
+                            <MaterialCommunityIcons
+                              key={i}
+                              name={i <= stars ? 'star' : 'star-outline'}
+                              size={14}
+                              color={i <= stars ? '#FBBF24' : 'rgba(255,255,255,0.4)'}
+                            />
+                          ))}
+                          <Text style={styles.diffScoreText}>{bestScore}%</Text>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Arrow */}
+                  <MaterialCommunityIcons name="chevron-right" size={24} color="rgba(255,255,255,0.7)" />
+                </LinearGradient>
               </Pressable>
             );
           })}
@@ -161,103 +184,140 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.light.textSecondary,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  heroBanner: {
+    width: '100%',
+    height: 200,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: 'hidden',
+  },
+  heroBannerImage: {
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+  },
+  heroBannerOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingBottom: Spacing.lg,
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
   },
   backButton: {
-    width: 40,
-    height: 40,
+    position: 'absolute',
+    top: Spacing.sm,
+    left: Spacing.md,
+    width: 38,
+    height: 38,
     borderRadius: BorderRadius.full,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    zIndex: 1,
   },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
+  heroTextContainer: {
+    alignItems: 'flex-start',
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.primary,
+  heroTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
-  headerSubtitle: {
-    fontSize: 13,
-    color: Colors.light.textSecondary,
-    marginTop: 2,
-  },
-  categoryIconContainer: {
-    alignItems: 'center',
-    marginVertical: Spacing.lg,
-  },
-  categoryIconCircle: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    alignItems: 'center',
-    justifyContent: 'center',
+  heroSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginTop: 4,
+    fontWeight: '600',
   },
   content: {
     paddingHorizontal: Spacing.md,
-    gap: Spacing.sm,
+    paddingTop: Spacing.lg,
+    gap: Spacing.md,
   },
   difficultyCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.md,
-    elevation: 4,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 20,
+    padding: Spacing.lg,
+    paddingRight: Spacing.md,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    overflow: 'hidden',
+    minHeight: 100,
   },
   difficultyCardPressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.98 }],
+    opacity: 0.85,
+    transform: [{ scale: 0.97 }],
   },
-  diffIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.md,
+  diffWatermark: {
+    position: 'absolute',
+    right: -10,
+    top: -10,
+    opacity: 1,
   },
-  diffInfo: {
+  diffContent: {
     flex: 1,
   },
-  diffLabel: {
-    fontSize: 17,
+  diffTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    gap: Spacing.sm,
+  },
+  diffStarsDisplay: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+  diffTimerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.full,
+    gap: 4,
+  },
+  diffTimerText: {
+    fontSize: 11,
     fontWeight: '700',
-    color: Colors.light.text,
+    color: '#FFFFFF',
+  },
+  diffLabel: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
   diffCount: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
-    marginTop: 2,
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: 3,
+    fontWeight: '600',
   },
-  starsRow: {
+  diffScoreRow: {
+    marginTop: 10,
+    gap: 6,
+  },
+  diffScoreBarBg: {
+    height: 6,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  diffScoreBarFill: {
+    height: '100%',
+    backgroundColor: '#FBBF24',
+    borderRadius: 3,
+  },
+  diffScoreBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
     gap: 2,
   },
-  scoreText: {
+  diffScoreText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: Colors.light.textSecondary,
-    marginLeft: 6,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.9)',
+    marginLeft: 4,
   },
 });
