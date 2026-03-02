@@ -140,14 +140,6 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
         explanation: 'Ya\'qub a perdu la vue à force de pleurer son fils Yusuf, avant qu\'Allah ne les réunisse.',
         difficulty: 'easy',
       },
-      {
-        question: 'Quel Prophète est né sans père, par miracle d\'Allah ?',
-        choices: ['Issa (Jésus)', 'Yahya', 'Moussa', 'Yusuf'],
-        correctIndex: 0,
-        explanation: 'Issa (عَلَيْهِ ٱلسَّلَامُ) est né de la Vierge Maryam par la parole d\'Allah "Sois".',
-        difficulty: 'easy',
-      },
-
       // === NORMAL ===
       {
         question: 'Quel prophète pouvait parler aux animaux et commander les Djinns ?',
@@ -330,14 +322,6 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
         explanation: 'Dhuhr est la prière de midi, effectuée après que le soleil a dépassé le zénith.',
         difficulty: 'easy',
       },
-      {
-        question: 'Comment appelle-t-on le lavage rituel avant la prière ?',
-        choices: ['Le Ghusl', 'Le Wudu (Ablutions)', 'La Zakat', 'Le Sawm'],
-        correctIndex: 1,
-        explanation: 'Le Wudu est obligatoire pour que la prière soit acceptée.',
-        difficulty: 'easy',
-      },
-
       // === NORMAL ===
       {
         question: 'Quelle est la première partie de la Shahada (Attestation de foi) ?',
@@ -837,21 +821,6 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
         explanation: 'Sourate Al-Ikhlas (Le Monothéisme Pur) définit Allah comme Unique, sans enfant et sans égal.',
         difficulty: 'hard',
       },
-      {
-        question: 'Lequel de ces actes est une forme de Chirk majeur ?',
-        choices: ['Mentir', 'Prier pour quelqu\'un d\'autre qu\'Allah', 'Manger de la main gauche', 'Arriver en retard'],
-        correctIndex: 1,
-        explanation: 'L\'adoration (prière, sacrifice, invocation) ne doit être vouée qu\'à Allah Seul.',
-        difficulty: 'hard',
-      },
-      {
-        question: 'Combien y a-t-il de catégories de Tawhid selon la division classique ?',
-        choices: ['2', '3', '5', '99'],
-        correctIndex: 1,
-        explanation: 'On distingue généralement : Tawhid ar-Rububiyyah, Tawhid al-Uluhiyyah et Tawhid al-Asma wa Sifat.',
-        difficulty: 'hard',
-      },
-
     ],
   },
   {
