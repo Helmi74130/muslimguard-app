@@ -17,6 +17,7 @@ import { router } from 'expo-router';
 import { Audio } from 'expo-av';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
+import AllahNamesIcon from '@/assets/icons/allah-names.svg';
 import { AllahNamesService, AllahName } from '@/services/allah-names.service';
 
 // Soft pastel colors for card accents (cycling)
@@ -162,7 +163,7 @@ export default function AllahNamesScreen() {
           <Text style={styles.subtitle}>Asma-ul-Husna</Text>
         </View>
         <View style={styles.backButton}>
-          <MaterialCommunityIcons name="star-crescent" size={22} color={Colors.primary} />
+          <AllahNamesIcon width={24} height={24} fill={Colors.primary} />
         </View>
       </View>
 

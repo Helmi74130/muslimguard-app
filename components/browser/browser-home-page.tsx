@@ -18,6 +18,25 @@ import { BlockingService } from '@/services/blocking.service';
 import { StorageService } from '@/services/storage.service';
 import AllahNamesIcon from '@/assets/icons/allah-names.svg';
 import QuranIcon from '@/assets/icons/quran.svg';
+import DrawingIcon from '@/assets/icons/drawing.svg';
+import GalerieIcon from '@/assets/icons/galerie.svg';
+import GaleryIcon from '@/assets/icons/galery.svg';
+import CalculatorIcon from '@/assets/icons/calculator.svg';
+import CalligraphyIcon from '@/assets/icons/calligraphy.svg';
+import CamleraIcon from '@/assets/icons/camera.svg';
+import MasjidIcon from '@/assets/icons/masjid.svg';
+import SoundIcon from '@/assets/icons/sound.svg';
+import ArabicIcon from '@/assets/icons/arabic.svg';
+import NoteIcon from '@/assets/icons/note.svg';
+import EmotionIcon from '@/assets/icons/emotion.svg';
+import QuizIcon from '@/assets/icons/quiz.svg';
+import ChronoIcon from '@/assets/icons/chrono.svg';
+import PodometreIcon from '@/assets/icons/podometre.svg';
+import MeteoIcon from '@/assets/icons/meteo.svg';
+import BreatheIcon from '@/assets/icons/breathe.svg';
+import MissionIcon from '@/assets/icons/mission.svg';
+import WuduIcon from '@/assets/icons/wudu.svg';
+import YoutubeIcon from '@/assets/icons/youtube.svg';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
 import { router } from 'expo-router';
@@ -57,10 +76,11 @@ const QUICK_LINKS = [
     colorIndex: 1,
     isInternal: true,
     customColor: '#FF0000',
+    customIcon: YoutubeIcon,
   },
   {
     label: t.links.quran,
-    url: 'quran', // Special internal route
+    url: 'quran', 
     icon: 'book-open-variant' as const,
     colorIndex: 0,
     isInternal: true,
@@ -80,6 +100,7 @@ const QUICK_LINKS = [
     icon: 'draw' as const,
     colorIndex: 2,
     isInternal: true,
+    customIcon: DrawingIcon,
   },
   {
     label: t.links.arabicTracing,
@@ -87,13 +108,15 @@ const QUICK_LINKS = [
     icon: 'abjad-arabic' as const,
     colorIndex: 3,
     isInternal: true,
+    customIcon: ArabicIcon,
   },
   {
     label: t.links.background,
-    url: 'background-picker', // Special internal action
+    url: 'background-picker', 
     icon: 'palette' as const,
     colorIndex: 4,
     isInternal: true,
+    customIcon: GalerieIcon,
   },
   {
     label: t.links.calculator,
@@ -101,6 +124,7 @@ const QUICK_LINKS = [
     icon: 'calculator-variant' as const,
     colorIndex: 5,
     isInternal: true,
+    customIcon: CalculatorIcon,
   },
   {
     label: t.links.calligraphy,
@@ -108,6 +132,7 @@ const QUICK_LINKS = [
     icon: 'fountain-pen-tip' as const,
     colorIndex: 0,
     isInternal: true,
+    customIcon: CalligraphyIcon,
   },
   {
     label: t.links.camera,
@@ -115,6 +140,7 @@ const QUICK_LINKS = [
     icon: 'camera' as const,
     colorIndex: 1,
     isInternal: true,
+    customIcon: CamleraIcon,
   },
   {
     label: t.links.gallery,
@@ -122,6 +148,7 @@ const QUICK_LINKS = [
     icon: 'image-multiple' as const,
     colorIndex: 2,
     isInternal: true,
+    customIcon: GaleryIcon,
   },
   {
     label: t.links.prayerTimes,
@@ -129,6 +156,7 @@ const QUICK_LINKS = [
     icon: 'mosque' as const,
     colorIndex: 2,
     isInternal: true,
+    customIcon: MasjidIcon,
   },
   {
     label: t.links.soundMixer,
@@ -136,6 +164,7 @@ const QUICK_LINKS = [
     icon: 'music-box-multiple' as const,
     colorIndex: 3,
     isInternal: true,
+    customIcon: SoundIcon,
   },
   {
     label: t.links.notes,
@@ -143,6 +172,7 @@ const QUICK_LINKS = [
     icon: 'notebook-edit' as const,
     colorIndex: 4,
     isInternal: true,
+    customIcon: NoteIcon,
   },
   {
     label: t.links.quiz,
@@ -150,6 +180,7 @@ const QUICK_LINKS = [
     icon: 'head-question' as const,
     colorIndex: 5,
     isInternal: true,
+    customIcon: QuizIcon,
   },
   {
     label: t.links.weather,
@@ -157,6 +188,7 @@ const QUICK_LINKS = [
     icon: 'weather-partly-cloudy' as const,
     colorIndex: 0,
     isInternal: true,
+    customIcon: MeteoIcon,
   },
 
   
@@ -166,6 +198,7 @@ const QUICK_LINKS = [
     icon: 'leaf' as const,
     colorIndex: 2,
     isInternal: true,
+    customIcon: BreatheIcon,
   },
   {
     label: t.links.pedometer,
@@ -173,6 +206,7 @@ const QUICK_LINKS = [
     icon: 'shoe-sneaker' as const,
     colorIndex: 3,
     isInternal: true,
+    customIcon: PodometreIcon,
   },
   {
     label: t.links.stopwatch,
@@ -180,6 +214,7 @@ const QUICK_LINKS = [
     icon: 'timer-outline' as const,
     colorIndex: 4,
     isInternal: true,
+    customIcon: ChronoIcon,
   },
   {
     label: t.links.emotions,
@@ -187,6 +222,7 @@ const QUICK_LINKS = [
     icon: 'emoticon-happy-outline' as const,
     colorIndex: 5,
     isInternal: true,
+    customIcon: EmotionIcon,
   },
   {
     label: t.links.ablutions,
@@ -194,6 +230,7 @@ const QUICK_LINKS = [
     icon: 'hand-wash' as const,
     colorIndex: 0,
     isInternal: true,
+    customIcon: WuduIcon,
   },
   {
     label: t.links.microMission,
@@ -201,6 +238,7 @@ const QUICK_LINKS = [
     icon: 'target' as const,
     colorIndex: 1,
     isInternal: true,
+    customIcon: MissionIcon,
   },
 ];
 

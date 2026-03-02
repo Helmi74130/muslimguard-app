@@ -30,6 +30,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import QuranIcon from '@/assets/icons/quran.svg';
 
 const t = translations.quran;
 
@@ -552,11 +553,7 @@ export default function QuranScreen() {
           />
         </Pressable>
         <View style={styles.headerTitle}>
-          <MaterialCommunityIcons
-            name="book-open-variant"
-            size={24}
-            color={Colors.primary}
-          />
+          <QuranIcon width={24} height={24} fill={Colors.primary} />
           <Text style={styles.headerText}>{t.title}</Text>
         </View>
         <View style={styles.headerRight} />

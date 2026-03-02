@@ -19,6 +19,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 import { StorageService } from '@/services/storage.service';
 import { NoteEntry, MAX_NOTES } from '@/types/storage.types';
+import NoteIcon from '@/assets/icons/note.svg';
 
 // Note colors (kid-friendly pastels)
 export const NOTE_COLORS = [
@@ -106,7 +107,7 @@ export default function NotesScreen() {
         /* Empty State */
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconContainer}>
-            <MaterialCommunityIcons name="notebook-edit-outline" size={72} color={Colors.primary} />
+            <NoteIcon width={72} height={72} fill={Colors.primary} />
           </View>
           <Text style={styles.emptyTitle}>Pas encore de notes</Text>
           <Text style={styles.emptySubtitle}>
