@@ -3,6 +3,27 @@
  * Custom start page with search bar and quick links for children
  */
 
+import AllahNamesIcon from '@/assets/icons/allah-names.svg';
+import ArabicIcon from '@/assets/icons/arabic.svg';
+import BreatheIcon from '@/assets/icons/breathe.svg';
+import CalculatorIcon from '@/assets/icons/calculator.svg';
+import CalligraphyIcon from '@/assets/icons/calligraphy.svg';
+import CamleraIcon from '@/assets/icons/camera.svg';
+import ChronoIcon from '@/assets/icons/chrono.svg';
+import DrawingIcon from '@/assets/icons/drawing.svg';
+import EmotionIcon from '@/assets/icons/emotion.svg';
+import GalerieIcon from '@/assets/icons/galerie.svg';
+import GaleryIcon from '@/assets/icons/galery.svg';
+import MasjidIcon from '@/assets/icons/masjid.svg';
+import MeteoIcon from '@/assets/icons/meteo.svg';
+import MissionIcon from '@/assets/icons/mission.svg';
+import NoteIcon from '@/assets/icons/note.svg';
+import PodometreIcon from '@/assets/icons/podometre.svg';
+import QuizIcon from '@/assets/icons/quiz.svg';
+import QuranIcon from '@/assets/icons/quran.svg';
+import SoundIcon from '@/assets/icons/sound.svg';
+import WuduIcon from '@/assets/icons/wudu.svg';
+import YoutubeIcon from '@/assets/icons/youtube.svg';
 import {
   BACKGROUNDS,
   BackgroundOption,
@@ -16,27 +37,6 @@ import { BorderRadius, Colors, KidColors, Spacing } from '@/constants/theme';
 import { translations } from '@/constants/translations';
 import { BlockingService } from '@/services/blocking.service';
 import { StorageService } from '@/services/storage.service';
-import AllahNamesIcon from '@/assets/icons/allah-names.svg';
-import QuranIcon from '@/assets/icons/quran.svg';
-import DrawingIcon from '@/assets/icons/drawing.svg';
-import GalerieIcon from '@/assets/icons/galerie.svg';
-import GaleryIcon from '@/assets/icons/galery.svg';
-import CalculatorIcon from '@/assets/icons/calculator.svg';
-import CalligraphyIcon from '@/assets/icons/calligraphy.svg';
-import CamleraIcon from '@/assets/icons/camera.svg';
-import MasjidIcon from '@/assets/icons/masjid.svg';
-import SoundIcon from '@/assets/icons/sound.svg';
-import ArabicIcon from '@/assets/icons/arabic.svg';
-import NoteIcon from '@/assets/icons/note.svg';
-import EmotionIcon from '@/assets/icons/emotion.svg';
-import QuizIcon from '@/assets/icons/quiz.svg';
-import ChronoIcon from '@/assets/icons/chrono.svg';
-import PodometreIcon from '@/assets/icons/podometre.svg';
-import MeteoIcon from '@/assets/icons/meteo.svg';
-import BreatheIcon from '@/assets/icons/breathe.svg';
-import MissionIcon from '@/assets/icons/mission.svg';
-import WuduIcon from '@/assets/icons/wudu.svg';
-import YoutubeIcon from '@/assets/icons/youtube.svg';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
 import { router } from 'expo-router';
@@ -79,8 +79,32 @@ const QUICK_LINKS = [
     customIcon: YoutubeIcon,
   },
   {
+    label: t.links.quiz,
+    url: 'quiz',
+    icon: 'head-question' as const,
+    colorIndex: 5,
+    isInternal: true,
+    customIcon: QuizIcon,
+  },
+  {
+    label: t.links.camera,
+    url: 'camera',
+    icon: 'camera' as const,
+    colorIndex: 1,
+    isInternal: true,
+    customIcon: CamleraIcon,
+  },
+  {
+    label: t.links.microMission,
+    url: 'micro-mission',
+    icon: 'target' as const,
+    colorIndex: 1,
+    isInternal: true,
+    customIcon: MissionIcon,
+  },
+  {
     label: t.links.quran,
-    url: 'quran', 
+    url: 'quran',
     icon: 'book-open-variant' as const,
     colorIndex: 0,
     isInternal: true,
@@ -95,6 +119,14 @@ const QUICK_LINKS = [
     customIcon: AllahNamesIcon,
   },
   {
+    label: t.links.emotions,
+    url: 'emotions',
+    icon: 'emoticon-happy-outline' as const,
+    colorIndex: 5,
+    isInternal: true,
+    customIcon: EmotionIcon,
+  },
+  {
     label: t.links.drawing,
     url: 'drawing',
     icon: 'draw' as const,
@@ -103,20 +135,28 @@ const QUICK_LINKS = [
     customIcon: DrawingIcon,
   },
   {
+    label: t.links.soundMixer,
+    url: 'sound-mixer',
+    icon: 'music-box-multiple' as const,
+    colorIndex: 3,
+    isInternal: true,
+    customIcon: SoundIcon,
+  },
+  {
+    label: t.links.breathing,
+    url: 'breathing',
+    icon: 'leaf' as const,
+    colorIndex: 2,
+    isInternal: true,
+    customIcon: BreatheIcon,
+  },
+  {
     label: t.links.arabicTracing,
     url: 'arabic-tracing',
     icon: 'abjad-arabic' as const,
     colorIndex: 3,
     isInternal: true,
     customIcon: ArabicIcon,
-  },
-  {
-    label: t.links.background,
-    url: 'background-picker', 
-    icon: 'palette' as const,
-    colorIndex: 4,
-    isInternal: true,
-    customIcon: GalerieIcon,
   },
   {
     label: t.links.calculator,
@@ -135,14 +175,6 @@ const QUICK_LINKS = [
     customIcon: CalligraphyIcon,
   },
   {
-    label: t.links.camera,
-    url: 'camera',
-    icon: 'camera' as const,
-    colorIndex: 1,
-    isInternal: true,
-    customIcon: CamleraIcon,
-  },
-  {
     label: t.links.gallery,
     url: 'gallery',
     icon: 'image-multiple' as const,
@@ -151,54 +183,12 @@ const QUICK_LINKS = [
     customIcon: GaleryIcon,
   },
   {
-    label: t.links.prayerTimes,
-    url: 'prayer-times',
-    icon: 'mosque' as const,
-    colorIndex: 2,
-    isInternal: true,
-    customIcon: MasjidIcon,
-  },
-  {
-    label: t.links.soundMixer,
-    url: 'sound-mixer',
-    icon: 'music-box-multiple' as const,
-    colorIndex: 3,
-    isInternal: true,
-    customIcon: SoundIcon,
-  },
-  {
     label: t.links.notes,
     url: 'notes',
     icon: 'notebook-edit' as const,
     colorIndex: 4,
     isInternal: true,
     customIcon: NoteIcon,
-  },
-  {
-    label: t.links.quiz,
-    url: 'quiz',
-    icon: 'head-question' as const,
-    colorIndex: 5,
-    isInternal: true,
-    customIcon: QuizIcon,
-  },
-  {
-    label: t.links.weather,
-    url: 'weather',
-    icon: 'weather-partly-cloudy' as const,
-    colorIndex: 0,
-    isInternal: true,
-    customIcon: MeteoIcon,
-  },
-
-  
-  {
-    label: t.links.breathing,
-    url: 'breathing',
-    icon: 'leaf' as const,
-    colorIndex: 2,
-    isInternal: true,
-    customIcon: BreatheIcon,
   },
   {
     label: t.links.pedometer,
@@ -217,14 +207,6 @@ const QUICK_LINKS = [
     customIcon: ChronoIcon,
   },
   {
-    label: t.links.emotions,
-    url: 'emotions',
-    icon: 'emoticon-happy-outline' as const,
-    colorIndex: 5,
-    isInternal: true,
-    customIcon: EmotionIcon,
-  },
-  {
     label: t.links.ablutions,
     url: 'ablutions',
     icon: 'hand-wash' as const,
@@ -232,13 +214,29 @@ const QUICK_LINKS = [
     isInternal: true,
     customIcon: WuduIcon,
   },
-  {
-    label: t.links.microMission,
-    url: 'micro-mission',
-    icon: 'target' as const,
-    colorIndex: 1,
+    {
+    label: t.links.prayerTimes,
+    url: 'prayer-times',
+    icon: 'mosque' as const,
+    colorIndex: 2,
     isInternal: true,
-    customIcon: MissionIcon,
+    customIcon: MasjidIcon,
+  },
+  {
+    label: t.links.background,
+    url: 'background-picker',
+    icon: 'palette' as const,
+    colorIndex: 4,
+    isInternal: true,
+    customIcon: GalerieIcon,
+  },
+  {
+    label: t.links.weather,
+    url: 'weather',
+    icon: 'weather-partly-cloudy' as const,
+    colorIndex: 0,
+    isInternal: true,
+    customIcon: MeteoIcon,
   },
 ];
 
@@ -372,52 +370,52 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
       {/* Search Bar (hidden when browser disabled or strict mode) */}
       {browserEnabled && !effectiveStrictMode && (
         <CopilotStep text={tour.childSearch} order={1} name="child-search" active={browserEnabled && !effectiveStrictMode}>
-        <CopilotView collapsable={false} style={styles.searchContainer}>
-          <View style={styles.searchBar}>
-            <MaterialCommunityIcons
-              name="magnify"
-              size={24}
-              color={KidColors.safeGreen}
-              style={styles.searchIcon}
-            />
-            <TextInput
-              style={styles.searchInput}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onSubmitEditing={handleSearch}
-              placeholder={t.searchPlaceholder}
-              placeholderTextColor={KidColors.searchPlaceholder}
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="off"
-              textContentType="none"
-              spellCheck={false}
-              importantForAutofill="no"
-              returnKeyType="search"
-            />
-            {searchQuery.length > 0 && (
-              <Pressable onPress={handleSearch} style={styles.searchButton}>
-                <MaterialCommunityIcons
-                  name="arrow-right-circle"
-                  size={32}
-                  color={Colors.primary}
-                />
-              </Pressable>
-            )}
-          </View>
-
-          {/* Safe search badge */}
-          <View style={styles.badgesRow}>
-            <View style={styles.safeBadge}>
+          <CopilotView collapsable={false} style={styles.searchContainer}>
+            <View style={styles.searchBar}>
               <MaterialCommunityIcons
-                name="shield-check"
-                size={14}
+                name="magnify"
+                size={24}
                 color={KidColors.safeGreen}
+                style={styles.searchIcon}
               />
-              <Text style={styles.safeBadgeText}>{t.safeSearch}</Text>
+              <TextInput
+                style={styles.searchInput}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onSubmitEditing={handleSearch}
+                placeholder={t.searchPlaceholder}
+                placeholderTextColor={KidColors.searchPlaceholder}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="off"
+                textContentType="none"
+                spellCheck={false}
+                importantForAutofill="no"
+                returnKeyType="search"
+              />
+              {searchQuery.length > 0 && (
+                <Pressable onPress={handleSearch} style={styles.searchButton}>
+                  <MaterialCommunityIcons
+                    name="arrow-right-circle"
+                    size={32}
+                    color={Colors.primary}
+                  />
+                </Pressable>
+              )}
             </View>
-          </View>
-        </CopilotView>
+
+            {/* Safe search badge */}
+            <View style={styles.badgesRow}>
+              <View style={styles.safeBadge}>
+                <MaterialCommunityIcons
+                  name="shield-check"
+                  size={14}
+                  color={KidColors.safeGreen}
+                />
+                <Text style={styles.safeBadgeText}>{t.safeSearch}</Text>
+              </View>
+            </View>
+          </CopilotView>
         </CopilotStep>
       )}
 
@@ -493,55 +491,55 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
 
       {/* Applications */}
       <CopilotStep text={tour.childApps} order={2} name="child-apps">
-      <CopilotView collapsable={false} style={styles.quickLinksSection}>
-        <Text style={[styles.quickLinksTitle, dark && styles.textLight]}>{t.quickLinks}</Text>
-        <View style={styles.quickLinksGrid}>
-          {QUICK_LINKS.map((link) => (
-            <Pressable
-              key={link.url}
-              style={({ pressed }) => [
-                styles.appItem,
-                pressed && styles.tilePressed,
-              ]}
-              onPress={() => {
-                if (link.url === 'background-picker') {
-                  setShowBgPicker(true);
-                } else if (link.isInternal) {
-                  router.push(`/child/${link.url}` as any);
-                } else {
-                  onQuickLink(link.url);
-                }
-              }}
-            >
-              <View style={[
-                styles.appIcon,
-                {
-                  backgroundColor: link.customColor ? '#ffefefff' : KidColors.tiles[link.colorIndex],
-                  borderWidth: link.customColor ? 1 : 0,
-                  borderColor: 'rgba(0,0,0,0.05)'
-                },
-              ]}>
-                {link.customIcon ? (
-                  <link.customIcon
-                    width={32}
-                    height={32}
-                    fill={link.customColor || KidColors.tileIcons[link.colorIndex]}
-                  />
-                ) : (
-                  <MaterialCommunityIcons
-                    name={link.icon}
-                    size={32}
-                    color={link.customColor || KidColors.tileIcons[link.colorIndex]}
-                  />
-                )}
-              </View>
-              <Text style={[styles.appLabel, dark && styles.textLight]} numberOfLines={1}>
-                {link.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      </CopilotView>
+        <CopilotView collapsable={false} style={styles.quickLinksSection}>
+          <Text style={[styles.quickLinksTitle, dark && styles.textLight]}>{t.quickLinks}</Text>
+          <View style={styles.quickLinksGrid}>
+            {QUICK_LINKS.map((link) => (
+              <Pressable
+                key={link.url}
+                style={({ pressed }) => [
+                  styles.appItem,
+                  pressed && styles.tilePressed,
+                ]}
+                onPress={() => {
+                  if (link.url === 'background-picker') {
+                    setShowBgPicker(true);
+                  } else if (link.isInternal) {
+                    router.push(`/child/${link.url}` as any);
+                  } else {
+                    onQuickLink(link.url);
+                  }
+                }}
+              >
+                <View style={[
+                  styles.appIcon,
+                  {
+                    backgroundColor: link.customColor ? '#ffefefff' : KidColors.tiles[link.colorIndex],
+                    borderWidth: link.customColor ? 1 : 0,
+                    borderColor: 'rgba(0,0,0,0.05)'
+                  },
+                ]}>
+                  {link.customIcon ? (
+                    <link.customIcon
+                      width={32}
+                      height={32}
+                      fill={link.customColor || KidColors.tileIcons[link.colorIndex]}
+                    />
+                  ) : (
+                    <MaterialCommunityIcons
+                      name={link.icon}
+                      size={32}
+                      color={link.customColor || KidColors.tileIcons[link.colorIndex]}
+                    />
+                  )}
+                </View>
+                <Text style={[styles.appLabel, dark && styles.textLight]} numberOfLines={1}>
+                  {link.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </CopilotView>
       </CopilotStep>
 
       {/* Background Picker Modal */}

@@ -260,18 +260,27 @@ export default function SettingsScreen() {
           <SettingItem
             icon="information"
             title={t.about.title}
-            subtitle={`${t.about.version} 1.0.0`}
-            onPress={() => { }}
-            showArrow={false}
+            subtitle="Qui sommes-nous, notre mission"
+            onPress={() => router.push('/parent/settings/about')}
+          />
+        </Card>
+
+        {/* Support Section */}
+        <Text style={styles.sectionTitle}>{translations.support.sectionTitle}</Text>
+        <Card variant="outlined" style={styles.section}>
+          <SettingItem
+            icon="bug-outline"
+            title={translations.support.reportBug.title}
+            subtitle={translations.support.reportBug.subtitle}
+            onPress={() => router.push('/parent/settings/report-bug')}
+            color={Colors.error}
           />
           <View style={styles.divider} />
           <SettingItem
-            icon="shield-check"
-            title="Confidentialité"
-            subtitle={t.about.privacyDescription}
-            onPress={() => { }}
-            showArrow={false}
-            color={Colors.success}
+            icon="message-text-outline"
+            title={translations.support.contact.title}
+            subtitle={translations.support.contact.subtitle}
+            onPress={() => router.push('/parent/settings/contact')}
           />
         </Card>
 

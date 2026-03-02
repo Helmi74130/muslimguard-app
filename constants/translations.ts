@@ -416,6 +416,12 @@ export const translations = {
       privacy: 'Politique de confidentialité',
       privacyDescription: 'Toutes vos données restent sur votre appareil. Aucune donnée n\'est envoyée à des serveurs externes.',
       support: 'Support',
+      whoWeAre: 'Qui sommes-nous ?',
+      whoWeAreText: 'Une équipe de musulmans francophones, attachés à la compréhension des pieux prédécesseurs (السلف الصالح).',
+      ourMission: 'Notre mission',
+      ourMissionText: 'Protéger vos enfants du contenu numérique inapproprié et leur offrir un environnement éducatif 100% sûr, conforme aux valeurs de l\'Islam.',
+      ourCommitment: 'Notre engagement',
+      ourCommitmentText: 'Aucune donnée collectée. Aucun contenu douteux. Chaque fonctionnalité est pensée pour la sérénité des parents musulmans.',
     },
     reset: {
       title: 'Réinitialiser l\'application',
@@ -597,6 +603,36 @@ export const translations = {
     permissionDesc: 'Le podomètre a besoin d\'accéder au capteur de pas de ton téléphone pour compter tes pas et débloquer des badges.',
     permissionButton: 'Autoriser',
     permissionDenied: 'Permission refusée. Active "Activité physique" dans les paramètres pour utiliser le podomètre.',
+  },
+
+  // Support & Contact
+  support: {
+    sectionTitle: 'Support',
+    reportBug: {
+      title: 'Signaler un bug',
+      subtitle: 'Un problème ? Faites-le nous savoir',
+      info: 'Décrivez le problème rencontré. Les informations techniques de votre appareil seront ajoutées automatiquement à votre message.',
+      placeholder: 'Décrivez le bug rencontré...\n\nExemple : "Quand j\'ouvre la page des vidéos, l\'application se ferme toute seule."',
+      send: 'Envoyer le rapport',
+      emptyError: 'Veuillez décrire le problème avant d\'envoyer.',
+      emailSubject: '[Bug] MuslimGuard v1.0.0',
+      deviceInfo: 'Informations techniques',
+    },
+    contact: {
+      title: 'Nous contacter',
+      subtitle: 'Suggestion, signalement ou question',
+      info: 'Choisissez une catégorie et décrivez votre demande. Nous vous répondrons dans les plus brefs délais.',
+      placeholder: 'Écrivez votre message ici...',
+      send: 'Envoyer le message',
+      emptyError: 'Veuillez écrire un message avant d\'envoyer.',
+      categoryLabel: 'Catégorie',
+      categories: {
+        suggestion: 'Suggestion',
+        inappropriate: 'Contenu inapproprié',
+        error: 'Erreur',
+        other: 'Autre',
+      },
+    },
   },
 
   // Confirmations

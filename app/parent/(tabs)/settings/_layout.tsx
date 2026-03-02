@@ -21,6 +21,9 @@ export default function SettingsLayout() {
       <Stack.Screen name="prayer" />
       <Stack.Screen name="pin" />
       <Stack.Screen name="kiosk" />
+      <Stack.Screen name="about" />
+      <Stack.Screen name="report-bug" />
+      <Stack.Screen name="contact" />
     </Stack>
   );
 }
