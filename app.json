@@ -8,6 +8,8 @@
     "scheme": "muslimguard",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "privacy": "public",
+    "privacyPolicyUrl": "https://www.muslim-guard.com/legal/politique-de-confidentialite",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.muslimguard.app"
@@ -46,8 +48,7 @@
             "backgroundColor": "#001a33"
           }
         }
-      ],
-      "./plugins/with-launcher-mode"
+      ]
     ],
     "experiments": {
       "typedRoutes": true
