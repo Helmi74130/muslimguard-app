@@ -1297,68 +1297,117 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
         difficulty: 'easy',
       },
       {
-    question: 'Comment doit-on manger selon les bonnes manières enseignées en Islam ?',
-    choices: ['Avec la main gauche', 'En mentionnant le nom d’Allah et avec la main droite', 'Debout obligatoirement', 'En silence total sans invocation'],
-    correctIndex: 1,
-    explanation: 'Il est enseigné de dire "Bismillah" avant de manger et d’utiliser la main droite.',
-    difficulty: 'easy',
-  },
-  {
-    question: 'Être humble envers les autres est :',
-    choices: ['Un défaut', 'Une qualité noble', 'Interdit', 'Réservé aux pauvres'],
-    correctIndex: 1,
-    explanation: 'L’humilité est une qualité aimée et fait partie des nobles caractères.',
-    difficulty: 'easy',
-  },
-  {
-    question: 'Couper la parole à quelqu’un sans raison est :',
-    choices: ['Une bonne manière', 'Interdit ou blâmable', 'Recommandé', 'Un signe d’intelligence'],
-    correctIndex: 1,
-    explanation: 'Interrompre les autres sans raison est contraire au respect et aux bonnes manières.',
-    difficulty: 'easy',
-  },
-  {
-    question: 'Remercier quelqu’un qui nous a rendu service est :',
-    choices: ['Inutile', 'Une bonne manière', 'Interdit', 'Un signe de faiblesse'],
-    correctIndex: 1,
-    explanation: 'Montrer de la reconnaissance fait partie des bonnes manières et renforce les liens entre les personnes.',
-    difficulty: 'easy',
-  },
-  {
-    question: 'La pudeur (haya) est :',
-    choices: ['Un mauvais trait de caractère', 'Une branche de la foi', 'Un obstacle à la réussite', 'Réservée aux femmes uniquement'],
-    correctIndex: 1,
-    explanation: 'La pudeur est une qualité noble et fait partie de la foi.',
-    difficulty: 'easy',
-  },
-  {
-    question: 'Être généreux envers ses invités est :',
-    choices: ['Une tradition sans importance', 'Un mauvais calcul financier', 'Une qualité recommandée', 'Interdit'],
-    correctIndex: 2,
-    explanation: 'Honorer et être généreux envers ses invités fait partie des bonnes manières.',
-    difficulty: 'easy',
-  },
-  {
-    question: 'Espionner ou chercher les défauts des autres est :',
-    choices: ['Permis', 'Recommandé', 'Interdit', 'Une preuve de curiosité saine'],
-    correctIndex: 2,
-    explanation: 'Chercher les défauts des autres et les espionner est interdit et contraire au bon comportement.',
-    difficulty: 'easy',
-  },
-  {
-    question: 'Être juste même avec quelqu’un qu’on n’aime pas est :',
-    choices: ['Optionnel', 'Une obligation morale', 'Impossible', 'Réservé aux juges'],
-    correctIndex: 1,
-    explanation: 'La justice est une obligation, même envers ceux avec qui on a un désaccord.',
-    difficulty: 'easy',
-  },
-  {
-    question: 'Saluer en premier est :',
-    choices: ['Déconseillé', 'Un signe d’orgueil', 'Recommandé', 'Interdit'],
-    correctIndex: 2,
-    explanation: 'Commencer par le salut est recommandé et reflète un bon comportement.',
-    difficulty: 'easy',
-  }
+        question: 'Comment doit-on manger selon les bonnes manières enseignées en Islam ?',
+        choices: ['Avec la main gauche', 'En mentionnant le nom d’Allah et avec la main droite', 'Debout obligatoirement', 'En silence total sans invocation'],
+        correctIndex: 1,
+        explanation: 'Il est enseigné de dire "Bismillah" avant de manger et d’utiliser la main droite.',
+        difficulty: 'easy',
+      },
+      {
+        question: 'Être humble envers les autres est :',
+        choices: ['Un défaut', 'Une qualité noble', 'Interdit', 'Réservé aux pauvres'],
+        correctIndex: 1,
+        explanation: 'L’humilité est une qualité aimée et fait partie des nobles caractères.',
+        difficulty: 'easy',
+      },
+      {
+        question: 'Couper la parole à quelqu’un sans raison est :',
+        choices: ['Une bonne manière', 'Contraire au respect', 'Recommandé', 'Un signe d’intelligence'],
+        correctIndex: 1,
+        explanation: 'Interrompre les autres sans raison est contraire au respect et aux bonnes manières.',
+        difficulty: 'easy',
+      },
+      {
+        question: 'Remercier quelqu’un qui nous a rendu service est :',
+        choices: ['Inutile', 'Une bonne manière', 'Interdit', 'Un signe de faiblesse'],
+        correctIndex: 1,
+        explanation: 'Montrer de la reconnaissance fait partie des bonnes manières et renforce les liens entre les personnes.',
+        difficulty: 'easy',
+      },
+      {
+        question: 'La pudeur est :',
+        choices: ['Un mauvais trait de caractère', 'Une branche de la foi', 'Un obstacle à la réussite', 'Réservée aux femmes uniquement'],
+        correctIndex: 1,
+        explanation: 'La pudeur est une qualité noble et fait partie de la foi.',
+        difficulty: 'easy',
+      },
+      {
+        question: 'Être généreux envers ses invités est :',
+        choices: ['Une tradition sans importance', 'Un mauvais calcul financier', 'Une qualité recommandée', 'Interdit'],
+        correctIndex: 2,
+        explanation: 'Honorer et être généreux envers ses invités fait partie des bonnes manières.',
+        difficulty: 'easy',
+      },
+      {
+        question: 'Espionner ou chercher les défauts des autres est :',
+        choices: ['Permis', 'Recommandé', 'Interdit', 'Une preuve de curiosité saine'],
+        correctIndex: 2,
+        explanation: 'Chercher les défauts des autres et les espionner est interdit et contraire au bon comportement.',
+        difficulty: 'easy',
+      },
+      {
+        question: 'Être juste même avec quelqu’un qu’on n’aime pas est :',
+        choices: ['Optionnel', 'Une obligation morale', 'Impossible', 'Réservé aux juges'],
+        correctIndex: 1,
+        explanation: 'La justice est une obligation, même envers ceux avec qui on a un désaccord.',
+        difficulty: 'easy',
+      },
+      {
+        question: 'Saluer en premier est :',
+        choices: ['Déconseillé', 'Un signe d’orgueil', 'Recommandé', 'Interdit'],
+        correctIndex: 2,
+        explanation: 'Commencer par le salut est recommandé et reflète un bon comportement.',
+        difficulty: 'easy',
+      },
+      {
+        question: 'Quelle est la première action à faire en entrant aux toilettes selon la Sunnah ?',
+        choices: ['Dire Bismillah', 'Dire Salam', 'Laver ses mains', 'S’asseoir directement'],
+        correctIndex: 0,
+        explanation: 'Commencer par dire "Bismillah".',
+        difficulty: 'easy'
+      },
+      {
+        question: 'Quelle main doit-on utiliser pour se nettoyer après avoir fait ses besoins ?',
+        choices: ['La main droite', 'La main gauche', 'Les deux mains', 'Peu importe'],
+        correctIndex: 1,
+        explanation: 'La main gauche est recommandée pour le nettoyage afin de laisser la main droite propre pour les interactions sociales.',
+        difficulty: 'easy'
+      },
+      {
+        question: 'Que doit-on éviter de faire dans les toilettes ?',
+        choices: ['Parler ou se saluer', 'S’asseoir', 'Fermer la porte', 'Utiliser du papier ou de l’eau'],
+        correctIndex: 0,
+        explanation: 'Il est déconseillé de parler ou de saluer quelqu’un dans les toilettes.',
+        difficulty: 'easy'
+      },
+      {
+        question: 'Que doit-on dire en sortant des toilettes ?',
+        choices: ['Ghufranak', 'Bismillah', 'SubhanAllah', 'La ilaha illa Allah'],
+        correctIndex: 0,
+        explanation: 'Dire "Ghufranak".',
+        difficulty: 'easy'
+      },
+      {
+        question: 'Pourquoi est-il recommandé de se laver les mains après être allé aux toilettes ?',
+        choices: ['Pour la politesse et l’hygiène', 'Pour impressionner les autres', 'C’est facultatif', 'Pour montrer sa richesse'],
+        correctIndex: 0,
+        explanation: 'Le lavage des mains après les toilettes est une mesure d’hygiène et fait partie des bonnes manières.',
+        difficulty: 'easy'
+      },
+      {
+        question: 'Faut-il tourner le dos vers la Qibla ou s’y diriger dans les toilettes ?',
+        choices: ['Il est recommandé de se tourner vers la Qibla', 'Il est recommandé de ne pas se tourner vers la Qibla', 'Peu importe', 'Il est obligatoire de regarder la Qibla'],
+        correctIndex: 1,
+        explanation: 'Il est interdit de se tourner vers la Qibla ou de lui tourner le dos dans les toilettes.',
+        difficulty: 'easy'
+      },
+      {
+        question: 'Peut-on réciter le Coran dans les toilettes ?',
+        choices: ['Oui', 'Non', 'Seulement certains versets', 'Oui mais à voix basse'],
+        correctIndex: 1,
+        explanation: 'Il est interdit de réciter le Coran dans les toilettes car c’est un lieu d’impureté.',
+        difficulty: 'easy'
+      },
 
       // === NORMAL ===
       {
@@ -1386,45 +1435,153 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
         question: 'Que dit-on quand quelqu\'un nous fait du bien ?',
         choices: ['SubhanAllah', 'InshAllah', 'JazakAllahu Khayran', 'Astaghfirullah'],
         correctIndex: 2,
-        explanation: '"JazakAllahu Khayran" signifie "Qu\'Allah te récompense par le bien". C\'est la meilleure façon de remercier quelqu\'un.',
+        explanation: '"JazakAllahu Khayran" signifie "Qu\'Allah te récompense par le bien".',
+        difficulty: 'normal',
+      },
+      {
+        question: 'Pourquoi la patience est-elle considérée comme une bonne manière en Islam ?',
+        choices: ['Parce qu’elle montre la force physique', 'Parce qu’elle permet de contrôler ses émotions et rester juste', 'Parce qu’elle fait gagner de l’argent', 'Parce qu’elle est obligatoire seulement pour les savants'],
+        correctIndex: 1,
+        explanation: 'La patience permet de maîtriser ses émotions, de réagir correctement aux offenses et de maintenir de bonnes relations.',
+        difficulty: 'normal',
+      },
+      {
+        question: 'Quel est le rôle du respect envers les aînés dans les bonnes manières ?',
+        choices: ['Il est optionnel', 'Fait partie des qualités morales', 'Il est seulement culturel', 'Il est réservé aux parents directs'],
+        correctIndex: 1,
+        explanation: 'Respecter les aînés fait partie des qualités morales et des bonnes manières enseignées par le Prophète ﷺ.',
+        difficulty: 'normal',
+      },
+      {
+        question: 'Parler de manière douce et mesurée contribue à :',
+        choices: ['Semer la confusion', 'Renforcer les relations et apaiser les conflits', 'Montrer sa supériorité', 'Être ignoré'],
+        correctIndex: 1,
+        explanation: 'La douceur dans le discours favorise la communication et reflète un bon comportement.',
+        difficulty: 'normal',
+      },
+      {
+        question: 'Aider un voisin ou un frère dans le besoin est :',
+        choices: ['Une obligation pour tout musulman', 'Une recommandation louable', 'Interdit', 'Une action neutre'],
+        correctIndex: 1,
+        explanation: 'Aider les autres est fortement recommandé et fait partie des bonnes manières dans la vie quotidienne.',
+        difficulty: 'normal',
+      },
+      {
+        question: 'Éviter la médisance relève de :',
+        choices: ['Une habitude culturelle', 'Une obligation', 'Un conseil optionnel', 'Une preuve de faiblesse'],
+        correctIndex: 1,
+        explanation: 'Le Prophète ﷺ a fortement interdit la médisance.',
+        difficulty: 'normal',
+      },
+
+      {
+        question: 'Respecter les engagements pris avec les autres est :',
+        choices: ['Un détail secondaire', 'Une qualité de croyants et des bonnes manières', 'Réservé aux contrats légaux', 'Optionnel'],
+        correctIndex: 1,
+        explanation: 'Tenir ses promesses est un signe de fiabilité et fait partie du bon comportement enseigné en Islam.',
+        difficulty: 'normal',
+      },
+      {
+        question: 'Quelle est la manière recommandée pour corriger une personne qui fait une erreur ?',
+        choices: ['La réprimander publiquement', 'La corriger avec douceur et respect', 'L’ignorer totalement', 'La critiquer devant tout le monde'],
+        correctIndex: 1,
+        explanation: 'La correction doit se faire avec sagesse et respect pour ne pas humilier et encourager la personne à s’améliorer.',
         difficulty: 'normal',
       },
       // === HARD ===
       {
-        question: 'Que dit-on quand on voit quelque chose de beau ou d\'admirable ?',
-        choices: ['Bismillah', 'InshAllah', 'MashAllah', 'Astaghfirullah'],
-        correctIndex: 2,
-        explanation: '"MashAllah" (Ce qu\'Allah a voulu) protège du mauvais œil. On le dit pour admirer ce qu\'Allah a créé ou accordé.',
-        difficulty: 'hard',
+        question: 'Quelle est la position correcte pour boire de l’eau selon la Sunnah ?',
+        choices: ['Debout, rapidement', 'Assis et doucement', 'Allongé', 'En parlant en même temps'],
+        correctIndex: 1,
+        explanation: 'Boire assis fait partie des bonnes manières enseignées par le Prophète ﷺ.',
+        difficulty: 'hard'
       },
       {
         question: 'Quelle invocation le Prophète (ﷺ) recommandait-il en sortant de la maison ?',
         choices: ['Bismillah, tawakkaltu ala Allah', 'SubhanAllah wal hamdulillah', 'Astaghfirullah al-Azim', 'La hawla wa la quwwata illa billah'],
         correctIndex: 0,
-        explanation: '"Bismillah, tawakkaltu ala Allah" (Au nom d\'Allah, je place ma confiance en Allah). Le Prophète (ﷺ) ajoutait : "il n\'y a de force et de puissance qu\'en Allah".',
+        explanation: '"Bismillah, tawakkaltu ala Allah" (Au nom d\'Allah, je place ma confiance en Allah).',
         difficulty: 'hard',
       },
       {
         question: 'Selon la Sunna, avec quel pied entre-t-on dans la mosquée ?',
         choices: ['Le pied gauche', 'Le pied droit', 'Les deux pieds en même temps', 'Cela n\'a pas d\'importance'],
         correctIndex: 1,
-        explanation: 'On entre dans la mosquée avec le pied droit et on en sort avec le pied gauche. Le droit est associé au bien dans la Sunna.',
+        explanation: 'On entre dans la mosquée avec le pied droit et on en sort avec le pied gauche.',
         difficulty: 'hard',
       },
       {
         question: 'Que doit-on dire quand on voit quelqu\'un éprouver un malheur ?',
         choices: ['Alhamdulillah alladhi afani', 'SubhanAllah', 'MashAllah', 'InshAllah ça ira mieux'],
         correctIndex: 0,
-        explanation: 'On dit discrètement "Alhamdulillah alladhi afani" (Louange à Allah qui m\'a préservé de cette épreuve et m\'a favorisé).',
+        explanation: 'On dit "Alhamdulillah alladhi afani" (Louange à Allah qui m\'a préservé de cette épreuve et m\'a favorisé).',
         difficulty: 'hard',
       },
       {
-        question: 'Combien de droits du voisin l\'Islam reconnaît-il selon le hadith ?',
-        choices: ['3 droits', '7 droits', '10 droits', 'Plus de 30 droits'],
-        correctIndex: 3,
-        explanation: 'Le Prophète (ﷺ) a dit que Jibril lui a tellement recommandé le voisin qu\'il a cru qu\'il allait en faire un héritier. L\'Islam reconnaît de nombreux droits du voisin.',
-        difficulty: 'hard',
+        question: 'Que signifie "ne pas tromper dans la mesure et le poids" ?',
+        choices: ['Donner un peu moins pour gagner plus', 'Vendre à la juste mesure et au poids exact', 'Exagérer les chiffres pour impressionner', 'Ne pas utiliser de balance'],
+        correctIndex: 1,
+        explanation: 'Le Prophète ﷺ a interdit de tromper dans les mesures et poids pour garantir la justice et l’équité dans le commerce.',
+        difficulty: 'hard'
       },
+      {
+        question: 'Pourquoi le Prophète ﷺ a-t-il interdit de cacher des défauts dans un produit vendu ?',
+        choices: ['Pour ne pas perdre de clients', 'Parce que c’est injuste et trompeur', 'Pour augmenter le prix', 'Pour encourager la concurrence'],
+        correctIndex: 1,
+        explanation: 'Cacher des défauts ou tromper le client est contraire aux bonnes manières enseignées dans le commerce en Islam.',
+        difficulty: 'hard'
+      },
+      {
+        question: 'Est-il permis de faire de la publicité mensongère sur un produit ?',
+        choices: ['Oui, si c’est pour vendre rapidement', 'Non, c’est interdit et considéré comme tromperie', 'Oui, seulement pour les objets chers', 'Peu importe, ce n’est pas grave'],
+        correctIndex: 1,
+        explanation: 'Mentir sur un produit est interdit et va à l’encontre de la Sunnah et des bonnes manières en commerce.',
+        difficulty: 'hard'
+      },
+      {
+        question: 'Pourquoi est-il recommandé d’arriver tôt à la mosquée pour la prière ?',
+        choices: ['Pour discuter avec les autres', 'Pour s’installer calmement et prier avec concentration', 'Pour montrer sa supériorité', 'Pour éviter la fatigue'],
+        correctIndex: 1,
+        explanation: 'Arriver tôt permet de se préparer mentalement, d’occuper une bonne place et de prier en toute tranquillité.',
+        difficulty: 'hard'
+      },
+      {
+        question: 'Quel comportement est interdit dans la mosquée ?',
+        choices: ['Écouter attentivement l’imam', 'Parler fort ou déranger les autres', 'Entrer en silence', 'S’asseoir respectueusement'],
+        correctIndex: 1,
+        explanation: 'La mosquée est un lieu de recueillement.',
+        difficulty: 'hard'
+      },
+      {
+        question: 'Que doit-on faire avant de s’asseoir dans la mosquée ?',
+        choices: [
+          'S’asseoir rapidement sans regarder',
+          'Effectuer le Tahyat al-Masjid (Prier 2 unités)puis s’asseoir',
+          'Courir pour choisir une place',
+          'Faire du bruit pour se signaler'
+        ],
+        correctIndex: 1,
+        explanation: 'À l’entrée de la mosquée, il est recommandé de faire le Tahyat al-Masjid (une courte prière de salutation de la mosquée) avant de s’asseoir, conformément à la Sunnah.',
+        difficulty: 'hard'
+      },
+      {
+        question: 'Quelle est la manière correcte de se déplacer dans la mosquée pendant les prières ?',
+        choices: ['Courir pour ne pas manquer la prière', 'Marcher calmement et discrètement sans gêner les autres', 'Se déplacer en parlant fort', 'Se lever sans raison'],
+        correctIndex: 1,
+        explanation: 'Se déplacer calmement et sans bruit reflète le respect des autres et la discipline dans la mosquée.',
+        difficulty: 'hard'
+      },
+      {
+        question: 'Quel comportement est encouragé lorsqu’on trouve un endroit occupé dans la mosquée ?',
+        choices: ['Insister pour s’asseoir quand même', 'Chercher un autre emplacement', 'Crier pour que l’autre parte', 'Ignorer la prière'],
+        correctIndex: 1,
+        explanation: 'Chercher une autre place fait partie des bonnes manières et de l’éthique islamique.',
+        difficulty: 'hard'
+      },
+
+
+
+
     ],
   },
 ];
