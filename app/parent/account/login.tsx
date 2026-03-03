@@ -159,10 +159,10 @@ export default function LoginScreen() {
             <Button title="Se connecter" onPress={handleLogin} loading={isLoading} fullWidth />
           </Card>
 
-          {/* No account info */}
+          {/* Optional account info */}
           <Text style={styles.noAccountText}>
-            Vous n'avez pas de compte ?{'\n'}
-            Créez-en un sur muslimguard.com
+            Le compte est optionnel.{'\n'}
+            Connectez-vous pour accéder aux fonctionnalités premium.
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
