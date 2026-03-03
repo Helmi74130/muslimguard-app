@@ -876,11 +876,54 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
         difficulty: 'easy',
       },
 
+      {
+        question: 'Quel est le premier fils né du Prophète ﷺ à La Mecque ?',
+        choices: ['Abdullah', 'Ibrahim', 'Al-Qasim', 'At-Tayyib'],
+        correctIndex: 2,
+        explanation: 'Al-Qasim est le premier enfant né du Prophète ﷺ et c est de lui qu il tire sa Kunya Abou al-Qasim.',
+        difficulty: 'easy',
+      },
+
+      {
+        question: 'Dans quelle ville est né Ibrahim, le fils du Prophète ﷺ ?',
+        choices: ['La Mecque', 'Taif', 'Médine', 'Abyssinie'],
+        correctIndex: 2,
+        explanation: 'Contrairement à ses autres enfants, Ibrahim est né à Médine.',
+        difficulty: 'easy',
+      },
+
+      {
+        question: 'Combien de fois le Prophète ﷺ a-t-il effectué le Hajj au total après l Hégire ?',
+        choices: ['1', '2', '3', '4'],
+        correctIndex: 0,
+        explanation: 'Le Prophète ﷺ n a accompli qu un seul pèlerinage (Hajj), appelé le pèlerinage d adieu.',
+        difficulty: 'easy',
+      },
+
+
+
+
+
 
 
 
 
       // === NORMAL ===
+      {
+        question: 'Qui étaient les deux scribes les plus assidus et les plus proches du Prophète ﷺ pour la rédaction de la révélation ?',
+        choices: ['Abou Bakr et Omar', 'Ali et Uthman', 'Zayd ibn Thabit et Muawiya ibn Abi Soufyan', 'Khalid ibn Said et Amr ibn al-As'],
+        correctIndex: 2,
+        explanation: 'Bien que de nombreux compagnons aient écrit pour le Prophète ﷺ, Muawiya et Zayd ibn Thabit étaient les plus constants dans cette tâche.',
+        difficulty: 'normal',
+      },
+
+      {
+        question: 'Quel surnom était donné à Abdullah, le fils du Prophète ﷺ ?',
+        choices: ['Al-Amine', 'At-Tayyib', 'Abou Bakr', 'Al-Farouq'],
+        correctIndex: 1,
+        explanation: 'Abdullah était surnommé At-Tayyib ou At-Tahir car il est né après le début de l Islam.',
+        difficulty: 'normal',
+      },
       {
         question: 'Pourquoi tous les fils du Prophète ﷺ sont-ils morts en bas âge selon une sagesse mentionnée par les savants?',
         choices: ['Par punition', 'Pour éviter que les gens n\'en fassent des prophètes après lui', 'À cause du climat', 'C\'était un hasard'],
@@ -999,6 +1042,104 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
         choices: ['4', '5', '6', '7'],
         correctIndex: 2,
         explanation: 'Le Prophète (ﷺ) a eu 6 enfants avec Khadija : Al-Qasim, Zaynab, Ruqayya, Umm Kulthum, Fatima et Abdullah.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Quel était le nom du Négus (roi d Abyssinie) à qui le Prophète ﷺ a envoyé une lettre ?',
+        choices: ['Héraclius', 'Ashama', 'Chosroès', 'Al-Muqawqis'],
+        correctIndex: 1,
+        explanation: 'Le nom du Négus était Ashama, ce qui signifie "Atiya" (don/cadeau).',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Comment le Négus a-t-il réagi en recevant la lettre du Prophète ﷺ ?',
+        choices: ['Il l a déchirée', 'Il a refusé de la lire', 'Il l a placée sur ses yeux, est descendu de son trône et s est converti', 'Il a emprisonné l émissaire'],
+        correctIndex: 2,
+        explanation: 'Par respect pour le message, il est descendu de son trône pour s asseoir au sol et a embrassé l Islam.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Quel compagnon a été envoyé comme émissaire auprès de César (Héraclius), le roi des Romains ?',
+        choices: ['Dihya ibn Khalifa al-Kalbi', 'Abdullah ibn Hudhafa', 'Hatib ibn Abi Balta a', 'Amr ibn al-As'],
+        correctIndex: 0,
+        explanation: 'Dihya al-Kalbi était l émissaire envoyé vers César pour l appeler à l Islam.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Quelle a été la réaction de Chosroès (roi de Perse) en recevant la lettre du Prophète ﷺ ?',
+        choices: ['Il s est converti', 'Il a déchiré la lettre', 'Il a envoyé des cadeaux', 'Il a pleuré'],
+        correctIndex: 1,
+        explanation: 'Chosroès a déchiré la lettre, ce à quoi le Prophète ﷺ a répondu en demandant à Allah de déchirer son royaume.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Qui a été envoyé par le Prophète ﷺ auprès d Al-Muqawqis, le roi d Alexandrie et d Égypte ?',
+        choices: ['Amr ibn al-As', 'Abdullah ibn Hudhafa', 'Hatib ibn Abi Balta a', 'Shuja ibn Wahb'],
+        correctIndex: 2,
+        explanation: 'Hatib ibn Abi Balta a a été envoyé en Égypte ; le roi a bien accueilli le message mais ne s est pas converti.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Quels compagnons ont été envoyés ensemble vers le Yémen pour appeler les gens à l Islam ?',
+        choices: ['Abou Bakr et Omar', 'Abou Moussa al-Ach ari et Mou adh ibn Jabal', 'Khalid ibn al-Walid et Sa d ibn Abi Waqqas', 'Talha et Az-Zoubayr'],
+        correctIndex: 1,
+        explanation: 'Le Prophète ﷺ a envoyé Mou adh et Abou Moussa au Yémen pour enseigner la religion.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Quel émissaire a été envoyé auprès d Al-Moundhir ibn Sawa, le roi de Bahreïn ?',
+        choices: ['Al-Ala al-Hadrami', 'Amr ibn al-As', 'Shuja ibn Wahb', 'Al-Mouhajir ibn Abi Oumayya'],
+        correctIndex: 0,
+        explanation: 'Al-Ala al-Hadrami a porté la lettre du Prophète ﷺ au roi de Bahreïn, qui a ensuite accepté l Islam.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Le Prophète ﷺ a dit : Si César périt, il n y aura plus de César après lui. Dans quel recueil de hadiths ce récit est-il rapporté ?',
+        choices: ['Muslim', 'Al-Boukhari', 'At-Tirmidhi', 'Abou Daoud'],
+        correctIndex: 1,
+        explanation: 'Ce hadith concernant la fin des empires perse et romain est rapporté par Al-Boukhari.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Qui était l émissaire envoyé auprès des rois d Oman (Jayfar et Abd, les fils d Al-Joulanda) ?',
+        choices: ['Amr ibn al-As', 'Dihya al-Kalbi', 'Mou adh ibn Jabal', 'Zayd ibn Thabit'],
+        correctIndex: 0,
+        explanation: 'Amr ibn al-As a été envoyé à Oman et y est resté jusqu à la mort du Prophète ﷺ.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Qui était l époux de Zaynab, la fille du Prophète ﷺ ?',
+        choices: ['Ali ibn Abi Talib', 'Uthman ibn Affan', 'Abou al-As ibn al-Rabi', 'Zayd ibn Haritha'],
+        correctIndex: 2,
+        explanation: 'Zaynab était mariée à Abou al-As ibn al-Rabi, qui était le fils de sa tante maternelle.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Laquelle des petites-filles du Prophète ﷺ Ali a-t-il épousée après la mort de Fatima ?',
+        choices: ['Umama bint Zaynab', 'Ruqayya bint Zaynab', 'Zaynab bint Fatima', 'Oumm Koulthoum'],
+        correctIndex: 0,
+        explanation: 'Ali ibn Abi Talib a épousé Umama, la fille de Zaynab, après le décès de Fatima.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Combien d enfants Fatima a-t-elle eus avec Ali ibn Abi Talib ?',
+        choices: ['2', '3', '5', '6'],
+        correctIndex: 2,
+        explanation: 'Ils ont eu cinq enfants : Al-Hassan, Al-Hussein, Muhsin, Oumm Koulthoum et Zaynab.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Combien d Omra (petits pèlerinages) le Prophète ﷺ a-t-il accomplies ?',
+        choices: ['1', '2', '3', '4'],
+        correctIndex: 3,
+        explanation: 'Selon le hadith de Qatada d après Anas, le Prophète ﷺ a fait la Omra quatre fois.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Combien de Ghazawat (batailles dirigées par lui-même) le Prophète ﷺ a-t-il menées ?',
+        choices: ['10', '15', '25 ou 27', '40'],
+        correctIndex: 2,
+        explanation: 'Le nombre le plus célèbre mentionné par les historiens comme Ibn Ishaq est de 25 ou 27 batailles.',
         difficulty: 'hard',
       },
     ],
