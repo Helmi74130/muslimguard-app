@@ -875,10 +875,19 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
         explanation: 'L\'ange Jibril a ouvert sa poitrine pour laver son cœur avec de l\'eau de Zamzam et retirer la part du diable.',
         difficulty: 'easy',
       },
-      
+
+
+
 
 
       // === NORMAL ===
+      {
+        question: 'Pourquoi tous les fils du Prophète ﷺ sont-ils morts en bas âge selon une sagesse mentionnée par les savants?',
+        choices: ['Par punition', 'Pour éviter que les gens n\'en fassent des prophètes après lui', 'À cause du climat', 'C\'était un hasard'],
+        correctIndex: 1,
+        explanation: 'C\'était une protection pour que personne ne revendique la prophétie pour ses descendants mâles, car il est le dernier des prophètes.',
+        difficulty: 'normal',
+      },
       {
         question: 'Combien de fois la poitrine du Prophète ﷺ a-t-elle été ouverte au total ?',
         choices: ['1 fois', '3 fois', '10 fois', 'Jamais'],
@@ -915,6 +924,34 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
         difficulty: 'normal',
       },
       // === HARD ===
+      {
+        question: 'Quel âge avait le Prophète ﷺ lorsqu\'il a épousé Khadija (selon l\'avis le plus connu) ?',
+        choices: ['20 ans', '25 ans', '30 ans', '40 ans'],
+        correctIndex: 1,
+        explanation: 'Le Prophète ﷺ avait 25 ans au moment de son mariage avec Khadija.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Qui est considéré comme le premier homme libre à s\'être converti à l\'Islam ?',
+        choices: ['Ali ibn Abi Talib', 'Zayd ibn Haritha', 'Abou Bakr As-Siddiq', 'Othman ibn Affan'],
+        correctIndex: 2,
+        explanation: 'Abou Bakr As-Siddiq est le premier homme adulte à avoir embrassé l\'Islam.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Quel fils du Prophète ﷺ est né à Médine de son union avec Mariyah ?',
+        choices: ['Al-Qasim', 'Abdullah', 'Ibrahim', 'Tayyib'],
+        correctIndex: 2,
+        explanation: 'Ibrahim est le dernier enfant du Prophète ﷺ, né à Médine de Mariyah Al-Qibtiyya.',
+        difficulty: 'hard',
+      },
+      {
+        question: 'Quel compagnon a épousé successivement deux des filles du Prophète ﷺ (Ruqayya puis Oumm Koulthoum) ?',
+        choices: ['Ali ibn Abi Talib', 'Abou Bakr', 'Othman ibn Affan', 'Omar ibn Al-Khattab'],
+        correctIndex: 2,
+        explanation: 'Othman ibn Affan a épousé Ruqayya, puis après sa mort, il a épousé sa sœur Oumm Koulthoum, ce qui lui a valu le surnom de "Dhoun-Nourayn" (l\'homme aux deux lumières).',
+        difficulty: 'hard',
+      },
       {
         question: 'Qui est la nourrice qui a allaité le Prophète ﷺ dans le désert ?',
         choices: ['Khadija', 'Halima As-Sa\'diya', 'Aisha', 'Fatima'],
