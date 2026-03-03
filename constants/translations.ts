@@ -238,6 +238,48 @@ export const translations = {
     childMode: 'Retour au mode enfant',
   },
 
+  // Screen time
+  screenTime: {
+    title: 'Temps d\'écran',
+    today: 'Aujourd\'hui',
+    thisWeek: 'Cette semaine',
+    dailyLimit: 'Limite quotidienne',
+    limitEnabled: 'Limite activée',
+    limitReached: 'Temps d\'écran écoulé',
+    limitReachedDesc: 'Tu as utilisé tout ton temps d\'écran pour aujourd\'hui. Reviens demain in sha Allah !',
+    noLimit: 'Pas de limite',
+    minutes: 'minutes',
+    hours: 'heures',
+    setLimit: 'Définir une limite',
+    perApp: 'Par application',
+    noData: 'Aucune donnée',
+    cardLabel: 'Temps d\'écran',
+    // Page labels
+    pageLabels: {
+      browser: 'Navigateur',
+      videos: 'MuslimTube',
+      quiz: 'Quiz',
+      quran: 'Coran',
+      'allah-names': 'Noms d\'Allah',
+      drawing: 'Coloriage',
+      calligraphy: 'Calligraphie',
+      camera: 'Caméra',
+      gallery: 'Galerie',
+      notes: 'Notes',
+      calculator: 'Calculatrice',
+      'sound-mixer': 'Sons',
+      breathing: 'Respiration',
+      'arabic-tracing': 'Alphabet Arabe',
+      pedometer: 'Podomètre',
+      stopwatch: 'Chrono',
+      ablutions: 'Ablutions',
+      emotions: 'Émotions',
+      'prayer-times': 'Horaires de prière',
+      weather: 'Météo',
+      'micro-mission': 'Micro-Mission',
+    } as Record<string, string>,
+  },
+
   // Browsing history
   history: {
     title: 'Historique de navigation',

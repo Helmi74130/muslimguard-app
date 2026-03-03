@@ -97,12 +97,12 @@ export default function ParentTabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="prayer"
+        name="screen-time"
         options={{
-          title: translations.prayer.title,
-          tabBarLabel: 'Prières',
+          title: translations.screenTime.title,
+          tabBarLabel: 'Temps écran',
           tabBarIcon: ({ color, focused }) => (
-            <MaterialCommunityIcons name="mosque" size={focused ? 28 : 22} color={color} />
+            <MaterialCommunityIcons name="clock-time-four-outline" size={focused ? 28 : 22} color={color} />
           ),
         }}
       />

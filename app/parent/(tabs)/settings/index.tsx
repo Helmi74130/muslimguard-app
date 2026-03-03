@@ -170,6 +170,13 @@ export default function SettingsScreen() {
           />
           <View style={styles.divider} />
           <SettingItem
+            icon="clock-time-four-outline"
+            title={translations.screenTime.title}
+            subtitle="Voir l'usage et définir une limite"
+            onPress={() => router.push('/parent/screen-time' as any)}
+          />
+          <View style={styles.divider} />
+          <SettingItem
             icon="clock-outline"
             title="Restrictions horaires"
             subtitle="Définir les heures autorisées"

@@ -42,6 +42,8 @@ export interface AppSettings {
   contentFilterMode: ContentFilterMode; // Page content keyword scanning
   childTourDone: boolean; // Mini-onboarding tour seen on child browser
   parentTourDone: boolean; // Mini-onboarding tour seen on parent dashboard
+  screenTimeLimitEnabled: boolean; // Daily screen time limit for child
+  screenTimeLimitMinutes: number; // Max daily minutes (0 = unlimited)
 }
 
 // Default settings
@@ -68,6 +70,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   contentFilterMode: 'off', // Content filter disabled by default
   childTourDone: false,
   parentTourDone: false,
+  screenTimeLimitEnabled: false,
+  screenTimeLimitMinutes: 0,
 };
 
 // Blocklist data
@@ -208,6 +212,13 @@ export interface LocalVideo {
 // Maximum custom videos allowed (free tier - premium is unlimited)
 export const MAX_CUSTOM_VIDEOS = 3;
 
+// Screen time entry for daily per-page tracking
+export interface ScreenTimeEntry {
+  date: string;                    // "YYYY-MM-DD"
+  pages: Record<string, number>;   // pageId -> seconds
+  totalSeconds: number;
+}
+
 // Storage keys enum for type safety
 export const STORAGE_KEYS = {
   // Settings
@@ -264,6 +275,9 @@ export const STORAGE_KEYS = {
   FAVORITE_VIDEOS: 'videos.favorites',
   CUSTOM_VIDEOS: 'videos.custom',
   VIDEO_WATCH_TIME: 'videos.watchTime',
+
+  // Screen time
+  SCREEN_TIME_DATA: 'screentime.data',
 
   // Dev / Testing
   DEV_PREMIUM: 'dev.premium',

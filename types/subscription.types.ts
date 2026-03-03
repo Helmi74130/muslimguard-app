@@ -40,6 +40,7 @@ export type PremiumFeature =
   | 'extended_history'      // 90 days instead of 7
   | 'schedule_restrictions' // Time-based access
   | 'browser_control'       // Enable/disable browser access
+  | 'screen_time_limit'     // Configurable daily screen time limit
   | 'multi_child';          // Future feature - multiple child profiles
 
 /** Feature limits for free tier */
@@ -50,6 +51,7 @@ export const FREE_TIER_LIMITS = {
   maxVideoDailyMinutes: 30,
   maxCustomDomains: 10,
   maxCustomKeywords: 10,
+  maxScreenTimeDailyMinutes: 120,
 } as const;
 
 /** Feature limits for premium tier */
@@ -60,6 +62,7 @@ export const PREMIUM_TIER_LIMITS = {
   maxVideoDailyMinutes: Infinity,
   maxCustomDomains: Infinity,
   maxCustomKeywords: Infinity,
+  maxScreenTimeDailyMinutes: Infinity,
 } as const;
 
 /** French labels for premium features */
@@ -70,6 +73,7 @@ export const PREMIUM_FEATURE_LABELS: Record<PremiumFeature, string> = {
   extended_history: 'Historique étendu (90 jours)',
   schedule_restrictions: 'Restrictions horaires',
   browser_control: 'Contrôle du navigateur',
+  screen_time_limit: 'Limite temps d\'écran',
   multi_child: 'Multi-enfants',
 };
 
@@ -81,6 +85,7 @@ export const PREMIUM_FEATURE_DESCRIPTIONS: Record<PremiumFeature, string> = {
   extended_history: 'Consultez l\'historique de navigation de votre enfant sur 90 jours au lieu de 7 jours.',
   schedule_restrictions: 'Définissez des plages horaires pendant lesquelles la navigation est autorisée. En dehors de ces horaires, l\'accès est bloqué.',
   browser_control: 'Désactivez complètement l\'accès au navigateur pour votre enfant. Seules les autres fonctionnalités de l\'app restent accessibles.',
+  screen_time_limit: 'Définissez une limite quotidienne de temps d\'écran. L\'accès est automatiquement coupé quand la limite est atteinte.',
   multi_child: 'Gérez plusieurs profils enfants avec des paramètres personnalisés pour chacun.',
 };
 

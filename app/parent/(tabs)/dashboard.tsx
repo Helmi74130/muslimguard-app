@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/auth.context';
 import { useSubscription } from '@/contexts/subscription.context';
 import { usePremiumFeature } from '@/hooks/use-premium-feature';
 import { BlockingService } from '@/services/blocking.service';
+import { ScreenTimeService } from '@/services/screen-time.service';
 import { StorageService } from '@/services/storage.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -45,6 +46,9 @@ interface DashboardData {
   autoPause: boolean;
   browserEnabled: boolean;
   kioskEnabled: boolean;
+  screenTimeToday: number; // seconds
+  screenTimeLimitEnabled: boolean;
+  screenTimeLimitMinutes: number;
 }
 
 // Y offsets for each copilot step order (approximate scroll targets)
@@ -99,15 +103,19 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
     autoPause: true,
     browserEnabled: true,
     kioskEnabled: false,
+    screenTimeToday: 0,
+    screenTimeLimitEnabled: false,
+    screenTimeLimitMinutes: 0,
   });
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [blockedToday, history, settings] = await Promise.all([
+        const [blockedToday, history, settings, screenTimeToday] = await Promise.all([
           BlockingService.getTodayBlockedCount(),
           StorageService.getHistory(),
           StorageService.getSettings(),
+          ScreenTimeService.getTodayTotalSeconds(),
         ]);
 
         setData({
@@ -119,6 +127,9 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
           autoPause: settings.autoPauseDuringPrayer,
           browserEnabled: settings.browserEnabled,
           kioskEnabled: settings.kioskModeEnabled,
+          screenTimeToday,
+          screenTimeLimitEnabled: settings.screenTimeLimitEnabled,
+          screenTimeLimitMinutes: settings.screenTimeLimitMinutes,
         });
         setParentTourDone(settings.parentTourDone);
       } catch (error) {
@@ -359,6 +370,35 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
           <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.primary} />
         </TouchableOpacity>
 
+        {/* Screen Time Card */}
+        <TouchableOpacity
+          style={styles.screenTimeCard}
+          onPress={() => router.push('/parent/screen-time' as any)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.screenTimeIconContainer}>
+            <MaterialCommunityIcons name="clock-outline" size={24} color={Colors.primary} />
+          </View>
+          <View style={styles.screenTimeContent}>
+            <Text style={styles.screenTimeLabel}>Temps d'écran aujourd'hui</Text>
+            <Text style={styles.screenTimeValue}>
+              {data.screenTimeToday >= 3600
+                ? `${Math.floor(data.screenTimeToday / 3600)}h ${String(Math.floor((data.screenTimeToday % 3600) / 60)).padStart(2, '0')}min`
+                : `${Math.floor(data.screenTimeToday / 60)} min`}
+            </Text>
+          </View>
+          {data.screenTimeLimitEnabled && (
+            <View style={styles.screenTimeLimitBadge}>
+              <Text style={styles.screenTimeLimitText}>
+                / {data.screenTimeLimitMinutes >= 60
+                  ? `${Math.floor(data.screenTimeLimitMinutes / 60)}h${data.screenTimeLimitMinutes % 60 > 0 ? String(data.screenTimeLimitMinutes % 60).padStart(2, '0') : ''}`
+                  : `${data.screenTimeLimitMinutes}min`}
+              </Text>
+            </View>
+          )}
+          <MaterialCommunityIcons name="chevron-right" size={20} color={Colors.light.textSecondary} />
+        </TouchableOpacity>
+
         {/* Step 3 — Quick Toggles */}
         <CopilotStep text={tour.parentToggles} order={3} name="parent-toggles">
           <CopilotView collapsable={false} style={{ marginBottom: -25, paddingBottom: 25 }}>
@@ -368,7 +408,7 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
                 icon="web"
                 label="Navigateur"
                 description={data.browserEnabled
-                  ? "Activé — décochez pour bloquer l'accès web"
+                  ? "Activé — décochez pour désactiver l'accès web"
                   : "Désactivé — cochez pour autoriser l'accès web"}
                 value={data.browserEnabled}
                 onToggle={handleToggleBrowser}
@@ -936,5 +976,50 @@ const styles = StyleSheet.create({
   tabBarTarget: {
     height: 10,
     marginTop: Spacing.xl,
+  },
+
+  // Screen Time Card
+  screenTimeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary + '08',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.primary + '20',
+    gap: Spacing.sm,
+  },
+  screenTimeIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  screenTimeContent: {
+    flex: 1,
+  },
+  screenTimeLabel: {
+    fontSize: 12,
+    color: Colors.light.textSecondary,
+    fontWeight: '500',
+  },
+  screenTimeValue: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: Colors.primary,
+  },
+  screenTimeLimitBadge: {
+    backgroundColor: Colors.warning + '15',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  screenTimeLimitText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.warning,
   },
 });
