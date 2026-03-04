@@ -40,7 +40,7 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       // Platforms & terms
       'porn', 'sexe', 'sex', 'sexy', 'porno', 'xxx', 'nude', 'naked', 'nsfw',
       'erotic', 'erotique', 'hentai', 'fetish', 'fetiche', 'webcam', 'camgirl',
-      'livecam', 'stripper', 'striptease', 'escort', 'brothel', 'bordel',
+      'livecam', 'stripper', 'striptease', 'escort', 'brothel',
       'onlyfans', 'pornhub', 'xvideos', 'redtube', 'youporn', 'chaturbate',
       'xhamster', 'xnxx', 'bongacams', 'cam4', 'chatroulette',
       // Anatomy
@@ -59,7 +59,7 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       // Categories
       'milf', 'cougar', 'incest', 'inceste', 'stepmom', 'stepdaughter',
       'shemale', 'tranny', 'ladyboy', 'transsexual', 'transsexuel', 'bdsm',
-      'bondage', 'submissive', 'soumise', 'dominant', 'dominatrice',
+      'bondage', 'submissive',
       'sugarbaby', 'voyeur', 'exhibitionist', 'exhibitionniste',
       'pedophile', 'pedophilia',
       // Bypass attempts
@@ -87,7 +87,7 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       // General
       'gore', 'sanglant', 'snuff', 'morbid', 'morbide',
       // Violence acts (EN)
-      'murder', 'killing', 'beheading', 'decapitation', 'execution', 'torture',
+      'murder', 'beheading', 'decapitation', 'execution', 'torture',
       'dismemberment', 'mutilation', 'stabbing', 'shooting', 'suicide', 'self-harm',
       'strangulation', 'hanging', 'drowning', 'beheaded', 'disemboweled',
       'gutted', 'skinned', 'autopsy',
@@ -125,7 +125,7 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       'glandu', 'glandeur', 'imbecile', 'cretin', 'crétin', 'pede', 'pédale',
       'gouine', 'tarlouze', 'fiotte', 'encule', 'enculé',
       'bougnoule', 'bicot', 'negre', 'nègre', 'negro', 'rebeu', 'feuj',
-      'youtre', 'naze', 'nazi', 'bouffon', 'mongol', 'mongolien', 'tebe',
+      'youtre', 'naze', 'nazi', 'bouffon', 'mongolien', 'tebe',
       'tebé', 'mongole',
       // English insults
       'slut', 'whore', 'bitch', 'fuck', 'fucker', 'fucking', 'motherfucker',
@@ -299,7 +299,7 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
   ],
   keywords: [
     // General (EN)
-    'music', 'playlist', 'song', 'track', 'artist', 'concert',
+    'music','song', 'rap', 'artist', 'concert',
     // General (FR)
     'musique','album', 'playlist', 'chanson', 'concert',
     // Platforms
