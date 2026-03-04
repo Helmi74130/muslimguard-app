@@ -258,6 +258,13 @@ export const STORAGE_KEYS = {
 
   // Quiz
   QUIZ_SCORES: 'quiz.scores',
+  QUIZ_TOTAL_XP: 'quiz.totalXp',
+  QUIZ_TOTAL_CORRECT: 'quiz.totalCorrect',
+  QUIZ_BADGES: 'quiz.badges',
+  QUIZ_BEST_STREAK: 'quiz.bestStreak',
+  QUIZ_PERFECT_COUNT: 'quiz.perfectCount',
+  QUIZ_HARD_PERFECT_COUNT: 'quiz.hardPerfectCount',
+  QUIZ_CATEGORIES_PLAYED: 'quiz.categoriesPlayed',
 
   // Weather cache
   WEATHER_CACHE: 'cache.weatherData',

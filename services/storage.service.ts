@@ -707,6 +707,114 @@ export const StorageService = {
     }
   },
 
+  // ==================== QUIZ GAMIFICATION ====================
+
+  async getQuizTotalXp(): Promise<number> {
+    try {
+      const val = await AsyncStorage.getItem(STORAGE_KEYS.QUIZ_TOTAL_XP);
+      return val ? parseInt(val, 10) : 0;
+    } catch {
+      return 0;
+    }
+  },
+
+  async addQuizXp(amount: number): Promise<void> {
+    const current = await this.getQuizTotalXp();
+    await AsyncStorage.setItem(STORAGE_KEYS.QUIZ_TOTAL_XP, String(current + amount));
+  },
+
+  async getQuizTotalCorrect(): Promise<number> {
+    try {
+      const val = await AsyncStorage.getItem(STORAGE_KEYS.QUIZ_TOTAL_CORRECT);
+      return val ? parseInt(val, 10) : 0;
+    } catch {
+      return 0;
+    }
+  },
+
+  async addQuizCorrect(amount: number): Promise<void> {
+    const current = await this.getQuizTotalCorrect();
+    await AsyncStorage.setItem(STORAGE_KEYS.QUIZ_TOTAL_CORRECT, String(current + amount));
+  },
+
+  async getQuizBestStreak(): Promise<number> {
+    try {
+      const val = await AsyncStorage.getItem(STORAGE_KEYS.QUIZ_BEST_STREAK);
+      return val ? parseInt(val, 10) : 0;
+    } catch {
+      return 0;
+    }
+  },
+
+  async updateQuizBestStreak(streak: number): Promise<void> {
+    const current = await this.getQuizBestStreak();
+    if (streak > current) {
+      await AsyncStorage.setItem(STORAGE_KEYS.QUIZ_BEST_STREAK, String(streak));
+    }
+  },
+
+  async getQuizBadges(): Promise<string[]> {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEYS.QUIZ_BADGES);
+      return json ? JSON.parse(json) : [];
+    } catch {
+      return [];
+    }
+  },
+
+  /** Returns true if the badge was newly unlocked */
+  async unlockQuizBadge(badgeId: string): Promise<boolean> {
+    const badges = await this.getQuizBadges();
+    if (badges.includes(badgeId)) return false;
+    badges.push(badgeId);
+    await AsyncStorage.setItem(STORAGE_KEYS.QUIZ_BADGES, JSON.stringify(badges));
+    return true;
+  },
+
+  async getQuizPerfectCount(): Promise<number> {
+    try {
+      const val = await AsyncStorage.getItem(STORAGE_KEYS.QUIZ_PERFECT_COUNT);
+      return val ? parseInt(val, 10) : 0;
+    } catch { return 0; }
+  },
+
+  async incrementQuizPerfectCount(): Promise<number> {
+    const current = await this.getQuizPerfectCount();
+    const next = current + 1;
+    await AsyncStorage.setItem(STORAGE_KEYS.QUIZ_PERFECT_COUNT, String(next));
+    return next;
+  },
+
+  async getQuizHardPerfectCount(): Promise<number> {
+    try {
+      const val = await AsyncStorage.getItem(STORAGE_KEYS.QUIZ_HARD_PERFECT_COUNT);
+      return val ? parseInt(val, 10) : 0;
+    } catch { return 0; }
+  },
+
+  async incrementQuizHardPerfectCount(): Promise<number> {
+    const current = await this.getQuizHardPerfectCount();
+    const next = current + 1;
+    await AsyncStorage.setItem(STORAGE_KEYS.QUIZ_HARD_PERFECT_COUNT, String(next));
+    return next;
+  },
+
+  async getQuizCategoriesPlayed(): Promise<string[]> {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEYS.QUIZ_CATEGORIES_PLAYED);
+      return json ? JSON.parse(json) : [];
+    } catch { return []; }
+  },
+
+  async addQuizCategoryPlayed(categoryId: string): Promise<string[]> {
+    const played = await this.getQuizCategoriesPlayed();
+    if (!played.includes(categoryId)) {
+      played.push(categoryId);
+      await AsyncStorage.setItem(STORAGE_KEYS.QUIZ_CATEGORIES_PLAYED, JSON.stringify(played));
+    }
+    return played;
+  },
+
   // ==================== PEDOMETER ====================
 
   async getPedometerData(): Promise<PedometerData> {
