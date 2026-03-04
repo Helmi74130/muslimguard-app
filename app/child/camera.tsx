@@ -171,7 +171,7 @@ export default function CameraScreen() {
   const [lastPhoto, setLastPhoto] = useState<string | null>(null);
   const [recording, setRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
-  const [showStickers, setShowStickers] = useState(false);
+  const [showFrames, setShowFrames] = useState(false);
   const [placedStickers, setPlacedStickers] = useState<PlacedSticker[]>([]);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [recentPhotos, setRecentPhotos] = useState<MediaLibrary.Asset[]>([]);
@@ -570,68 +570,12 @@ export default function CameraScreen() {
       {/* Toolbar: Frames + Sticker toggle (photo mode only) */}
       {mode === 'picture' && (
         <View style={styles.toolbarRow}>
-          {/* Frame selector */}
+          {/* Sticker picker — visible par défaut */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.framePickerContent}
             style={styles.framePickerScroll}
-          >
-            {CAMERA_FRAMES.map((frame, index) => (
-              <Pressable
-                key={frame.id}
-                style={[
-                  styles.framePickerItem,
-                  frameIndex === index && { borderColor: frame.borderColor === 'transparent' ? Colors.primary : frame.borderColor },
-                ]}
-                onPress={() => setFrameIndex(index)}
-              >
-                {frame.overlay ? (
-                  <Image source={frame.overlay} style={styles.framePickerPreview} resizeMode="cover" />
-                ) : (
-                  <View style={[styles.framePickerFallback, { backgroundColor: frame.borderColor === 'transparent' ? 'rgba(255,255,255,0.1)' : frame.borderColor + '33' }]}>
-                    <MaterialCommunityIcons
-                      name={frame.icon as any}
-                      size={20}
-                      color={frameIndex === index ? (frame.borderColor === 'transparent' ? Colors.primary : frame.borderColor) : '#94A3B8'}
-                    />
-                  </View>
-                )}
-                {frameIndex === index && (
-                  <View style={[styles.activeFrameIndicator, { backgroundColor: frame.borderColor === 'transparent' ? Colors.primary : frame.borderColor }]} />
-                )}
-              </Pressable>
-            ))}
-          </ScrollView>
-
-          {/* Sticker toggle + clear */}
-          <View style={styles.stickerActions}>
-            <Pressable
-              style={[styles.stickerToggle, showStickers && styles.stickerToggleActive]}
-              onPress={() => setShowStickers(!showStickers)}
-            >
-              <MaterialCommunityIcons
-                name="sticker-emoji"
-                size={22}
-                color={showStickers ? '#FFF' : '#94A3B8'}
-              />
-            </Pressable>
-            {placedStickers.length > 0 && (
-              <Pressable style={styles.clearStickersBtn} onPress={clearStickers}>
-                <MaterialCommunityIcons name="delete-outline" size={20} color="#FF6B6B" />
-              </Pressable>
-            )}
-          </View>
-        </View>
-      )}
-
-      {/* Sticker picker tray (photo mode only) */}
-      {mode === 'picture' && showStickers && (
-        <View style={styles.stickerTray}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.stickerTrayContent}
           >
             {CAMERA_STICKERS.map((sticker) => (
               <Pressable
@@ -658,6 +602,62 @@ export default function CameraScreen() {
                 <Text style={styles.stickerPickerLabel} numberOfLines={1}>
                   {sticker.name}
                 </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+
+          {/* Bouton cadres + poubelle */}
+          <View style={styles.stickerActions}>
+            <Pressable
+              style={[styles.stickerToggle, showFrames && styles.stickerToggleActive]}
+              onPress={() => setShowFrames(!showFrames)}
+            >
+              <MaterialCommunityIcons
+                name="image-frame"
+                size={22}
+                color={showFrames ? '#FFF' : '#94A3B8'}
+              />
+            </Pressable>
+            {placedStickers.length > 0 && (
+              <Pressable style={styles.clearStickersBtn} onPress={clearStickers}>
+                <MaterialCommunityIcons name="delete-outline" size={20} color="#FF6B6B" />
+              </Pressable>
+            )}
+          </View>
+        </View>
+      )}
+
+      {/* Frame picker tray — visible uniquement si showFrames */}
+      {mode === 'picture' && showFrames && (
+        <View style={styles.stickerTray}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.stickerTrayContent}
+          >
+            {CAMERA_FRAMES.map((frame, index) => (
+              <Pressable
+                key={frame.id}
+                style={[
+                  styles.framePickerItem,
+                  frameIndex === index && { borderColor: frame.borderColor === 'transparent' ? Colors.primary : frame.borderColor },
+                ]}
+                onPress={() => setFrameIndex(index)}
+              >
+                {frame.overlay ? (
+                  <Image source={frame.overlay} style={styles.framePickerPreview} resizeMode="cover" />
+                ) : (
+                  <View style={[styles.framePickerFallback, { backgroundColor: frame.borderColor === 'transparent' ? 'rgba(255,255,255,0.1)' : frame.borderColor + '33' }]}>
+                    <MaterialCommunityIcons
+                      name={frame.icon as any}
+                      size={20}
+                      color={frameIndex === index ? (frame.borderColor === 'transparent' ? Colors.primary : frame.borderColor) : '#94A3B8'}
+                    />
+                  </View>
+                )}
+                {frameIndex === index && (
+                  <View style={[styles.activeFrameIndicator, { backgroundColor: frame.borderColor === 'transparent' ? Colors.primary : frame.borderColor }]} />
+                )}
               </Pressable>
             ))}
           </ScrollView>

@@ -292,7 +292,7 @@ export default function PremiumScreen() {
                 <Text style={styles.saveBadgeText}>-40%</Text>
               </View>
               <Text style={styles.planTitle}>Annuel</Text>
-              <Text style={styles.planPrice}>{annualProduct?.price || '34,99 €'}</Text>
+              <Text style={styles.planPrice}>{annualProduct?.price || '39,99 €'}</Text>
               <Text style={styles.planPeriod}>par an</Text>
               <Text style={styles.planSaving}>Économisez 25€/an</Text>
               <Button
