@@ -11,18 +11,21 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Animated,
   Dimensions,
   Easing,
+  Image,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const WHEEL_SIZE = SCREEN_WIDTH * 0.7;
 
 interface Mission {
@@ -440,6 +443,29 @@ const MISSIONS: Mission[] = [
 
 ];
 
+interface Badge {
+  id: string;
+  name: string;
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  required: number;
+  color: string;
+}
+
+const BADGES: Badge[] = [
+  { id: 'first',       name: 'Partant !',   icon: 'flag',         required: 1,   color: '#CD7F32' },
+  { id: 'apprenti',    name: 'Apprenti',    icon: 'run',          required: 3,   color: '#94A3B8' },
+  { id: 'explorateur', name: 'Explorateur', icon: 'compass',      required: 5,   color: '#3B82F6' },
+  { id: 'chasseur',    name: 'Chasseur',    icon: 'binoculars',   required: 10,  color: '#10B981' },
+  { id: 'heros',       name: 'Héros',       icon: 'shield-star',  required: 20,  color: '#8B5CF6' },
+  { id: 'legende',     name: 'Légende',     icon: 'trophy',       required: 30,  color: '#F59E0B' },
+  { id: 'maitre',      name: 'Maître',      icon: 'crown',        required: 50,  color: '#EF4444' },
+  { id: 'champion',    name: 'Champion',    icon: 'diamond',      required: 100, color: '#EC4899' },
+  { id: 'sage',        name: 'Sage',        icon: 'owl',          required: 200, color: '#7C3AED' },
+  { id: 'legendaire',  name: 'Légendaire',  icon: 'flare',        required: 300, color: '#F59E0B' },
+];
+
+const MISSION_COUNT_KEY = 'mission.count';
+
 type Phase = 'ready' | 'spinning' | 'mission' | 'timer' | 'done';
 
 export default function MicroMissionScreen() {
@@ -449,10 +475,40 @@ export default function MicroMissionScreen() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
 
+  const [missionCount, setMissionCount] = useState(0);
+  const [newBadgeUnlocked, setNewBadgeUnlocked] = useState<Badge | null>(null);
+
   const spinAnim = useRef(new Animated.Value(0)).current;
   const bounceAnim = useRef(new Animated.Value(1)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
+  const countBounce = useRef(new Animated.Value(1)).current;
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Charger le compteur au démarrage
+  useEffect(() => {
+    AsyncStorage.getItem(MISSION_COUNT_KEY).then(val => {
+      setMissionCount(val ? parseInt(val, 10) : 0);
+    });
+  }, []);
+
+  // Incrémenter quand une mission est accomplie
+  useEffect(() => {
+    if (phase !== 'done') return;
+    AsyncStorage.getItem(MISSION_COUNT_KEY).then(val => {
+      const current = val ? parseInt(val, 10) : 0;
+      const next = current + 1;
+      AsyncStorage.setItem(MISSION_COUNT_KEY, String(next));
+      const unlocked = BADGES.find(b => b.required === next) ?? null;
+      if (unlocked) {
+        setNewBadgeUnlocked(unlocked);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+      setMissionCount(next);
+      countBounce.setValue(1.4);
+      Animated.spring(countBounce, { toValue: 1, friction: 4, useNativeDriver: true }).start();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   useEffect(() => {
     return () => {
@@ -539,6 +595,7 @@ export default function MicroMissionScreen() {
     setSelectedMission(null);
     setShowConfetti(false);
     setElapsedTime(0);
+    setNewBadgeUnlocked(null);
     spinAnim.setValue(0);
   };
 
@@ -566,30 +623,36 @@ export default function MicroMissionScreen() {
   // ─── Ready phase ───────────────────────────────────────
   if (phase === 'ready') {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
         <LinearGradient
-          colors={['#F3F4F6', '#E5E7EB', '#F9FAFB']}
+          colors={['#FDF6E3', '#FAF0D7', '#FDF6E3']}
           style={StyleSheet.absoluteFill}
         />
 
-        <View style={styles.header}>
-          <Pressable onPress={handleBack} style={styles.backBtn}>
-            <MaterialCommunityIcons name="arrow-left" size={26} color="#6B7280" />
+        {/* Hero image avec coins arrondis en bas */}
+        <View style={styles.heroImageWrapper}>
+          <Image
+            source={require('@/assets/images/micro-mission.jpg')}
+            style={styles.heroImage}
+            resizeMode="cover"
+          />
+          <LinearGradient
+            colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.55)']}
+            style={StyleSheet.absoluteFill}
+          />
+          <Pressable onPress={handleBack} style={styles.backBtnOnImage}>
+            <MaterialCommunityIcons name="arrow-left" size={24} color="#FFFFFF" />
           </Pressable>
+          <View style={styles.imageTitleContainer}>
+            <Text style={styles.heroTitleOnImage}>Micro-Mission</Text>
+          </View>
         </View>
 
-        <View style={styles.centerContent}>
-          <View style={styles.heroIcon}>
-            <LinearGradient
-              colors={['#E5E7EB', '#D1D5DB']}
-              style={StyleSheet.absoluteFill}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
-            <MaterialCommunityIcons name="target" size={40} color="#6B7280" />
-          </View>
-
-          <Text style={styles.heroTitle}>Micro-Mission</Text>
+        <ScrollView
+          style={styles.centerContent}
+          contentContainerStyle={styles.centerContentInner}
+          showsVerticalScrollIndicator={false}
+        >
           <Text style={styles.heroSubtitle}>
             Un petit défi de 2 minutes{'\n'}pour relancer la machine !
           </Text>
@@ -599,7 +662,7 @@ export default function MicroMissionScreen() {
             style={({ pressed }) => [styles.spinBtnWrap, pressed && { opacity: 0.85 }]}
           >
             <LinearGradient
-              colors={['#6B7280', '#9CA3AF']}
+              colors={['#C4852A', '#E8A23A']}
               style={styles.spinBtn}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
@@ -609,16 +672,90 @@ export default function MicroMissionScreen() {
             </LinearGradient>
           </Pressable>
 
-          {/* Mini preview of missions */}
-          <View style={styles.previewRow}>
-            {MISSIONS.slice(0, 5).map((m, i) => (
-              <View key={i} style={[styles.previewDot, { backgroundColor: m.color + '25' }]}>
-                <MaterialCommunityIcons name={m.icon} size={18} color={m.color} />
+          {/* ── Compteur + Badges ── */}
+          {(() => {
+            const nextBadge = BADGES.find(b => b.required > missionCount);
+            const prevRequired = [...BADGES].reverse().find(b => b.required <= missionCount)?.required ?? 0;
+            const progress = nextBadge
+              ? (missionCount - prevRequired) / (nextBadge.required - prevRequired)
+              : 1;
+
+            return (
+              <View style={styles.statsSection}>
+                {/* Counter card */}
+                <View style={styles.counterCard}>
+                  <View style={styles.counterLeft}>
+                    <Animated.Text style={[styles.counterNumber, { transform: [{ scale: countBounce }] }]}>
+                      {missionCount}
+                    </Animated.Text>
+                    <Text style={styles.counterLabel}>missions{'\n'}accomplies</Text>
+                  </View>
+
+                  <View style={styles.counterDivider} />
+
+                  <View style={styles.counterRight}>
+                    {nextBadge ? (
+                      <>
+                        <Text style={styles.nextBadgeLabel}>Prochain badge</Text>
+                        <View style={styles.nextBadgeRow}>
+                          <MaterialCommunityIcons name={nextBadge.icon} size={16} color={nextBadge.color} />
+                          <Text style={[styles.nextBadgeName, { color: nextBadge.color }]}>{nextBadge.name}</Text>
+                        </View>
+                        <View style={styles.miniProgressBg}>
+                          <View style={[styles.miniProgressFill, {
+                            width: `${progress * 100}%`,
+                            backgroundColor: nextBadge.color,
+                          }]} />
+                        </View>
+                        <Text style={styles.nextBadgeRemain}>
+                          encore {nextBadge.required - missionCount} défi{nextBadge.required - missionCount > 1 ? 's' : ''}
+                        </Text>
+                      </>
+                    ) : (
+                      <View style={styles.maxBadgeWrap}>
+                        <MaterialCommunityIcons name="trophy" size={28} color="#F59E0B" />
+                        <Text style={styles.maxBadgeText}>Champion{'\n'}absolu !</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+
+                {/* Badges row */}
+                <Text style={styles.badgesTitle}>Tes badges</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.badgesScroll} contentContainerStyle={{ paddingHorizontal: Spacing.lg }}>
+                  {BADGES.map((badge) => {
+                    const unlocked = missionCount >= badge.required;
+                    const isLatest = unlocked && !BADGES.find(b => b.required > badge.required && missionCount >= b.required);
+                    return (
+                      <View key={badge.id} style={styles.badgeItem}>
+                        <View style={[
+                          styles.badgeCircle,
+                          unlocked
+                            ? { backgroundColor: badge.color + '18', borderColor: badge.color, borderWidth: 2 }
+                            : styles.badgeCircleLocked,
+                          isLatest && styles.badgeCircleLatest,
+                        ]}>
+                          <MaterialCommunityIcons
+                            name={unlocked ? badge.icon : 'lock-outline'}
+                            size={22}
+                            color={unlocked ? badge.color : '#C4B89A'}
+                          />
+                          {isLatest && <View style={[styles.badgeGlow, { backgroundColor: badge.color + '30' }]} />}
+                        </View>
+                        <Text style={[styles.badgeName, !unlocked && styles.badgeNameLocked]}>
+                          {badge.name}
+                        </Text>
+                        <Text style={[styles.badgeReq, !unlocked && styles.badgeReqLocked]}>
+                          {badge.required} défi{badge.required > 1 ? 's' : ''}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </ScrollView>
               </View>
-            ))}
-            <Text style={styles.previewMore}>+{MISSIONS.length - 5}</Text>
-          </View>
-        </View>
+            );
+          })()}
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -640,7 +777,7 @@ export default function MicroMissionScreen() {
           <View style={{ width: 44 }} />
         </View>
 
-        <View style={styles.centerContent}>
+        <View style={styles.centerContentView}>
           <Animated.View
             style={[
               styles.wheelOuter,
@@ -752,6 +889,21 @@ export default function MicroMissionScreen() {
                       ? 'Bravo, bien joué champion !'
                       : 'Bravo, tu as relancé la machine !'}
                 </Text>
+
+                {newBadgeUnlocked && (
+                  <View style={[styles.newBadgeBanner, { borderColor: newBadgeUnlocked.color }]}>
+                    <View style={[styles.newBadgeBannerIcon, { backgroundColor: newBadgeUnlocked.color + '20' }]}>
+                      <MaterialCommunityIcons name={newBadgeUnlocked.icon} size={26} color={newBadgeUnlocked.color} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.newBadgeBannerTitle}>Nouveau badge débloqué !</Text>
+                      <Text style={[styles.newBadgeBannerName, { color: newBadgeUnlocked.color }]}>
+                        {newBadgeUnlocked.name}
+                      </Text>
+                    </View>
+                    <MaterialCommunityIcons name="star-shooting" size={20} color={newBadgeUnlocked.color} />
+                  </View>
+                )}
               </View>
             )}
           </LinearGradient>
@@ -843,6 +995,46 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
+  // Hero image parchemin
+  heroImageWrapper: {
+    width: '100%',
+    height: SCREEN_HEIGHT * 0.38,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: 'hidden',
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
+  },
+  backBtnOnImage: {
+    position: 'absolute',
+    top: 48,
+    left: 16,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.28)',
+    borderRadius: 22,
+  },
+  imageTitleContainer: {
+    position: 'absolute',
+    bottom: 24,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  heroTitleOnImage: {
+    fontSize: 30,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+
   // Header
   header: {
     flexDirection: 'row',
@@ -869,40 +1061,27 @@ const styles = StyleSheet.create({
   // Center content
   centerContent: {
     flex: 1,
+  },
+  // Used as style on View (spinning / mission / done phases)
+  centerContentView: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: Spacing.lg,
-  },
-  heroIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.md,
-    overflow: 'hidden',
-  },
-  heroTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: Colors.primary,
-    textAlign: 'center',
-    letterSpacing: -0.5,
   },
   heroSubtitle: {
     fontSize: 15,
-    color: Colors.light.textSecondary,
+    color: '#8B6914',
     textAlign: 'center',
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.xxl,
+    marginBottom: Spacing.lg,
     lineHeight: 22,
+    fontWeight: '500',
   },
 
   // Spin button
   spinBtnWrap: {
     width: '100%',
     borderRadius: 18,
-    backgroundColor: '#6B7280', // Fond nécessaire pour l'élévation sur Android
+    backgroundColor: '#C4852A', // Fond nécessaire pour l'élévation sur Android
     elevation: 8,
     shadowColor: '#6B7280',
     shadowOffset: { width: 0, height: 6 },
@@ -1103,5 +1282,210 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#6B7280',
+  },
+
+  // ── Center content (ScrollView) ──
+  centerContentInner: {
+    alignItems: 'center',
+    paddingTop: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xl,
+  },
+
+  // ── Stats section ──
+  statsSection: {
+    width: '100%',
+    marginTop: Spacing.xl,
+  },
+
+  // Counter card
+  counterCard: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFBF0',
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#E8D5A0',
+    padding: Spacing.md,
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#C4852A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+  },
+  counterLeft: {
+    alignItems: 'center',
+    minWidth: 80,
+  },
+  counterNumber: {
+    fontSize: 42,
+    fontWeight: '900',
+    color: '#C4852A',
+    lineHeight: 48,
+  },
+  counterLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#8B6914',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 2,
+  },
+  counterDivider: {
+    width: 1.5,
+    height: 60,
+    backgroundColor: '#E8D5A0',
+    marginHorizontal: Spacing.md,
+  },
+  counterRight: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  nextBadgeLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#A08030',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 4,
+  },
+  nextBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 6,
+  },
+  nextBadgeName: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  miniProgressBg: {
+    height: 6,
+    backgroundColor: '#E8D5A0',
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+  miniProgressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  nextBadgeRemain: {
+    fontSize: 11,
+    color: '#8B6914',
+    fontWeight: '500',
+  },
+  maxBadgeWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  maxBadgeText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#F59E0B',
+    lineHeight: 20,
+  },
+
+  // Badges row
+  badgesTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#8B6914',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
+    alignSelf: 'flex-start',
+  },
+  badgesScroll: {
+    marginHorizontal: -Spacing.lg,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  badgeItem: {
+    alignItems: 'center',
+    marginRight: Spacing.md,
+    width: 68,
+  },
+  badgeCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 5,
+    position: 'relative',
+  },
+  badgeCircleLocked: {
+    backgroundColor: '#F0E8D0',
+    borderColor: '#D9CCAA',
+    borderWidth: 2,
+    opacity: 0.6,
+  },
+  badgeCircleLatest: {
+    elevation: 6,
+    shadowColor: '#C4852A',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    transform: [{ scale: 1.12 }],
+  },
+  badgeGlow: {
+    position: 'absolute',
+    inset: 0,
+    borderRadius: 26,
+  },
+  badgeName: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#5C4010',
+    textAlign: 'center',
+  },
+  badgeNameLocked: {
+    color: '#B8A878',
+  },
+  badgeReq: {
+    fontSize: 9,
+    fontWeight: '500',
+    color: '#8B6914',
+    textAlign: 'center',
+    marginTop: 1,
+  },
+  badgeReqLocked: {
+    color: '#C4B89A',
+  },
+
+  // New badge unlock banner (phase done)
+  newBadgeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+    padding: Spacing.md,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    backgroundColor: '#FFFBF0',
+    width: '100%',
+  },
+  newBadgeBannerIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  newBadgeBannerTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#8B6914',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  newBadgeBannerName: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginTop: 1,
   },
 });
