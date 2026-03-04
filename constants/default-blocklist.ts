@@ -53,14 +53,14 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       'blowjob', 'fellatio', 'fellation', 'creampie', 'gangbang',
       'threesome', 'bukkake', 'sodomy', 'sodomie', 'cunnilingus', 'rimming',
       'analingus', 'deepthroat', 'gorge profonde', 'masturbation', 'masturbate',
-      'masturber', 'handjob', 'fingering', 'doigté', 'doubles penetration',
+      'masturber', 'handjob', 'fingering', 'doubles penetration',
       'swinger', 'échangisme', 'squirt', 'squirting', 'gloryhole', 'rimjob',
       'missionnaire', 'cowgirl', 'reverse cowgirl', 'doggy style', 'levrette',
       // Categories
       'milf', 'cougar', 'incest', 'inceste', 'stepmom', 'stepdaughter',
       'shemale', 'tranny', 'ladyboy', 'transsexual', 'transsexuel', 'bdsm',
       'bondage', 'submissive',
-      'sugarbaby', 'voyeur', 'exhibitionist', 'exhibitionniste',
+      'sugarbaby', 'exhibitionist', 'exhibitionniste',
       'pedophile', 'pedophilia',
       // Bypass attempts
       'p0rn', 'pr0n', 's3x', 'ahnal', 'c0ck', 'd1ck',
@@ -116,17 +116,16 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
     domains: [],
     keywords: [
       // French insults
-      'salope', 'putain', 'putin', 'connard', 'connasse', 'conard',
-      'conase', 'abruti', 'debile', 'enfoire', 'enfoirée', 'salaud', 'merde',
+      'salope','saloppe', 'putain', 'putin', 'connard', 'connasse', 'conard',
+      'conase', 'enfoire', 'enfoirée', 'salaud', 'merde',
       'merdeux', 'merdeuse', 'garce', 'crevard', 'crevure', 'trouduc',
       'trou du cul', 'fdp', 'fils de pute', 'nique ta mere', 'ntm', 'pute',
       'baise ta mere', 'va te faire foutre', 'va te faire', 'poufiasse', 'pouf',
       'grognasse', 'petasse', 'pétasse', 'branleur', 'branleuse',
       'glandu', 'glandeur', 'imbecile', 'cretin', 'crétin', 'pede', 'pédale',
       'gouine', 'tarlouze', 'fiotte', 'encule', 'enculé',
-      'bougnoule', 'bicot', 'negre', 'nègre', 'negro', 'rebeu', 'feuj',
-      'youtre', 'naze', 'nazi', 'bouffon', 'mongolien', 'tebe',
-      'tebé', 'mongole',
+      'bougnoule','negre', 'nègre', 'negro',
+      'youtre', 'naze', 'nazi', 'bouffon', 'mongolien',
       // English insults
       'slut', 'whore', 'bitch', 'fuck', 'fucker', 'fucking', 'motherfucker',
       'shit', 'shitty', 'bullshit', 'asshole', 'arsehole', 'bastard', 'bitches',
@@ -134,7 +133,7 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       'bollocks', 'tosser', 'prick', 'douchebag', 'douche', 'scumbag', 'skank',
       'hoe', 'slag', 'bimbo', 'dipshit', 'jackass', 'dumbass',
       'faggot', 'fag', 'dyke', 'nigger', 'nigga', 'spic',
-      'chink', 'kike', 'paki', 'raghead', 'wetback', 'coon', 'gook', 'retarded',
+      'chink', 'kike', 'paki', 'raghead', 'wetback', 'gook', 'retarded',
       // Bypass attempts
       'f*ck', 'f.u.c.k', 'sh1t', 'b1tch', 'assh0le', 'f0ck', 'f_u_c_k',
       'c0nnard', 'p.u.t.e', 'm.e.r.d.e', '5alope', 'fuk', 'phuck',
