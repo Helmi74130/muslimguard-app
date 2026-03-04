@@ -13,6 +13,7 @@ import {
   Animated,
   Dimensions,
   Easing,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -21,7 +22,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CIRCLE_MAX = SCREEN_WIDTH * 0.55;
 const CIRCLE_MIN = SCREEN_WIDTH * 0.22;
 const CARD_WIDTH = (SCREEN_WIDTH - Spacing.lg * 2 - 12) / 2;
@@ -300,7 +301,7 @@ export default function BreathingScreen() {
   // ─── Selection Screen ─────────────────────────────────────
   if (!selectedTechnique) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom']}>
         <LinearGradient
           colors={['#EEF2FF', '#F8FAFC', '#F0FDFA']}
           style={StyleSheet.absoluteFill}
@@ -308,37 +309,33 @@ export default function BreathingScreen() {
           end={{ x: 1, y: 1 }}
         />
 
-        {/* Header */}
-        <View style={styles.selHeader}>
-          <Pressable onPress={() => router.back()} style={styles.selBackBtn}>
-            <MaterialCommunityIcons name="arrow-left" size={26} color={Colors.primary} />
+        {/* Hero image */}
+        <View style={styles.heroImageWrapper}>
+          <Image
+            source={require('@/assets/images/paresseux.png')}
+            style={styles.heroImage}
+            resizeMode="cover"
+          />
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.5)']}
+            style={StyleSheet.absoluteFill}
+          />
+          <Pressable onPress={() => router.back()} style={styles.backBtnOnImage}>
+            <MaterialCommunityIcons name="arrow-left" size={24} color="#FFFFFF" />
           </Pressable>
+          <View style={styles.imageTitleContainer}>
+            <Text style={styles.heroTitleOnImage}>Resp' paresseux</Text>
+            <Text style={styles.heroSubtitleOnImage}>Choisis un exercice et laisse-toi guider</Text>
+          </View>
         </View>
 
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.selContent}
         >
-          {/* Hero */}
-          <View style={styles.heroSection}>
-            <View style={styles.heroIconWrap}>
-              <LinearGradient
-                colors={['#E0E7FF', '#C7D2FE']}
-                style={styles.heroIconBg}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              />
-              <MaterialCommunityIcons name="weather-windy" size={40} color="#4338CA" />
-            </View>
-            <Text style={styles.heroTitle}>Respiration{'\n'}guidée</Text>
-            <Text style={styles.heroSubtitle}>
-              Choisis un exercice et laisse-toi guider
-            </Text>
-          </View>
-
           {/* Grid */}
           <View style={styles.grid}>
-            {TECHNIQUES.map((tech, index) => (
+            {TECHNIQUES.map((tech) => (
               <Pressable
                 key={tech.id}
                 onPress={() => startExercise(tech)}
@@ -512,58 +509,54 @@ const styles = StyleSheet.create({
   },
 
   // ─── Selection Screen ───
-  selHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.xs,
-  },
-  selBackBtn: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: -Spacing.xs,
-  },
-
   selContent: {
+    paddingTop: Spacing.xl,
     paddingBottom: Spacing.xl,
   },
 
-  // Hero
-  heroSection: {
-    alignItems: 'center',
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.xl,
-    paddingHorizontal: Spacing.lg,
-  },
-  heroIconWrap: {
-    width: 72,
-    height: 72,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.md,
+  // Hero image
+  heroImageWrapper: {
+    width: '100%',
+    height: SCREEN_HEIGHT * 0.28,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
     overflow: 'hidden',
   },
-  heroIconBg: {
-    ...StyleSheet.absoluteFillObject,
+  heroImage: {
+    width: '100%',
+    height: '100%',
   },
-  heroTitle: {
-    fontSize: 28,
+  backBtnOnImage: {
+    position: 'absolute',
+    top: 48,
+    left: Spacing.md,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.28)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageTitleContainer: {
+    position: 'absolute',
+    bottom: Spacing.lg,
+    left: Spacing.lg,
+    right: Spacing.lg,
+  },
+  heroTitleOnImage: {
+    fontSize: 30,
     fontWeight: '800',
-    color: Colors.primary,
-    textAlign: 'center',
-    lineHeight: 34,
+    color: '#FFFFFF',
     letterSpacing: -0.5,
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
-  heroSubtitle: {
-    fontSize: 15,
-    color: Colors.light.textSecondary,
-    textAlign: 'center',
-    marginTop: Spacing.sm,
-    lineHeight: 21,
+  heroSubtitleOnImage: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 4,
+    fontWeight: '500',
   },
 
   // Grid
