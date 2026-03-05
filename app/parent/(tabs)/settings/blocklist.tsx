@@ -4,6 +4,7 @@
  */
 
 import { Button } from '@/components/ui/button';
+import { InfoBanner } from '@/components/ui/info-banner';
 import type { BlockCategoryId } from '@/constants/default-blocklist';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { translations } from '@/constants/translations';
@@ -372,6 +373,13 @@ export default function BlocklistScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Info Banner */}
+        <InfoBanner
+          icon="shield-lock"
+          text="Les sites et mots bloqués restent inaccessibles à votre enfant, même s'il connaît l'adresse exacte. Le mode strict n'autorise que les sites de votre liste blanche."
+          style={styles.infoBanner}
+        />
+
         {/* Strict Mode Toggle — always visible */}
         <View style={styles.strictModeContainer}>
           <View style={styles.strictModeContent}>
@@ -698,6 +706,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: Spacing.xl * 2,
+  },
+  infoBanner: {
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.sm,
   },
 
   // Strict Mode — always visible

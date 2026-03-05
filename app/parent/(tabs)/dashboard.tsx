@@ -20,6 +20,7 @@ import { router } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Image,
+  Modal,
   ScrollView,
   StyleSheet,
   Switch,
@@ -96,6 +97,7 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
   const { requireFeature: requireStrictMode } = usePremiumFeature('strict_mode');
   const { requireFeature: requireKiosk } = usePremiumFeature('kiosk_mode');
   const [parentTourDone, setParentTourDone] = useState(true);
+  const [tooltip, setTooltip] = useState<{ title: string; text: string } | null>(null);
   const [data, setData] = useState<DashboardData>({
     blockedToday: 0,
     totalVisits: 0,
@@ -413,6 +415,10 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
                 value={data.browserEnabled}
                 onToggle={handleToggleBrowser}
                 premium={!isPremium}
+                onInfo={() => setTooltip({
+                  title: 'Navigateur web',
+                  text: "Quand le navigateur est activé, l'enfant peut naviguer sur internet (avec les filtres actifs).\n\nDésactivez-le pour supprimer complètement l'accès web : l'enfant ne pourra plus ouvrir de site, même ceux de la liste blanche.\n\nUtile le soir, pendant les devoirs ou les repas.",
+                })}
               />
               <View style={styles.toggleDivider} />
               <QuickToggle
@@ -424,6 +430,10 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
                 value={data.strictMode}
                 onToggle={handleToggleStrict}
                 premium={!isPremium}
+                onInfo={() => setTooltip({
+                  title: 'Mode strict',
+                  text: "En mode strict, l'enfant ne peut accéder qu'aux sites que vous avez ajoutés dans votre liste blanche.\n\nTous les autres sites sont bloqués automatiquement, même ceux non répertoriés dans la liste de blocage.",
+                })}
               />
               <View style={styles.toggleDivider} />
               <QuickToggle
@@ -435,6 +445,10 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
                 value={data.kioskEnabled}
                 onToggle={handleToggleKiosk}
                 premium={!isPremium}
+                onInfo={() => setTooltip({
+                  title: 'Verrouillage app',
+                  text: "Quand cette option est activée, l'enfant est bloqué dans MuslimGuard : il ne peut pas appuyer sur le bouton Accueil, changer d'application ou voir la barre de notifications.\n\nPour sortir du mode enfant, saisissez votre code PIN parent.",
+                })}
               />
               <View style={styles.toggleDivider} />
               <QuickToggle
@@ -463,7 +477,10 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
                 <View style={styles.quickActionIcon}>
                   <MaterialCommunityIcons name="shield-lock" size={16} color={Colors.primary} />
                 </View>
-                <Text style={styles.quickActionLabel}>Gérer les blocages</Text>
+                <View style={styles.quickActionTextGroup}>
+                  <Text style={styles.quickActionLabel}>Sites et mots bloqués</Text>
+                  <Text style={styles.quickActionDesc}>Gérer la liste de blocage</Text>
+                </View>
                 <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.light.textSecondary} />
               </TouchableOpacity>
               <View style={styles.quickActionDivider} />
@@ -475,7 +492,10 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
                 <View style={styles.quickActionIcon}>
                   <MaterialCommunityIcons name="clock-outline" size={16} color={Colors.primary} />
                 </View>
-                <Text style={styles.quickActionLabel}>Restrictions horaires</Text>
+                <View style={styles.quickActionTextGroup}>
+                  <Text style={styles.quickActionLabel}>Restrictions horaires</Text>
+                  <Text style={styles.quickActionDesc}>Bloquer l'accès la nuit ou le matin</Text>
+                </View>
                 <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.light.textSecondary} />
               </TouchableOpacity>
               <View style={styles.quickActionDivider} />
@@ -537,6 +557,31 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
         </CopilotStep>
 
       </ScrollView>
+
+      {/* Tooltip Modal */}
+      <Modal
+        visible={tooltip !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setTooltip(null)}
+      >
+        <TouchableOpacity
+          style={styles.tooltipOverlay}
+          activeOpacity={1}
+          onPress={() => setTooltip(null)}
+        >
+          <View style={styles.tooltipCard}>
+            <View style={styles.tooltipHeader}>
+              <MaterialCommunityIcons name="information" size={20} color={Colors.primary} />
+              <Text style={styles.tooltipTitle}>{tooltip?.title}</Text>
+            </View>
+            <Text style={styles.tooltipText}>{tooltip?.text}</Text>
+            <TouchableOpacity style={styles.tooltipClose} onPress={() => setTooltip(null)}>
+              <Text style={styles.tooltipCloseText}>Compris</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -549,6 +594,7 @@ function QuickToggle({
   onToggle,
   color = Colors.primary,
   premium = false,
+  onInfo,
 }: {
   icon: string;
   label: string;
@@ -557,6 +603,7 @@ function QuickToggle({
   onToggle: (v: boolean) => void;
   color?: string;
   premium?: boolean;
+  onInfo?: () => void;
 }) {
   return (
     <View style={styles.toggleItem}>
@@ -575,6 +622,19 @@ function QuickToggle({
         </View>
         <Text style={styles.toggleDescription}>{description}</Text>
       </View>
+      {onInfo && (
+        <TouchableOpacity
+          onPress={onInfo}
+          hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
+          style={styles.infoButton}
+        >
+          <MaterialCommunityIcons
+            name="information-outline"
+            size={17}
+            color={Colors.light.textSecondary}
+          />
+        </TouchableOpacity>
+      )}
       <Switch
         value={value}
         onValueChange={onToggle}
@@ -809,11 +869,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  quickActionLabel: {
+  quickActionTextGroup: {
     flex: 1,
+  },
+  quickActionLabel: {
     fontSize: 13,
     fontWeight: '500',
     color: Colors.light.text,
+  },
+  quickActionDesc: {
+    fontSize: 11,
+    color: Colors.light.textSecondary,
+    marginTop: 1,
   },
   quickActionDivider: {
     height: 1,
@@ -976,6 +1043,56 @@ const styles = StyleSheet.create({
   tabBarTarget: {
     height: 10,
     marginTop: Spacing.xl,
+  },
+
+  // Info button (ⓘ)
+  infoButton: {
+    padding: 2,
+    marginRight: 4,
+  },
+  // Tooltip Modal
+  tooltipOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.xl,
+  },
+  tooltipCard: {
+    backgroundColor: Colors.light.card,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    width: '100%',
+    gap: Spacing.md,
+  },
+  tooltipHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  tooltipTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.light.text,
+    flex: 1,
+  },
+  tooltipText: {
+    fontSize: 14,
+    color: Colors.light.textSecondary,
+    lineHeight: 21,
+  },
+  tooltipClose: {
+    alignSelf: 'flex-end',
+    marginTop: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+  },
+  tooltipCloseText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
   },
 
   // Screen Time Card

@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
+  Modal,
   ScrollView,
   StyleSheet,
   Switch,
@@ -32,6 +33,7 @@ interface SettingItemProps {
   onPress: () => void;
   color?: string;
   showArrow?: boolean;
+  onInfo?: () => void;
 }
 
 function SettingItem({
@@ -41,6 +43,7 @@ function SettingItem({
   onPress,
   color = Colors.primary,
   showArrow = true,
+  onInfo,
 }: SettingItemProps) {
   return (
     <TouchableOpacity style={styles.settingItem} onPress={onPress}>
@@ -51,6 +54,19 @@ function SettingItem({
         <Text style={styles.settingTitle}>{title}</Text>
         {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
       </View>
+      {onInfo && (
+        <TouchableOpacity
+          onPress={(e) => { e.stopPropagation(); onInfo(); }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 4 }}
+          style={styles.infoButton}
+        >
+          <MaterialCommunityIcons
+            name="information-outline"
+            size={18}
+            color={Colors.light.textSecondary}
+          />
+        </TouchableOpacity>
+      )}
       {showArrow && (
         <MaterialCommunityIcons
           name="chevron-right"
@@ -67,6 +83,7 @@ export default function SettingsScreen() {
   const { requireFeature: requireBrowserControl } = usePremiumFeature('browser_control');
   const [readingModeEnabled, setReadingModeEnabled] = useState(false);
   const [browserEnabled, setBrowserEnabled] = useState(true);
+  const [tooltip, setTooltip] = useState<{ title: string; text: string } | null>(null);
 
   useEffect(() => {
     StorageService.getSettings().then((settings) => {
@@ -158,7 +175,7 @@ export default function SettingsScreen() {
           <SettingItem
             icon="shield-lock"
             title="Sites et mots-clés bloqués"
-            subtitle="Gérer la liste de blocage"
+            subtitle="Choisir quels sites ou mots sont interdits à votre enfant"
             onPress={() => router.push('/parent/settings/blocklist')}
           />
           <View style={styles.divider} />
@@ -172,14 +189,14 @@ export default function SettingsScreen() {
           <SettingItem
             icon="clock-time-four-outline"
             title={translations.screenTime.title}
-            subtitle="Voir l'usage et définir une limite"
+            subtitle="Voir combien de temps l'enfant navigue et fixer une limite"
             onPress={() => router.push('/parent/screen-time' as any)}
           />
           <View style={styles.divider} />
           <SettingItem
             icon="clock-outline"
             title="Restrictions horaires"
-            subtitle="Définir les heures autorisées"
+            subtitle="L'app se bloque automatiquement hors des créneaux autorisés"
             onPress={() => router.push('/parent/settings/schedule')}
           />
           <View style={styles.divider} />
@@ -195,6 +212,20 @@ export default function SettingsScreen() {
                   : translations.readingMode.disabled}
               </Text>
             </View>
+            <TouchableOpacity
+              onPress={() => setTooltip({
+                title: 'Mode lecture',
+                text: "Le mode lecture simplifie l'affichage des pages web : il supprime les publicités, les images inutiles et les distractions.\n\nL'enfant peut lire des articles sans être exposé à des contenus parasites.",
+              })}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 4 }}
+              style={styles.infoButton}
+            >
+              <MaterialCommunityIcons
+                name="information-outline"
+                size={18}
+                color={Colors.light.textSecondary}
+              />
+            </TouchableOpacity>
             <Switch
               value={readingModeEnabled}
               onValueChange={handleToggleReadingMode}
@@ -223,6 +254,20 @@ export default function SettingsScreen() {
                   : translations.browserToggle.disabled}
               </Text>
             </View>
+            <TouchableOpacity
+              onPress={() => setTooltip({
+                title: 'Navigateur web',
+                text: "Quand le navigateur est activé, l'enfant peut naviguer sur internet (avec les filtres actifs).\n\nDésactivez-le pour supprimer complètement l'accès web : l'enfant ne pourra plus ouvrir de site, même ceux de la liste blanche.\n\nUtile le soir, pendant les devoirs ou les repas.",
+              })}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 4 }}
+              style={styles.infoButton}
+            >
+              <MaterialCommunityIcons
+                name="information-outline"
+                size={18}
+                color={Colors.light.textSecondary}
+              />
+            </TouchableOpacity>
             <Switch
               value={browserEnabled}
               onValueChange={handleToggleBrowser}
@@ -245,8 +290,12 @@ export default function SettingsScreen() {
           <SettingItem
             icon="cellphone-lock"
             title="Verrouillage app"
-            subtitle="Empêcher la sortie de l'application"
+            subtitle="L'enfant ne peut pas quitter l'app ni changer d'application"
             onPress={() => router.push('/parent/settings/kiosk')}
+            onInfo={() => setTooltip({
+              title: 'Verrouillage app',
+              text: "Quand cette option est activée, l'enfant est bloqué dans MuslimGuard : il ne peut pas appuyer sur le bouton Accueil, changer d'application ou voir la barre de notifications.\n\nPour sortir du mode enfant, saisissez votre code PIN parent.",
+            })}
           />
         </Card>
 
@@ -256,7 +305,7 @@ export default function SettingsScreen() {
           <SettingItem
             icon="mosque"
             title="Paramètres de prière"
-            subtitle="Ville, méthode de calcul, pause automatique"
+            subtitle="L'app se met en pause automatiquement à l'heure de la prière"
             onPress={() => router.push('/parent/settings/prayer')}
           />
         </Card>
@@ -344,6 +393,37 @@ export default function SettingsScreen() {
           />
         </Card>
       </ScrollView>
+      {/* Tooltip Modal */}
+      <Modal
+        visible={tooltip !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setTooltip(null)}
+      >
+        <TouchableOpacity
+          style={styles.tooltipOverlay}
+          activeOpacity={1}
+          onPress={() => setTooltip(null)}
+        >
+          <View style={styles.tooltipCard}>
+            <View style={styles.tooltipHeader}>
+              <MaterialCommunityIcons
+                name="information"
+                size={20}
+                color={Colors.primary}
+              />
+              <Text style={styles.tooltipTitle}>{tooltip?.title}</Text>
+            </View>
+            <Text style={styles.tooltipText}>{tooltip?.text}</Text>
+            <TouchableOpacity
+              style={styles.tooltipClose}
+              onPress={() => setTooltip(null)}
+            >
+              <Text style={styles.tooltipCloseText}>Compris</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -435,5 +515,53 @@ const styles = StyleSheet.create({
   dangerSection: {
     marginTop: Spacing.xl,
     borderColor: Colors.error + '30',
+  },
+  infoButton: {
+    padding: 2,
+    marginRight: 4,
+  },
+  // Tooltip Modal
+  tooltipOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.xl,
+  },
+  tooltipCard: {
+    backgroundColor: Colors.light.card,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    width: '100%',
+    gap: Spacing.md,
+  },
+  tooltipHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  tooltipTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.light.text,
+    flex: 1,
+  },
+  tooltipText: {
+    fontSize: 14,
+    color: Colors.light.textSecondary,
+    lineHeight: 21,
+  },
+  tooltipClose: {
+    alignSelf: 'flex-end',
+    marginTop: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+  },
+  tooltipCloseText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
   },
 });

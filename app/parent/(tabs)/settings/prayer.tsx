@@ -20,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Card } from '@/components/ui/card';
+import { InfoBanner } from '@/components/ui/info-banner';
 import { StorageService } from '@/services/storage.service';
 import { PrayerService } from '@/services/prayer.service';
 import { GeocodingService, CitySearchResult } from '@/services/geocoding.service';
@@ -146,6 +147,12 @@ export default function PrayerSettingsScreen() {
           <Text style={styles.title}>{t.title}</Text>
           <View style={styles.placeholder} />
         </View>
+
+        {/* Info Banner */}
+        <InfoBanner
+          icon="mosque"
+          text="Configurez votre ville pour que l'app connaisse les horaires de prière exacts. Elle peut ensuite bloquer automatiquement la navigation pendant le temps de prière."
+        />
 
         {/* City Selection */}
         <Text style={styles.sectionTitle}>{t.city}</Text>
