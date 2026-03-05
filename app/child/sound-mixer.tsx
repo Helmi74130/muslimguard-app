@@ -8,10 +8,12 @@ import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { Audio } from 'expo-av';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useCallback, useRef, useState } from 'react';
 import {
   Dimensions,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -203,17 +205,25 @@ export default function SoundMixerScreen() {
   const activeCount = activeSounds.size;
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+      {/* Hero image */}
+      <View style={styles.heroImageWrapper}>
+        <Image
+          source={require('@/assets/images/cascade.jpg')}
+          style={styles.heroImage}
+          resizeMode="cover"
+        />
+        <LinearGradient
+          colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.55)']}
+          style={StyleSheet.absoluteFill}
+        />
+        <Pressable onPress={() => router.back()} style={styles.backBtnOnImage}>
+          <MaterialCommunityIcons name="arrow-left" size={24} color="#FFFFFF" />
         </Pressable>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Sons relaxants</Text>
-          <Text style={styles.headerSubtitle}>Mélange tes sons préférés</Text>
+        <View style={styles.imageTitleContainer}>
+          <Text style={styles.heroTitleOnImage}>Sons relaxants</Text>
+          <Text style={styles.heroSubtitleOnImage}>Mélange tes sons préférés</Text>
         </View>
-        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView
@@ -305,39 +315,53 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.05)',
   },
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+  // Hero image
+  heroImageWrapper: {
+    width: '100%',
+    height: SCREEN_WIDTH * 0.38,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: 'hidden',
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.full,
-    backgroundColor: '#FFFFFF',
+  heroImage: {
+    width: '100%',
+    height: '100%',
+  },
+  backBtnOnImage: {
+    position: 'absolute',
+    top: 48,
+    left: 16,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    backgroundColor: 'rgba(0,0,0,0.28)',
+    borderRadius: 22,
   },
-  headerCenter: {
-    flex: 1,
+  imageTitleContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
     alignItems: 'center',
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.primary,
+  heroTitleOnImage: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
-  headerSubtitle: {
-    fontSize: 13,
-    color: Colors.light.textSecondary,
-    marginTop: 2,
+  heroSubtitleOnImage: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 4,
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   // Grid
   grid: {
