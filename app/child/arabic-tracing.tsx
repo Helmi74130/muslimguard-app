@@ -40,9 +40,11 @@ export default function ArabicTracingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [paths, setPaths] = useState<TracePath[]>([]);
   const [penColor, setPenColor] = useState(PEN_COLORS[0]);
+  const [activeDisplay, setActiveDisplay] = useState<string | null>(null);
   const currentPathRef = useRef<SkPath | null>(null);
 
   const letter: ArabicLetter = ARABIC_ALPHABET[currentIndex];
+  const displayText = activeDisplay ?? letter.letter;
   const progress = `${currentIndex + 1} / ${ARABIC_ALPHABET.length}`;
 
   const speakLetter = useCallback(() => {
@@ -77,6 +79,7 @@ export default function ArabicTracingScreen() {
     if (currentIndex > 0) {
       const newIndex = currentIndex - 1;
       setCurrentIndex(newIndex);
+      setActiveDisplay(null);
       handleClear();
       Speech.stop();
       Speech.speak(ARABIC_ALPHABET[newIndex].letter, { language: 'ar', rate: 0.7, pitch: 0.8 });
@@ -87,6 +90,7 @@ export default function ArabicTracingScreen() {
     if (currentIndex < ARABIC_ALPHABET.length - 1) {
       const newIndex = currentIndex + 1;
       setCurrentIndex(newIndex);
+      setActiveDisplay(null);
       handleClear();
       Speech.stop();
       Speech.speak(ARABIC_ALPHABET[newIndex].letter, { language: 'ar', rate: 0.7, pitch: 0.8 });
@@ -124,7 +128,9 @@ export default function ArabicTracingScreen() {
       <View style={styles.canvasWrapper}>
         {/* Guide letter behind canvas */}
         <View style={styles.guideLetterContainer} pointerEvents="none">
-          <Text style={styles.guideLetter}>{letter.letter}</Text>
+          <Text style={[styles.guideLetter, activeDisplay !== null && styles.guideLetterActive]}>
+            {displayText}
+          </Text>
         </View>
 
         {/* Touch canvas overlay */}
@@ -181,6 +187,46 @@ export default function ArabicTracingScreen() {
             )}
           </Pressable>
         ))}
+      </View>
+
+      {/* Letter Forms + Word Example */}
+      <View style={styles.infoSection}>
+        {/* 4 forms */}
+        <View style={styles.formsRow}>
+          {[
+            { label: 'Isolée', form: letter.forms.isolated },
+            { label: 'Fin', form: letter.forms.final },
+            { label: 'Milieu', form: letter.forms.medial },
+            { label: 'Début', form: letter.forms.initial },
+          ].map(({ label, form }) => {
+            const isActive = activeDisplay === form;
+            return (
+              <Pressable
+                key={label}
+                style={[styles.formCard, isActive && styles.formCardActive]}
+                onPress={() => { setActiveDisplay(isActive ? null : form); handleClear(); }}
+              >
+                <Text style={[styles.formLetter, isActive && styles.formLetterActive]}>{form}</Text>
+                <Text style={[styles.formLabel, isActive && styles.formLabelActive]}>{label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* Word example */}
+        {(() => {
+          const isWordActive = activeDisplay === letter.exampleWord;
+          return (
+            <Pressable
+              style={[styles.wordCard, isWordActive && styles.wordCardActive]}
+              onPress={() => { setActiveDisplay(isWordActive ? null : letter.exampleWord); handleClear(); }}
+            >
+              <Text style={[styles.wordArabic, isWordActive && styles.wordArabicActive]}>{letter.exampleWord}</Text>
+              <Text style={styles.wordArrow}>→</Text>
+              <Text style={[styles.wordMeaning, isWordActive && styles.wordMeaningActive]}>{letter.exampleMeaning}</Text>
+            </Pressable>
+          );
+        })()}
       </View>
 
       {/* Navigation */}
@@ -323,6 +369,10 @@ const styles = StyleSheet.create({
     color: '#E2E8F0',
     fontWeight: '300',
   },
+  guideLetterActive: {
+    fontSize: CANVAS_SIZE * 0.45,
+    color: '#BFDBFE',
+  },
   canvasOverlay: {
     ...StyleSheet.absoluteFillObject,
   },
@@ -367,6 +417,89 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     transform: [{ scale: 1.15 }],
+  },
+
+  // Forms + Word Example
+  infoSection: {
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  formsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+  },
+  formCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.sm,
+    alignItems: 'center',
+    gap: 2,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+  },
+  formCardActive: {
+    backgroundColor: Colors.primary,
+    elevation: 4,
+    transform: [{ scale: 1.05 }],
+  },
+  formLetter: {
+    fontSize: 22,
+    color: Colors.primary,
+    fontWeight: '700',
+    writingDirection: 'rtl',
+  },
+  formLetterActive: {
+    color: '#FFFFFF',
+  },
+  formLabel: {
+    fontSize: 10,
+    color: '#94A3B8',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  formLabelActive: {
+    color: '#BFDBFE',
+  },
+  wordCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EFF6FF',
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  wordCardActive: {
+    backgroundColor: Colors.primary,
+  },
+  wordArabic: {
+    fontSize: 22,
+    color: Colors.primary,
+    fontWeight: '700',
+    writingDirection: 'rtl',
+  },
+  wordArabicActive: {
+    color: '#FFFFFF',
+  },
+  wordArrow: {
+    fontSize: 16,
+    color: '#94A3B8',
+  },
+  wordMeaning: {
+    fontSize: 15,
+    color: '#475569',
+    fontWeight: '600',
+    fontStyle: 'italic',
+  },
+  wordMeaningActive: {
+    color: '#BFDBFE',
   },
 
   // Navigation

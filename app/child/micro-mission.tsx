@@ -998,7 +998,7 @@ const styles = StyleSheet.create({
   // Hero image parchemin
   heroImageWrapper: {
     width: '100%',
-    height: SCREEN_HEIGHT * 0.38,
+    height: SCREEN_HEIGHT * 0.28,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     overflow: 'hidden',
