@@ -341,6 +341,41 @@ const MISSIONS: Mission[] = [
     color: '#6366F1',
   },
   {
+    text: 'Fais semblant d\'être un robot qui n\'a presque plus de batterie : ralentis de plus en plus...',
+    icon: 'robot-dead',
+    color: '#F59E0B',
+  },
+  {
+    text: 'Imagine que le sol est devenu de la guimauve toute molle et collante à chaque pas.',
+    icon: 'candycane',
+    color: '#EC4899',
+  },
+  {
+    text: 'Mime que tu essaies d\'attraper une mouche invisible et très agaçante autour de toi.',
+    icon: 'bug',
+    color: '#84CC16',
+  },
+  {
+    text: 'Fais comme si tu marchais sur des œufs sans vouloir les casser : tout doucement !',
+    icon: 'egg-easter',
+    color: '#FACC15',
+  },
+  {
+    text: 'Mime que tu manges un citron super acide : ta tête doit se transformer !',
+    icon: 'fruit-citrus',
+    color: '#EAB308',
+  },
+  {
+    text: 'Fais semblant d\'entrer dans une piscine d\'eau glacée : Brrr, ça pique !',
+    icon: 'snowflake',
+    color: '#06B6D4',
+  },
+  {
+    text: 'Agis comme si tes mains étaient devenues des aimants qui s\'attirent très fort.',
+    icon: 'magnet',
+    color: '#EF4444',
+  },
+  {
     text: 'Prends une feuille de papier et un livre. Lâche-les en même temps. Lequel touche le sol en premier ?',
     icon: 'book-open-variant',
     color: '#EF4444',

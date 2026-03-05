@@ -8,10 +8,13 @@ import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { translations as t } from '@/constants/translations';
 import { NextPrayerInfo, PrayerService, PrayerTimeInfo } from '@/services/prayer.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Dimensions,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -19,6 +22,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // Prayer icons and colors for each prayer
 const PRAYER_CONFIG: Record<string, {
@@ -119,17 +124,43 @@ export default function PrayerTimesScreen() {
   const displayPrayers = prayerTimes?.filter(p => p.name !== 'sunrise') || [];
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+      {/* Hero image */}
+      <View style={styles.heroImageWrapper}>
+        <Image
+          source={require('@/assets/images/priere.jpg')}
+          style={styles.heroImage}
+          resizeMode="cover"
+        />
+        <LinearGradient
+          colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.65)']}
+          style={StyleSheet.absoluteFill}
+        />
+        <Pressable onPress={() => router.back()} style={styles.backBtnOnImage}>
+          <MaterialCommunityIcons name="arrow-left" size={24} color="#FFFFFF" />
         </Pressable>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>{t.prayer.title}</Text>
-          {hijriDate ? <Text style={styles.hijriDate}>{hijriDate}</Text> : null}
+        <View style={styles.imageTitleContainer}>
+          <Text style={styles.heroTitleOnImage}>{t.prayer.title}</Text>
+          {hijriDate ? <Text style={styles.hijriDateOnImage}>{hijriDate}</Text> : null}
+          {!loading && nextPrayer && (
+            <View style={styles.nextPrayerBlock}>
+              <Text style={styles.nextPrayerLabel}>{t.prayer.nextPrayer}</Text>
+              <View style={styles.nextPrayerRow}>
+                <MaterialCommunityIcons
+                  name={getConfig(nextPrayer.name).icon}
+                  size={22}
+                  color="#FFFFFF"
+                />
+                <Text style={styles.nextPrayerName}>{nextPrayer.nameFr}</Text>
+                <Text style={styles.nextPrayerTime}>{nextPrayer.timeFormatted}</Text>
+              </View>
+              <View style={styles.countdownPill}>
+                <MaterialCommunityIcons name="clock-outline" size={14} color="rgba(255,255,255,0.85)" />
+                <Text style={styles.countdownText}>{countdown}</Text>
+              </View>
+            </View>
+          )}
         </View>
-        <View style={{ width: 40 }} />
       </View>
 
       {loading ? (
@@ -147,26 +178,6 @@ export default function PrayerTimesScreen() {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          {/* Next Prayer Hero Card */}
-          {nextPrayer && (
-            <View style={styles.heroCard}>
-              <View style={styles.heroIconContainer}>
-                <MaterialCommunityIcons
-                  name={getConfig(nextPrayer.name).icon}
-                  size={40}
-                  color="#FFFFFF"
-                />
-              </View>
-              <Text style={styles.heroLabel}>{t.prayer.nextPrayer}</Text>
-              <Text style={styles.heroName}>{nextPrayer.nameFr}</Text>
-              <Text style={styles.heroTime}>{nextPrayer.timeFormatted}</Text>
-              <View style={styles.countdownContainer}>
-                <MaterialCommunityIcons name="clock-outline" size={18} color="rgba(255,255,255,0.8)" />
-                <Text style={styles.countdownText}>{countdown}</Text>
-              </View>
-            </View>
-          )}
-
           {/* All Prayers List */}
           <Text style={styles.sectionTitle}>Prières du jour</Text>
 
@@ -233,39 +244,102 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F0F4FF',
   },
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+  // Hero image
+  heroImageWrapper: {
+    width: '100%',
+    height: SCREEN_WIDTH * 0.62,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: 'hidden',
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.full,
-    backgroundColor: '#FFFFFF',
+  heroImage: {
+    width: '100%',
+    height: '100%',
+  },
+  backBtnOnImage: {
+    position: 'absolute',
+    top: 48,
+    left: 16,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    backgroundColor: 'rgba(0,0,0,0.28)',
+    borderRadius: 22,
   },
-  headerCenter: {
-    flex: 1,
+  imageTitleContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
     alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.primary,
+  heroTitleOnImage: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
-  hijriDate: {
+  hijriDateOnImage: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
+    color: 'rgba(255,255,255,0.8)',
     marginTop: 2,
+    marginBottom: 12,
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  nextPrayerBlock: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 16,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    marginTop: 4,
+  },
+  nextPrayerLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.7)',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  nextPrayerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  nextPrayerName: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  nextPrayerTime: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.9)',
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  countdownPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 6,
+  },
+  countdownText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   // Loading
   loadingContainer: {
@@ -295,60 +369,6 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.md,
     paddingBottom: Spacing.xxl,
-  },
-  // Hero Card (Next Prayer)
-  heroCard: {
-    backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.lg,
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-    elevation: 6,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  heroIconContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.sm,
-  },
-  heroLabel: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  heroName: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  heroTime: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.9)',
-    marginBottom: Spacing.sm,
-  },
-  countdownContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
-    gap: 6,
-  },
-  countdownText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
   // Section
   sectionTitle: {
