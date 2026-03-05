@@ -13,13 +13,17 @@ import {
   Dimensions,
   ScrollView,
   Animated,
+  Image,
+  ImageSourcePropType,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
+import { Colors, Spacing } from '@/constants/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_MARGIN = 16;
+const IMAGE_HEIGHT = Math.min(210, Math.round((SCREEN_WIDTH - CARD_MARGIN * 2) * 9 / 16));
 
 // --- Wudu Steps Data ---
 
@@ -28,112 +32,83 @@ interface WuduStep {
   title: string;
   description: string;
   detail: string;
-  emoji: string;
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
-  repeat: number; // 0 = no repeat indicator
+  image: ImageSourcePropType;
+  repeat: number;
   color: string;
-  colorLight: string;
 }
 
 const WUDU_STEPS: WuduStep[] = [
   {
     id: 0,
     title: 'L\'intention (Niyyah)',
-    description: 'Avant de commencer, fais l\'intention dans ton cœur de te purifier pour Allah.',
-    detail: 'Dis "Bismillah" (Au nom d\'Allah) avant de commencer les ablutions.',
-    emoji: '🤲',
-    icon: 'heart',
+    description: 'Tout commence dans ton cœur avant de toucher l\'eau.',
+    detail: 'L\'intention se fait dans le cœur et non avec la langue. Prépare-toi à te purifier pour Allah, puis dis simplement « Bismillah » avant de commencer.',
+    image: require('@/assets/wudu/step-0-niyyah.jpg'),
     repeat: 0,
     color: '#7C3AED',
-    colorLight: '#EDE9FE',
   },
   {
     id: 1,
     title: 'Laver les mains',
-    description: 'Lave tes deux mains jusqu\'aux poignets.',
-    detail: 'Commence par la main droite, puis la main gauche. Frotte bien entre les doigts.',
-    emoji: '🤲',
-    icon: 'hand-wave',
+    description: 'Lave tes mains trois fois jusqu\'aux poignets.',
+    detail: 'Lave bien tes deux mains jusqu\'aux poignets en commençant par la droite. C\'est aussi le moment d\'utiliser le Siwak comme le faisait le Prophète.',
+    image: require('@/assets/wudu/step-1-hand.jpg'),
     repeat: 3,
     color: '#2563EB',
-    colorLight: '#DBEAFE',
   },
   {
     id: 2,
-    title: 'Rincer la bouche',
-    description: 'Prends de l\'eau dans ta main droite et rince-toi la bouche.',
-    detail: 'Fais circuler l\'eau dans toute la bouche puis recrache-la.',
-    emoji: '💧',
-    icon: 'cup-water',
+    title: 'Rincer la bouche et le nez',
+    description: 'Rince ta bouche et ton nez avec la même poignée d\'eau.',
+    detail: 'Prends de l\'eau dans ta main droite. Utilise une partie pour rincer ta bouche et l\'autre partie pour l\'aspirer dans ton nez. Utilise ensuite ta main gauche pour rejeter l\'eau du nez.',
+    image: require('@/assets/wudu/step-2-mouth.jpg'),
     repeat: 3,
     color: '#0891B2',
-    colorLight: '#CFFAFE',
   },
   {
     id: 3,
-    title: 'Nettoyer le nez',
-    description: 'Aspire de l\'eau dans le nez avec la main droite, puis mouche-toi avec la main gauche.',
-    detail: 'Aspire doucement un peu d\'eau, puis expulse-la en te mouchant.',
-    emoji: '💨',
-    icon: 'weather-windy',
+    title: 'Laver le visage',
+    description: 'Lave tout ton visage, de l\'oreille gauche à l\'oreille droite.',
+    detail: 'Le visage s\'étend de la racine des cheveux jusqu\'au bas du menton, et d\'une oreille à l\'autre. L\'eau doit bien passer partout, même entre le nez et les yeux.',
+    image: require('@/assets/wudu/step-4-face.jpg'),
     repeat: 3,
-    color: '#059669',
-    colorLight: '#D1FAE5',
+    color: '#D97706',
   },
   {
     id: 4,
-    title: 'Laver le visage',
-    description: 'Lave tout le visage, du front au menton et d\'une oreille à l\'autre.',
-    detail: 'L\'eau doit couvrir tout le visage : du haut du front jusqu\'en bas du menton, et d\'une oreille à l\'autre.',
-    emoji: '😊',
-    icon: 'emoticon-outline',
+    title: 'Laver les bras',
+    description: 'Lave tes bras en incluant bien les coudes.',
+    detail: 'Commence par le bras droit, du bout des doigts jusqu\'au coude inclus. Fais la même chose pour le bras gauche. Il ne doit rester aucune zone sèche.',
+    image: require('@/assets/wudu/step-5-bras.jpg'),
     repeat: 3,
-    color: '#D97706',
-    colorLight: '#FEF3C7',
+    color: '#DC2626',
   },
   {
     id: 5,
-    title: 'Laver les avant-bras',
-    description: 'Lave les avant-bras du bout des doigts jusqu\'aux coudes.',
-    detail: 'Commence par le bras droit, puis le bras gauche. L\'eau doit couvrir jusqu\'au coude inclus.',
-    emoji: '💪',
-    icon: 'arm-flex',
-    repeat: 3,
-    color: '#DC2626',
-    colorLight: '#FEE2E2',
+    title: 'Essuyer la tête',
+    description: 'Passe tes mains mouillées sur l\'ensemble de ta tête.',
+    detail: 'Mouille tes mains, puis passe-les de ton front jusqu\'à ta nuque. Ensuite, ramène tes mains de la nuque vers ton front. Ce geste se fait une seule fois.',
+    image: require('@/assets/wudu/step-6-head.jpg'),
+    repeat: 1,
+    color: '#7C3AED',
   },
   {
     id: 6,
-    title: 'Essuyer la tête',
-    description: 'Passe tes mains mouillées sur ta tête, de l\'avant vers l\'arrière puis de l\'arrière vers l\'avant.',
-    detail: 'Mouille tes mains et passe-les du front à la nuque, puis ramène-les au front.',
-    emoji: '🧕',
-    icon: 'head-outline',
+    title: 'Essuyer les oreilles',
+    description: 'Essuie l\'intérieur et l\'extérieur de tes oreilles.',
+    detail: 'Sans reprendre d\'eau, utilise tes index pour essuyer l\'intérieur de tes oreilles et tes pouces pour essuyer l\'arrière des oreilles.',
+    image: require('@/assets/wudu/step-7-oreille.jpg'),
     repeat: 1,
-    color: '#7C3AED',
-    colorLight: '#EDE9FE',
+    color: '#0D9488',
   },
   {
     id: 7,
-    title: 'Essuyer les oreilles',
-    description: 'Avec tes doigts mouillés, essuie l\'intérieur et l\'extérieur des oreilles.',
-    detail: 'L\'index essuie l\'intérieur de l\'oreille, le pouce essuie l\'extérieur.',
-    emoji: '👂',
-    icon: 'ear-hearing',
-    repeat: 1,
-    color: '#0D9488',
-    colorLight: '#CCFBF1',
-  },
-  {
-    id: 8,
     title: 'Laver les pieds',
-    description: 'Lave les pieds jusqu\'aux chevilles, en frottant entre les orteils.',
-    detail: 'Commence par le pied droit, puis le pied gauche. N\'oublie pas de frotter entre les orteils.',
-    emoji: '🦶',
-    icon: 'shoe-print',
+    description: 'Lave tes pieds jusqu\'aux chevilles incluses.',
+    detail: 'Lave ton pied droit puis ton pied gauche. Assure-toi que l\'eau passe bien entre les orteils avec ton petit doigt et qu\'elle recouvre bien les talons et les chevilles.',
+    image: require('@/assets/wudu/step-8-foot.jpg'),
     repeat: 3,
     color: '#2563EB',
-    colorLight: '#DBEAFE',
   },
 ];
 
@@ -196,12 +171,10 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
 type ScreenMode = 'steps' | 'quiz' | 'result';
 
 export default function AblutionsScreen() {
-  // Steps state
   const [currentStep, setCurrentStep] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  // Quiz state
   const [screenMode, setScreenMode] = useState<ScreenMode>('steps');
   const [quizIndex, setQuizIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -230,7 +203,6 @@ export default function AblutionsScreen() {
 
   const goNext = () => {
     if (isLastStep) {
-      // Start quiz
       setScreenMode('quiz');
       setQuizIndex(0);
       setScore(0);
@@ -310,12 +282,15 @@ export default function AblutionsScreen() {
           <View
             style={[
               styles.progressFill,
-              { width: `${((currentStep + 1) / totalSteps) * 100}%` },
+              {
+                width: `${((currentStep + 1) / totalSteps) * 100}%`,
+                backgroundColor: WUDU_STEPS[currentStep].color,
+              },
             ]}
           />
         </View>
         <Text style={styles.progressText}>
-          {currentStep + 1} / {totalSteps}
+          {currentStep + 1}/{totalSteps}
         </Text>
       </View>
     );
@@ -338,12 +313,12 @@ export default function AblutionsScreen() {
             onPress={() => goToStep(index)}
             style={[
               styles.dot,
-              index === currentStep && styles.dotActive,
+              index === currentStep && [styles.dotActive, { backgroundColor: step.color }],
               index < currentStep && styles.dotDone,
             ]}
           >
             {index < currentStep ? (
-              <MaterialCommunityIcons name="check" size={12} color="#FFFFFF" />
+              <MaterialCommunityIcons name="check" size={11} color="#FFFFFF" />
             ) : (
               <Text
                 style={[
@@ -366,36 +341,32 @@ export default function AblutionsScreen() {
     const step = WUDU_STEPS[currentStep];
     return (
       <Animated.View style={[styles.stepCard, { opacity: fadeAnim }]}>
-        {/* Emoji + Icon */}
-        <View style={[styles.stepIconContainer, { backgroundColor: step.colorLight }]}>
-          <Text style={styles.stepEmoji}>{step.emoji}</Text>
-          <MaterialCommunityIcons name={step.icon} size={32} color={step.color} />
-        </View>
+        {/* Image pleine largeur 16/9 */}
+        <Image
+          source={step.image}
+          style={styles.stepImage}
+          resizeMode="cover"
+        />
 
-        {/* Title */}
-        <Text style={[styles.stepTitle, { color: step.color }]}>{step.title}</Text>
-
-        {/* Repeat badge */}
+        {/* Badge répétition flottant sur l'image */}
         {step.repeat > 0 && (
-          <View style={[styles.repeatBadge, { backgroundColor: step.color + '15' }]}>
-            <MaterialCommunityIcons name="repeat" size={16} color={step.color} />
-            <Text style={[styles.repeatText, { color: step.color }]}>
-              {step.repeat === 1 ? '1 fois' : `${step.repeat} fois`}
+          <View style={[styles.repeatBadge, { backgroundColor: step.color }]}>
+            <MaterialCommunityIcons name="repeat" size={13} color="#FFFFFF" />
+            <Text style={styles.repeatText}>
+              {step.repeat === 1 ? '1×' : `${step.repeat}×`}
             </Text>
           </View>
         )}
 
-        {/* Description */}
-        <Text style={styles.stepDescription}>{step.description}</Text>
+        {/* Contenu texte */}
+        <View style={styles.stepContent}>
+          <Text style={[styles.stepTitle, { color: step.color }]}>{step.title}</Text>
+          <Text style={styles.stepDescription}>{step.description}</Text>
 
-        {/* Detail box */}
-        <View style={[styles.detailBox, { borderLeftColor: step.color }]}>
-          <MaterialCommunityIcons
-            name="lightbulb-outline"
-            size={18}
-            color={step.color}
-          />
-          <Text style={styles.detailText}>{step.detail}</Text>
+          <View style={[styles.detailBox, { borderLeftColor: step.color }]}>
+            <MaterialCommunityIcons name="lightbulb-outline" size={16} color={step.color} />
+            <Text style={styles.detailText}>{step.detail}</Text>
+          </View>
         </View>
       </Animated.View>
     );
@@ -409,30 +380,27 @@ export default function AblutionsScreen() {
     return (
       <View style={styles.navContainer}>
         <Pressable
-          style={[styles.navButton, styles.navButtonPrev, currentStep === 0 && styles.navButtonDisabled]}
+          style={[styles.navButtonPrev, currentStep === 0 && styles.navButtonDisabled]}
           onPress={goPrev}
           disabled={currentStep === 0}
         >
           <MaterialCommunityIcons
             name="chevron-left"
-            size={24}
-            color={currentStep === 0 ? '#CCC' : Colors.primary}
+            size={22}
+            color={currentStep === 0 ? '#C0C0C0' : '#64748B'}
           />
-          <Text style={[styles.navButtonText, currentStep === 0 && styles.navButtonTextDisabled]}>
-            Précédent
-          </Text>
         </Pressable>
 
         <Pressable
-          style={[styles.navButton, styles.navButtonNext, { backgroundColor: step.color }]}
+          style={[styles.navButtonNext, { backgroundColor: step.color }]}
           onPress={goNext}
         >
           <Text style={styles.navButtonNextText}>
-            {isLastStep ? 'Passer le quiz !' : 'Suivant'}
+            {isLastStep ? 'Passer le quiz !' : 'Étape suivante'}
           </Text>
           <MaterialCommunityIcons
-            name={isLastStep ? 'head-question' : 'chevron-right'}
-            size={24}
+            name={isLastStep ? 'head-question' : 'arrow-right'}
+            size={20}
             color="#FFFFFF"
           />
         </Pressable>
@@ -446,24 +414,21 @@ export default function AblutionsScreen() {
     const q = QUIZ_QUESTIONS[quizIndex];
     return (
       <View style={styles.quizContainer}>
-        {/* Quiz progress */}
         <View style={styles.quizProgress}>
           <Text style={styles.quizProgressText}>
             Question {quizIndex + 1} / {QUIZ_QUESTIONS.length}
           </Text>
           <View style={styles.quizScoreBadge}>
-            <MaterialCommunityIcons name="star" size={16} color="#F59E0B" />
+            <MaterialCommunityIcons name="star" size={15} color="#F59E0B" />
             <Text style={styles.quizScoreText}>{score}</Text>
           </View>
         </View>
 
-        {/* Question */}
         <View style={styles.questionCard}>
-          <MaterialCommunityIcons name="help-circle" size={28} color={Colors.primary} />
+          <MaterialCommunityIcons name="help-circle" size={26} color={Colors.primary} />
           <Text style={styles.questionText}>{q.question}</Text>
         </View>
 
-        {/* Options */}
         <View style={styles.optionsContainer}>
           {q.options.map((option, index) => {
             const isSelected = selectedAnswer === index;
@@ -498,7 +463,7 @@ export default function AblutionsScreen() {
                 {iconName && (
                   <MaterialCommunityIcons
                     name={iconName}
-                    size={22}
+                    size={20}
                     color={isCorrect ? '#059669' : '#DC2626'}
                   />
                 )}
@@ -507,13 +472,12 @@ export default function AblutionsScreen() {
           })}
         </View>
 
-        {/* Next question button */}
         {showAnswer && (
           <Pressable style={styles.nextQuestionButton} onPress={nextQuestion}>
             <Text style={styles.nextQuestionText}>
               {quizIndex < QUIZ_QUESTIONS.length - 1 ? 'Question suivante' : 'Voir le résultat'}
             </Text>
-            <MaterialCommunityIcons name="arrow-right" size={20} color="#FFFFFF" />
+            <MaterialCommunityIcons name="arrow-right" size={18} color="#FFFFFF" />
           </Pressable>
         )}
       </View>
@@ -530,17 +494,14 @@ export default function AblutionsScreen() {
 
     return (
       <View style={styles.resultContainer}>
-        <View style={[styles.resultCard, { backgroundColor: isGood ? '#D1FAE5' : '#FEF3C7' }]}>
-          <Text style={styles.resultEmoji}>
-            {isPerfect ? '🌟' : isGood ? '👏' : '💪'}
-          </Text>
+        <View style={[styles.resultCard, { borderTopColor: isGood ? '#059669' : '#F59E0B', borderTopWidth: 4 }]}>
+          <Text style={styles.resultPercent}>{percentage}%</Text>
           <Text style={styles.resultTitle}>
             {isPerfect ? 'Excellent !' : isGood ? 'Bravo !' : 'Continue d\'apprendre !'}
           </Text>
           <Text style={styles.resultScore}>
             {score} / {total} bonnes réponses
           </Text>
-          <Text style={styles.resultPercent}>{percentage}%</Text>
           <Text style={styles.resultMessage}>
             {isPerfect
               ? 'Tu connais parfaitement les étapes des ablutions, masha Allah !'
@@ -552,11 +513,11 @@ export default function AblutionsScreen() {
 
         <View style={styles.resultButtons}>
           <Pressable style={styles.resultButtonSecondary} onPress={restartAll}>
-            <MaterialCommunityIcons name="book-open-variant" size={20} color={Colors.primary} />
+            <MaterialCommunityIcons name="book-open-variant" size={18} color={Colors.primary} />
             <Text style={styles.resultButtonSecondaryText}>Revoir les étapes</Text>
           </Pressable>
           <Pressable style={styles.resultButtonPrimary} onPress={restartQuiz}>
-            <MaterialCommunityIcons name="refresh" size={20} color="#FFFFFF" />
+            <MaterialCommunityIcons name="refresh" size={18} color="#FFFFFF" />
             <Text style={styles.resultButtonPrimaryText}>Refaire le quiz</Text>
           </Pressable>
         </View>
@@ -571,7 +532,7 @@ export default function AblutionsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={handleBack} style={styles.backButton}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
+          <MaterialCommunityIcons name="arrow-left" size={22} color="#1E293B" />
         </Pressable>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>
@@ -591,6 +552,7 @@ export default function AblutionsScreen() {
       {renderProgress()}
 
       <ScrollView
+        style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -614,11 +576,13 @@ export default function AblutionsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F0F4FF',
+    backgroundColor: '#F1F5F9',
+  },
+  scroll: {
+    flex: 1,
   },
   scrollContent: {
     paddingBottom: Spacing.lg,
-    flexGrow: 1,
   },
 
   // Header
@@ -626,60 +590,64 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    paddingTop: Spacing.sm,
+    paddingBottom: 6,
+    backgroundColor: '#F1F5F9',
   },
   backButton: {
     width: 40,
     height: 40,
-    borderRadius: BorderRadius.full,
+    borderRadius: 20,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
   },
   headerCenter: {
     flex: 1,
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
-    color: Colors.primary,
+    color: '#1E293B',
   },
   headerSubtitle: {
-    fontSize: 13,
-    color: Colors.light.textSecondary,
-    marginTop: 2,
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 1,
   },
 
   // Progress bar
   progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    marginTop: Spacing.sm,
-    gap: Spacing.sm,
+    paddingHorizontal: CARD_MARGIN,
+    marginTop: 6,
+    marginBottom: 2,
+    gap: 10,
   },
   progressBar: {
     flex: 1,
-    height: 6,
+    height: 4,
     backgroundColor: '#E2E8F0',
-    borderRadius: 3,
+    borderRadius: 2,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: Colors.primary,
-    borderRadius: 3,
+    borderRadius: 2,
   },
   progressText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
-    color: Colors.light.textSecondary,
+    color: '#94A3B8',
+    minWidth: 28,
+    textAlign: 'right',
   },
 
   // Dots
@@ -687,26 +655,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 8,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingHorizontal: CARD_MARGIN,
+    paddingTop: 10,
+    paddingBottom: 20,
   },
   dot: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: '#E2E8F0',
     alignItems: 'center',
     justifyContent: 'center',
   },
   dotActive: {
-    backgroundColor: Colors.primary,
     transform: [{ scale: 1.15 }],
   },
   dotDone: {
-    backgroundColor: '#059669',
+    backgroundColor: '#10B981',
   },
   dotText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: '#94A3B8',
   },
@@ -717,111 +685,104 @@ const styles = StyleSheet.create({
   // Step card
   stepCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: BorderRadius.xl,
-    marginHorizontal: Spacing.lg,
-    padding: Spacing.xl,
-    alignItems: 'center',
-    elevation: 3,
+    borderRadius: 20,
+    marginHorizontal: CARD_MARGIN,
+    marginTop: 10,
+    overflow: 'hidden',
+    elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.1,
-    shadowRadius: 6,
+    shadowRadius: 8,
   },
-  stepIconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.md,
-    flexDirection: 'row',
-    gap: 8,
-  },
-  stepEmoji: {
-    fontSize: 32,
-  },
-  stepTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: Spacing.sm,
+  stepImage: {
+    width: '100%',
+    height: IMAGE_HEIGHT,
   },
   repeatBadge: {
+    position: 'absolute',
+    top: IMAGE_HEIGHT - 18,
+    right: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.full,
-    marginBottom: Spacing.md,
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
   },
   repeatText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  stepContent: {
+    padding: Spacing.lg,
+    paddingTop: 18,
+    paddingBottom: 20,
+  },
+  stepTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 8,
   },
   stepDescription: {
-    fontSize: 16,
-    color: Colors.light.text,
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: Spacing.md,
+    fontSize: 15,
+    color: '#475569',
+    lineHeight: 23,
+    marginBottom: 14,
   },
   detailBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: Spacing.sm,
+    gap: 8,
     backgroundColor: '#F8FAFC',
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
+    borderRadius: 12,
+    padding: 12,
     borderLeftWidth: 3,
-    width: '100%',
   },
   detailText: {
     flex: 1,
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-    lineHeight: 20,
+    fontSize: 13,
+    color: '#64748B',
+    lineHeight: 19,
   },
 
   // Navigation buttons
   navContainer: {
     flexDirection: 'row',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    gap: Spacing.md,
+    paddingHorizontal: CARD_MARGIN,
+    paddingTop: 14,
+    paddingBottom: 16,
+    gap: 10,
+    backgroundColor: '#F1F5F9',
   },
-  navButton: {
+  navButtonPrev: {
+    width: 48,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    elevation: 1,
+  },
+  navButtonDisabled: {
+    opacity: 0.4,
+  },
+  navButtonNext: {
+    flex: 1,
+    height: 52,
+    borderRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: BorderRadius.xl,
-    gap: 6,
-  },
-  navButtonPrev: {
-    flex: 0.4,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  navButtonNext: {
-    flex: 0.6,
+    gap: 8,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
-  },
-  navButtonDisabled: {
-    opacity: 0.5,
-  },
-  navButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  navButtonTextDisabled: {
-    color: '#CCC',
   },
   navButtonNextText: {
     fontSize: 15,
@@ -831,65 +792,65 @@ const styles = StyleSheet.create({
 
   // Quiz
   quizContainer: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
+    paddingHorizontal: CARD_MARGIN,
+    paddingTop: Spacing.sm,
   },
   quizProgress: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   quizProgressText: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.light.textSecondary,
+    color: '#64748B',
   },
   quizScoreBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: '#FEF3C7',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.full,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
   },
   quizScoreText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: '#D97706',
   },
   questionCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: BorderRadius.xl,
+    borderRadius: 16,
     padding: Spacing.lg,
     alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
+    gap: 8,
+    marginBottom: Spacing.md,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.06,
     shadowRadius: 4,
   },
   questionText: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '600',
-    color: Colors.light.text,
+    color: '#1E293B',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 23,
   },
   optionsContainer: {
-    gap: Spacing.sm,
+    gap: 8,
   },
   optionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 14,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 2,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1.5,
   },
   optionDefault: {
     backgroundColor: '#FFFFFF',
@@ -908,12 +869,12 @@ const styles = StyleSheet.create({
     borderColor: '#DC2626',
   },
   optionText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '500',
     flex: 1,
   },
   optionTextDefault: {
-    color: Colors.light.text,
+    color: '#334155',
   },
   optionTextSelected: {
     color: Colors.primary,
@@ -932,9 +893,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: Colors.primary,
     paddingVertical: 14,
-    borderRadius: BorderRadius.xl,
-    marginTop: Spacing.lg,
-    gap: Spacing.sm,
+    borderRadius: 14,
+    marginTop: Spacing.md,
+    gap: 8,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -949,48 +910,45 @@ const styles = StyleSheet.create({
 
   // Result
   resultContainer: {
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: CARD_MARGIN,
     paddingTop: Spacing.lg,
     flex: 1,
     justifyContent: 'center',
   },
   resultCard: {
-    borderRadius: BorderRadius.xl,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     padding: Spacing.xl,
     alignItems: 'center',
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 6,
   },
-  resultEmoji: {
-    fontSize: 56,
-    marginBottom: Spacing.md,
-  },
-  resultTitle: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: Colors.light.text,
-    marginBottom: Spacing.sm,
-  },
-  resultScore: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: Colors.light.textSecondary,
-    marginBottom: Spacing.xs,
-  },
   resultPercent: {
-    fontSize: 40,
+    fontSize: 52,
     fontWeight: '800',
     color: Colors.primary,
+    marginBottom: 4,
+  },
+  resultTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 6,
+  },
+  resultScore: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#64748B',
     marginBottom: Spacing.md,
   },
   resultMessage: {
-    fontSize: 15,
-    color: Colors.light.textSecondary,
+    fontSize: 14,
+    color: '#64748B',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 21,
   },
   resultButtons: {
     flexDirection: 'row',
@@ -1002,15 +960,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.sm,
+    gap: 6,
     paddingVertical: 14,
-    borderRadius: BorderRadius.xl,
+    borderRadius: 14,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#E2E8F0',
   },
   resultButtonSecondaryText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: Colors.primary,
   },
@@ -1019,9 +977,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.sm,
+    gap: 6,
     paddingVertical: 14,
-    borderRadius: BorderRadius.xl,
+    borderRadius: 14,
     backgroundColor: Colors.primary,
     elevation: 3,
     shadowColor: '#000',
@@ -1030,7 +988,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   resultButtonPrimaryText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#FFFFFF',
   },
