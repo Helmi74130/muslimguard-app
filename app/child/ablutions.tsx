@@ -51,7 +51,7 @@ const WUDU_STEPS: WuduStep[] = [
     id: 1,
     title: 'Laver les mains',
     description: 'Lave tes mains trois fois jusqu\'aux poignets.',
-    detail: 'Lave bien tes deux mains jusqu\'aux poignets en commençant par la droite. C\'est aussi le moment d\'utiliser le Siwak comme le faisait le Prophète.',
+    detail: 'Lave bien tes deux mains jusqu\'aux poignets en commençant par la droite. C\'est aussi le moment d\'utiliser le Siwak comme le faisait le Prophète. (Cheikh Otheimine mentionne qu’on l’utilise avant ou après le rinçage de la Bouche. )',
     image: require('@/assets/wudu/step-1-hand.jpg'),
     repeat: 3,
     color: '#2563EB',
@@ -69,7 +69,7 @@ const WUDU_STEPS: WuduStep[] = [
     id: 3,
     title: 'Laver le visage',
     description: 'Lave tout ton visage, de l\'oreille gauche à l\'oreille droite.',
-    detail: 'Le visage s\'étend de la racine des cheveux jusqu\'au bas du menton, et d\'une oreille à l\'autre. L\'eau doit bien passer partout, même entre le nez et les yeux.',
+    detail: 'Le visage s\'étend de la racine des cheveux jusqu\'au bas du menton, et d\'une oreille à l\'autre. L\'eau doit bien passer partout.',
     image: require('@/assets/wudu/step-4-face.jpg'),
     repeat: 3,
     color: '#D97706',
@@ -122,6 +122,417 @@ interface QuizQuestion {
 
 const QUIZ_QUESTIONS: QuizQuestion[] = [
   {
+    "question": "Où se situe l'intention (An-Niyya) pour les ablutions ?",
+    "options": ["Dans la bouche", "Dans le cœur", "Dans les gestes", "Elle n'est pas nécessaire"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Est-il permis de prononcer l'intention à voix haute (ex: 'Je vais faire mes ablutions') ?",
+    "options": ["Oui, c'est recommandé", "Seulement si on oublie", "Non, c'est une innovation (bid'a)", "Oui, mais à voix basse"],
+    "correctIndex": 2
+  },
+  {
+    "question": "Quelle est la formule exacte à dire avant de commencer selon la Sunna ?",
+    "options": ["Bismillah Ar-Rahman Ar-Rahim", "Bismillah", "Alhamdulillah", "Allahu Akbar"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quel outil est recommandé d'utiliser avant de commencer l'ablution ?",
+    "options": ["Le parfum", "Le Siwak", "Un gant de toilette", "Du savon"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Le lavage des deux mains au début est-il obligatoire ou une Sunna ?",
+    "options": ["Obligatoire (Fard)", "Une Sunna", "Interdit", "Seulement le vendredi"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Comment doit-on faire le rinçage de la bouche et du nez ?",
+    "options": ["Séparément avec deux mains", "Ensemble avec une seule poignée d'eau", "Seulement la bouche", "Seulement le nez"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quelle main utilise-t-on pour porter l'eau au nez ?",
+    "options": ["La main gauche", "La main droite", "Les deux mains", "Peu importe"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quelle main utilise-t-on pour se moucher (extraire l'eau du nez) ?",
+    "options": ["La main droite", "La main gauche", "Les deux mains", "On ne doit pas utiliser les mains"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quelle est la limite verticale du visage pour le lavage ?",
+    "options": ["Du front au menton", "De la racine des cheveux au menton", "Du nez au menton", "Tout le crâne"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quelle est la limite horizontale du visage ?",
+    "options": ["D'une joue à l'autre", "D'une oreille à l'autre", "Le contour des yeux", "La largeur de la bouche"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Doit-on laver la zone entre l'oreille et la barbe ?",
+    "options": ["Non, ce n'est pas le visage", "Oui, cela fait partie du visage", "Seulement si on a une barbe", "C'est facultatif"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quel est le nombre minimum de lavages obligatoires pour chaque membre ?",
+    "options": ["1 fois", "2 fois", "3 fois", "4 fois"],
+    "correctIndex": 0
+  },
+  {
+    "question": "Quel est le nombre maximum de lavages autorisés (sauf pour la tête) ?",
+    "options": ["2 fois", "3 fois", "5 fois", "7 fois"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Que dit on à celui qui lave ses membres plus de 3 fois ?",
+    "options": ["C'est mieux", "Il a dépassé les limites et mal agi", "C'est obligatoire en cas de saleté", "C'est une Sunna"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Jusqu'où faut-il laver les bras ?",
+    "options": ["Jusqu'au poignet", "Jusqu'au milieu de l'avant-bras", "Coudes inclus", "Jusqu'à l'épaule"],
+    "correctIndex": 2
+  },
+  {
+    "question": "Si on a lavé ses mains au début, doit-on les relaver avec les bras ?",
+    "options": ["Non, c'est déjà fait", "Oui, des doigts jusqu'au coude", "Seulement le coude", "C'est facultatif"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Comment doit-on passer ses doigts entre les doigts de la main ?",
+    "options": ["En les croisant (Takhlil)", "En les lavant un par un", "Ce n'est pas nécessaire", "Avec une brosse"],
+    "correctIndex": 0
+  },
+  {
+    "question": "Comment se fait l'essuyage de la tête ?",
+    "options": ["On verse de l'eau dessus", "On passe les mains humides du front vers la nuque puis retour", "On essuie uniquement le sommet", "On ne le fait pas"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Combien de fois essuie-t-on la tête ?",
+    "options": ["1 fois", "2 fois", "3 fois", "Comme le visage"],
+    "correctIndex": 0
+  },
+  {
+    "question": "Comment essuie-t-on les oreilles ?",
+    "options": ["Avec de l'eau nouvelle", "Index à l'intérieur et pouces à l'extérieur", "On les lave avec le visage", "Juste avec le plat de la main"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Les oreilles font-elles partie de la tête ou du visage ?",
+    "options": ["Du visage", "De la tête", "C'est un membre à part", "Elles sont facultatives"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Jusqu'où lave-t-on les pieds ?",
+    "options": ["Jusqu'aux orteils", "Jusqu'aux chevilles incluses", "Jusqu'aux genoux", "Juste la plante des pieds"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quels sont les deux os saillants au bas de la jambe qu'il faut inclure ?",
+    "options": ["Les rotules", "Les malléoles (chevilles)", "Les tibias", "Les fémurs"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quel doigt est recommandé pour passer entre les orteils ?",
+    "options": ["Le pouce droit", "L'auriculaire (petit doigt) gauche", "L'index droit", "Le majeur"],
+    "correctIndex": 1
+  },
+  {
+    "question": "L'ordre des membres (visage, puis bras, puis tête...) est-il obligatoire ?",
+    "options": ["Non, on peut mélanger", "Oui, c'est un pilier (Tartib)", "Seulement pour les prières obligatoires", "C'est une simple recommandation"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Que signifie 'Al-Muwalah' ?",
+    "options": ["Laver 3 fois", "Frotter fort", "L'enchaînement sans longue interruption", "L'intention"],
+    "correctIndex": 2
+  },
+  {
+    "question": "Si un membre sèche avant que l'on lave le suivant par négligence, que faire ?",
+    "options": ["Continuer normalement", "Recommencer toutes les ablutions", "Relave juste le dernier membre", "Faire le Tayammum"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Que dit-on à la fin des ablutions ?",
+    "options": ["Alhamdulillah", "L'attestation de foi (Ash-hadu an la ilaha illallah...)", "La Fatiha", "On ne dit rien"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quelle est la récompense citée pour celui qui fait l'invocation de fin ?",
+    "options": ["Il gagne de l'argent", "Les 8 portes du Paradis lui sont ouvertes", "Sa maison est protégée", "Il ne tombera pas malade"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Peut-on sécher ses membres avec une serviette après l'ablution ?",
+    "options": ["C'est interdit", "C'est obligatoire", "C'est autorisé (mubah)", "C'est détestable"],
+    "correctIndex": 2
+  },
+  {
+    "question": "Existe-t-il des invocations spécifiques pour chaque membre (ex: une pour le visage) ?",
+    "options": ["Oui, c'est la Sunna", "Non, ce sont des innovations", "Seulement pour les bras", "Seulement pour les pieds"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Peut-on faire les ablutions dans une piscine en se plongeant dedans ?",
+    "options": ["Oui, tout est lavé", "Non, car l'ordre (Tartib) n'est pas respecté", "Seulement si on bouge vite", "Oui, si l'eau est propre"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Est-il permis d'essuyer le cou (la nuque) ?",
+    "options": ["Oui, c'est une Sunna", "Non, c'est une erreur/innovation", "Seulement s'il fait chaud", "C'est obligatoire"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quel est le jugement sur le gaspillage de l'eau pendant l'ablution ?",
+    "options": ["C'est autorisé pour être propre", "C'est interdit (haram/makruh)", "C'est recommandé", "Ce n'est pas grave"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quelle quantité d'eau le Prophète utilisait-il pour l'ablution ?",
+    "options": ["Un seau", "Un 'Mudd' (environ une poignée double)", "10 litres", "Un verre d'eau"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Peut-on laver un membre 1 fois et un autre 2 fois dans la même ablution ?",
+    "options": ["Non, tout doit être égal", "Oui, c'est permis de varier", "Seulement en voyage", "Seulement pour le visage"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Le lavage entre les doigts est-il plus important pour celui qui a la peau serrée ou des maladies de peau ?",
+    "options": ["Non", "Oui, pour assurer que l'eau passe", "Seulement s'il a mal", "C'est interdit"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Qu'est-ce que le Tayammum ?",
+    "options": ["Lavage avec du parfum", "Ablution sèche avec de la terre/poussière", "Lavage avec du lait", "Prière sans ablution"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quand a-t-on recours au Tayammum ?",
+    "options": ["Quand on a la flemme", "En l'absence d'eau ou incapacité de l'utiliser", "Quand l'eau est trop froide", "Toujours le matin"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quelle est la première étape du Tayammum ?",
+    "options": ["Se laver les mains", "L'intention et dire 'Bismillah'", "Creuser un trou", "S'essuyer les pieds"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Combien de fois frappe-t-on le sol pour le Tayammum selon la Sunna ?",
+    "options": ["1 fois", "2 fois", "3 fois", "10 fois"],
+    "correctIndex": 0
+  },
+  {
+    "question": "Que fait-on après avoir frappé le sol ?",
+    "options": ["On frotte ses pieds", "On souffle sur ses mains pour enlever le surplus", "On mange la poussière", "On jette le sable en l'air"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quels membres essuie-t-on dans le Tayammum ?",
+    "options": ["Visage, bras et pieds", "Visage et mains (poignets)", "Seulement le front", "Tout le corps"],
+    "correctIndex": 1
+  },
+  {
+    "question": "L'ordre du Tayammum est-il : mains puis visage ou visage puis mains ?",
+    "options": ["Visage puis mains", "Mains puis visage", "Peu importe", "Simultanément"],
+    "correctIndex": 0
+  },
+  {
+    "question": "Le Tayammum remplace-t-il les grandes ablutions (Ghusl) en cas de besoin ?",
+    "options": ["Non, jamais", "Oui, avec la même méthode", "Seulement pour les femmes", "Il faut le faire 7 fois"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Si on a un plâtre (Jabira), doit-on l'enlever pour l'ablution ?",
+    "options": ["Oui, obligatoirement", "Non, on essuie par-dessus", "On ne fait pas d'ablution", "On demande à un médecin de le laver"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quelle partie du plâtre doit être essuyée ?",
+    "options": ["Uniquement le dessus", "La totalité du plâtre (360°)", "Juste un petit point", "Le dessous uniquement"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Faut-il être en état de pureté avant de mettre un plâtre pour pouvoir essuyer dessus ?",
+    "options": ["Oui", "Non, car c'est une urgence", "Seulement si c'est une jambe", "Seulement le vendredi"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Combien de temps peut-on essuyer sur un plâtre ?",
+    "options": ["24 heures", "3 jours", "Jusqu'à la guérison", "1 semaine"],
+    "correctIndex": 2
+  },
+  {
+    "question": "Si un membre est blessé et découvert, mais que l'eau est nocive, que faire ?",
+    "options": ["Laver quand même", "Essuyer directement la blessure avec de l'eau", "Faire le Tayammum pour cette partie", "Ignorer la blessure"],
+    "correctIndex": 2
+  },
+  {
+    "question": "Peut-on essuyer sur un pansement adhésif ?",
+    "options": ["Oui, comme le plâtre", "Non, il faut l'arracher", "Seulement s'il est blanc", "Seulement s'il est en tissu"],
+    "correctIndex": 0
+  },
+  {
+    "question": "Doit-on laver l'intérieur des yeux ?",
+    "options": ["Oui", "Non, c'est nocif et non requis", "Seulement si on a mis du khôl", "C'est obligatoire"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Pour une barbe épaisse, que doit-on faire ?",
+    "options": ["Ne pas la toucher", "Passer de l'eau en surface (et Takhlil est Sunna)", "La laver 10 fois", "Ne pas la toucher"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Si la barbe est fine et laisse voir la peau, que doit-on faire ?",
+    "options": ["Laver la peau en dessous", "Essuyer juste les poils", "Ne rien faire", "Mettre de l'huile"],
+    "correctIndex": 0
+  },
+  {
+    "question": "Quelle est l'erreur fréquente pour le lavage des bras ?",
+    "options": ["Laver trop vite", "Oublier de laver le coude", "Ne pas relaver les mains depuis les doigts", "Utiliser trop d'eau"],
+    "correctIndex": 2
+  },
+  {
+    "question": "Peut-on se faire aider par quelqu'un pour verser l'eau ?",
+    "options": ["Non, c'est interdit", "Oui, c'est permis", "Seulement si on est vieux", "Seulement le jour de l'Aïd"],
+    "correctIndex": 1
+  },
+  {
+    "question": "L'ablution est-elle une condition de validité de la prière ?",
+    "options": ["Non", "Oui, la prière n'est pas acceptée sans elle", "Seulement pour les adultes", "Seulement à la mosquée"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Comment doit être l'eau utilisée pour l'ablution ?",
+    "options": ["Pure et purifiante", "Parfumée", "Bouillie", "Salée obligatoirement"],
+    "correctIndex": 0
+  },
+  {
+    "question": "Si on doute avoir perdu l'ablution, que faire ?",
+    "options": ["Refaire l'ablution par sécurité", "Rester sur la certitude d'être pur", "Arrêter de prier", "Demander à quelqu'un"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Est-il obligatoire de laver les membres 3 fois ?",
+    "options": ["Oui", "Non, 1 fois suffit", "Oui, sauf pour les pieds", "Seulement pour le visage"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Est-il permis d'essuyer sur le turban (pour l'homme) ou le voile (pour la femme) ?",
+    "options": ["Non, jamais", "Oui, sous certaines conditions", "Seulement s'il est blanc", "Seulement s'il pleut"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Comment doit-on vider le nez (Istinshar) ?",
+    "options": ["En soufflant fort avec la main droite", "En utilisant la main gauche pour pincer le nez", "Avec un mouchoir uniquement", "On ne doit pas le faire"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Que faire si on a du vernis à ongles ou de la peinture sur les membres ?",
+    "options": ["L'ignorer", "L'enlever obligatoirement car il empêche l'eau de passer", "Laver par-dessus", "Faire le Tayammum"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Peut-on parler pendant l'ablution ?",
+    "options": ["C'est interdit", "C'est permis mais le silence est préférable", "C'est obligatoire", "Ça annule l'ablution"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Que faire si on oublie de laver un membre et qu'on s'en rend compte juste après ?",
+    "options": ["Refaire tout", "Laver le membre oublié et finir l'ordre", "Rien, c'est pardonné", "Faire une prosternation"],
+    "correctIndex": 1
+  },
+  {
+    "question": "L'ablution est-elle la même pour l'homme et la femme ?",
+    "options": ["Non, il y a des différences", "Oui, c'est exactement la même méthode", "Seulement pour la tête", "La femme ne lave pas ses pieds"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quelle est l'importance de l'ablution dans l'Islam",
+    "options": ["C'est un sport", "C'est une condition de la prière", "C'est une tradition culturelle", "C'est facultatif"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Si on fait le Tayammum et qu'on trouve de l'eau avant de prier, que faire ?",
+    "options": ["Prier avec le Tayammum", "Faire l'ablution avec l'eau", "Attendre la prochaine prière", "Utiliser l'eau pour boire seulement"],
+    "correctIndex": 1
+  },
+  {
+    "question": "L'essuyage sur les chaussettes est-il une obligation ?",
+    "options": ["Oui", "Non, c'est une dispense", "Seulement pour les vieux", "Seulement en voyage"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Doit-on laver entre les doigts de la main à chaque lavage ?",
+    "options": ["Oui, c'est préférable", "Non, une seule fois suffit", "Seulement à la fin", "Seulement le vendredi"],
+    "correctIndex": 0
+  },
+  {
+    "question": "Peut-on utiliser de l'eau de mer pour l'ablution ?",
+    "options": ["Non, elle est trop salée", "Oui, son eau est pure", "Seulement si on n'a rien d'autre", "Seulement pour se baigner"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Le sommeil profond annule-t-il l'ablution ?",
+    "options": ["Non", "Oui", "Seulement si on rêve", "Seulement l'après-midi"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Manger de la viande de chameau annule-t-il l'ablution ?",
+    "options": ["Non", "Oui, selon l'avis fort de la Sunna", "Seulement si elle est cuite", "Seulement le foie"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Que faire si on a une petite plaie qui saigne un peu ?",
+    "options": ["Refaire l'ablution", "L'ablution reste valide", "Mettre du sable", "Arrêter la prière"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Est-il recommandé de faire l'ablution avant de dormir ?",
+    "options": ["Oui, c'est une Sunna", "Non, c'est inutile", "Seulement pour les enfants", "Seulement le jeudi"],
+    "correctIndex": 0
+  },
+  {
+    "question": "Peut-on faire l'ablution dans sa salle de bain ?",
+    "options": ["Non, c'est impur", "Oui, c'est permis", "Seulement si les toilettes sont fermées", "Seulement le matin"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Doit-on dire 'Bismillah' à l'intérieur de la salle de bain ?",
+    "options": ["Oui, fort", "Dans son cœur ou très bas", "Non, c'est interdit", "C'est facultatif"],
+    "correctIndex": 1
+  },
+  {
+    "question": "L'ordre des pieds est-il important ?",
+    "options": ["Oui, droite puis gauche", "Non, on peut commencer par la gauche", "Les deux en même temps", "Seulement en voyage"],
+    "correctIndex": 0
+  },
+  {
+    "question": "Que faire si on a des bagues ou une montre ?",
+    "options": ["Les jeter", "Les bouger pour que l'eau passe dessous", "Les laisser telles quelles", "Ne pas laver ce bras"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Si on a un doute sur le nombre de lavages (2 ou 3), que faire ?",
+    "options": ["Prendre le chiffre le plus bas", "Prendre le chiffre le plus haut", "Tout recommencer", "S'arrêter à 2"],
+    "correctIndex": 0
+  },
+  {
+    "question": "Le rire annule-t-il l'ablution ?",
+    "options": ["Oui, toujours", "Non", "Seulement si on rit fort", "Seulement le soir"],
+    "correctIndex": 1
+  },
+  {
+    "question": "Quel est le but final de l'ablution ?",
+    "options": ["Être beau", "La pureté rituelle pour adorer Allah", "Se rafraîchir", "Nettoyer ses vêtements"],
+    "correctIndex": 1
+  },
+
+  {
     question: 'Que dit-on avant de commencer les ablutions ?',
     options: ['Alhamdulillah', 'Bismillah', 'Allahu Akbar', 'SubhanAllah'],
     correctIndex: 1,
@@ -168,6 +579,13 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
   },
 ];
 
+const QUIZ_COUNT = 10;
+
+function pickRandomQuestions(): QuizQuestion[] {
+  const shuffled = [...QUIZ_QUESTIONS].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, QUIZ_COUNT);
+}
+
 type ScreenMode = 'steps' | 'quiz' | 'result';
 
 export default function AblutionsScreen() {
@@ -176,13 +594,22 @@ export default function AblutionsScreen() {
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const [screenMode, setScreenMode] = useState<ScreenMode>('steps');
+  const [activeQuiz, setActiveQuiz] = useState<QuizQuestion[]>(() => pickRandomQuestions());
   const [quizIndex, setQuizIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showAnswer, setShowAnswer] = useState(false);
   const [score, setScore] = useState(0);
 
   const totalSteps = WUDU_STEPS.length;
-  const isLastStep = currentStep === totalSteps - 1;
+  const safeCurrentStep = Math.min(currentStep, totalSteps - 1);
+  const isLastStep = safeCurrentStep === totalSteps - 1;
+
+  // Reset currentStep if out of bounds (can happen after hot reload)
+  React.useEffect(() => {
+    if (currentStep >= totalSteps) {
+      setCurrentStep(totalSteps - 1);
+    }
+  }, [currentStep, totalSteps]);
 
   // --- Navigation ---
 
@@ -203,6 +630,7 @@ export default function AblutionsScreen() {
 
   const goNext = () => {
     if (isLastStep) {
+      setActiveQuiz(pickRandomQuestions());
       setScreenMode('quiz');
       setQuizIndex(0);
       setScore(0);
@@ -240,13 +668,13 @@ export default function AblutionsScreen() {
     if (showAnswer) return;
     setSelectedAnswer(index);
     setShowAnswer(true);
-    if (index === QUIZ_QUESTIONS[quizIndex].correctIndex) {
+    if (index === activeQuiz[quizIndex].correctIndex) {
       setScore((prev) => prev + 1);
     }
   };
 
   const nextQuestion = () => {
-    if (quizIndex < QUIZ_QUESTIONS.length - 1) {
+    if (quizIndex < QUIZ_COUNT - 1) {
       setQuizIndex((prev) => prev + 1);
       setSelectedAnswer(null);
       setShowAnswer(false);
@@ -256,6 +684,7 @@ export default function AblutionsScreen() {
   };
 
   const restartQuiz = () => {
+    setActiveQuiz(pickRandomQuestions());
     setQuizIndex(0);
     setScore(0);
     setSelectedAnswer(null);
@@ -283,14 +712,14 @@ export default function AblutionsScreen() {
             style={[
               styles.progressFill,
               {
-                width: `${((currentStep + 1) / totalSteps) * 100}%`,
-                backgroundColor: WUDU_STEPS[currentStep].color,
+                width: `${((safeCurrentStep + 1) / totalSteps) * 100}%`,
+                backgroundColor: WUDU_STEPS[safeCurrentStep].color,
               },
             ]}
           />
         </View>
         <Text style={styles.progressText}>
-          {currentStep + 1}/{totalSteps}
+          {safeCurrentStep + 1}/{totalSteps}
         </Text>
       </View>
     );
@@ -313,17 +742,17 @@ export default function AblutionsScreen() {
             onPress={() => goToStep(index)}
             style={[
               styles.dot,
-              index === currentStep && [styles.dotActive, { backgroundColor: step.color }],
-              index < currentStep && styles.dotDone,
+              index === safeCurrentStep && [styles.dotActive, { backgroundColor: step.color }],
+              index < safeCurrentStep && styles.dotDone,
             ]}
           >
-            {index < currentStep ? (
+            {index < safeCurrentStep ? (
               <MaterialCommunityIcons name="check" size={11} color="#FFFFFF" />
             ) : (
               <Text
                 style={[
                   styles.dotText,
-                  index === currentStep && styles.dotTextActive,
+                  index === safeCurrentStep && styles.dotTextActive,
                 ]}
               >
                 {index + 1}
@@ -338,7 +767,7 @@ export default function AblutionsScreen() {
   // --- Render: Step card ---
 
   const renderStepCard = () => {
-    const step = WUDU_STEPS[currentStep];
+    const step = WUDU_STEPS[safeCurrentStep];
     return (
       <Animated.View style={[styles.stepCard, { opacity: fadeAnim }]}>
         {/* Image pleine largeur 16/9 */}
@@ -376,18 +805,18 @@ export default function AblutionsScreen() {
 
   const renderNavButtons = () => {
     if (screenMode !== 'steps') return null;
-    const step = WUDU_STEPS[currentStep];
+    const step = WUDU_STEPS[safeCurrentStep];
     return (
       <View style={styles.navContainer}>
         <Pressable
-          style={[styles.navButtonPrev, currentStep === 0 && styles.navButtonDisabled]}
+          style={[styles.navButtonPrev, safeCurrentStep === 0 && styles.navButtonDisabled]}
           onPress={goPrev}
-          disabled={currentStep === 0}
+          disabled={safeCurrentStep === 0}
         >
           <MaterialCommunityIcons
             name="chevron-left"
             size={22}
-            color={currentStep === 0 ? '#C0C0C0' : '#64748B'}
+            color={safeCurrentStep === 0 ? '#C0C0C0' : '#64748B'}
           />
         </Pressable>
 
@@ -411,12 +840,12 @@ export default function AblutionsScreen() {
   // --- Render: Quiz ---
 
   const renderQuiz = () => {
-    const q = QUIZ_QUESTIONS[quizIndex];
+    const q = activeQuiz[quizIndex];
     return (
       <View style={styles.quizContainer}>
         <View style={styles.quizProgress}>
           <Text style={styles.quizProgressText}>
-            Question {quizIndex + 1} / {QUIZ_QUESTIONS.length}
+            Question {quizIndex + 1} / {QUIZ_COUNT}
           </Text>
           <View style={styles.quizScoreBadge}>
             <MaterialCommunityIcons name="star" size={15} color="#F59E0B" />
@@ -475,7 +904,7 @@ export default function AblutionsScreen() {
         {showAnswer && (
           <Pressable style={styles.nextQuestionButton} onPress={nextQuestion}>
             <Text style={styles.nextQuestionText}>
-              {quizIndex < QUIZ_QUESTIONS.length - 1 ? 'Question suivante' : 'Voir le résultat'}
+              {quizIndex < QUIZ_COUNT - 1 ? 'Question suivante' : 'Voir le résultat'}
             </Text>
             <MaterialCommunityIcons name="arrow-right" size={18} color="#FFFFFF" />
           </Pressable>
@@ -487,7 +916,7 @@ export default function AblutionsScreen() {
   // --- Render: Result ---
 
   const renderResult = () => {
-    const total = QUIZ_QUESTIONS.length;
+    const total = QUIZ_COUNT;
     const percentage = Math.round((score / total) * 100);
     const isGood = percentage >= 70;
     const isPerfect = percentage === 100;
