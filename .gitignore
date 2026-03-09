@@ -56,3 +56,7 @@ app-example
 
 # Misc
 nul
+
+# Release signing artifacts - NEVER commit
+output.zip
+pepk.jar

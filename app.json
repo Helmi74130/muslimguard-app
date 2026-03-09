@@ -2,7 +2,7 @@
   "expo": {
     "name": "MuslimGuard",
     "slug": "muslimguardapp",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "muslimguard",
@@ -16,7 +16,7 @@
     },
     "android": {
       "package": "com.muslimguard.app",
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
         "backgroundColor": "#003463",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
