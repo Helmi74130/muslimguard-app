@@ -13,8 +13,10 @@ import { CAMERA_STICKERS, CameraSticker } from '@/constants/camera-stickers';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { CameraType, CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as MediaLibrary from 'expo-media-library';
 import { router } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -181,6 +183,7 @@ export default function CameraScreen() {
   let stickerCounter = useRef(0);
 
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isFocused = useIsFocused();
 
   // Track sticker transforms (position + scale) in a ref to avoid re-renders
   const stickerTransformsRef = useRef<Map<string, StickerTransform>>(new Map());
@@ -193,7 +196,13 @@ export default function CameraScreen() {
         sortBy: [MediaLibrary.SortBy.creationTime],
         first: 5,
       });
-      setRecentPhotos(result.assets);
+      const seen = new Set<string>();
+      const unique = result.assets.filter((a) => {
+        if (seen.has(a.id)) return false;
+        seen.add(a.id);
+        return true;
+      });
+      setRecentPhotos(unique);
     } catch (error) {
       console.error('Error loading recent photos:', error);
     }
@@ -449,6 +458,13 @@ export default function CameraScreen() {
     cameraRef.current?.stopRecording();
   }, []);
 
+  // Stop recording and release camera surface when leaving the screen
+  useEffect(() => {
+    if (!isFocused && recording) {
+      stopRecording();
+    }
+  }, [isFocused, recording, stopRecording]);
+
   const formatDuration = (seconds: number) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
     const s = (seconds % 60).toString().padStart(2, '0');
@@ -498,13 +514,15 @@ export default function CameraScreen() {
 
       {/* Camera live preview (NO ViewShot — SurfaceView can't be captured) */}
       <View style={styles.cameraContainer}>
-        <CameraView
-          ref={cameraRef}
-          style={styles.camera}
-          facing={facing}
-          mirror={facing === 'front'}
-          mode={mode}
-        />
+        {isFocused && (
+          <CameraView
+            ref={cameraRef}
+            style={styles.camera}
+            facing={facing}
+            mirror={facing === 'front'}
+            mode={mode}
+          />
+        )}
 
         {/* Frame overlay (live) — photo mode only */}
         {mode === 'picture' && renderFrameOverlay()}
@@ -708,17 +726,25 @@ export default function CameraScreen() {
         </View>
         {mode === 'picture' ? (
           <Pressable
-            style={({ pressed }) => [
-              styles.captureButton,
-              pressed && styles.captureButtonPressed,
-            ]}
+            style={({ pressed }) => [pressed && styles.captureButtonPressed]}
             onPress={takePhoto}
             disabled={capturing}
           >
             {capturing ? (
-              <ActivityIndicator size="small" color={Colors.primary} />
+              <View style={styles.captureButton}>
+                <ActivityIndicator size="small" color={Colors.primary} />
+              </View>
             ) : (
-              <View style={styles.captureInner} />
+              <LinearGradient
+                colors={['#FF0000', '#FF7700', '#FFFF00', '#00CC44', '#0088FF', '#8800FF', '#FF0000']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.captureButton}
+              >
+                <View style={styles.captureButtonInner}>
+                  <View style={styles.captureInner} />
+                </View>
+              </LinearGradient>
             )}
           </Pressable>
         ) : (
@@ -1068,14 +1094,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   captureButton: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    borderWidth: 4,
-    borderColor: '#FFF',
+    width: 76,
+    height: 76,
+    borderRadius: 38,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'transparent',
+    padding: 5,
+  },
+  captureButtonInner: {
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+    backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   captureButtonPressed: {
     opacity: 0.7,

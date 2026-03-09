@@ -36,19 +36,32 @@ export default function GalleryScreen() {
   const [loading, setLoading] = useState(true);
   const [selectedAsset, setSelectedAsset] = useState<MediaLibrary.Asset | null>(null);
 
+  const getAssetTs = (a: MediaLibrary.Asset) => {
+    const raw = a.creationTime;
+    const mod = a.modificationTime;
+    const ts = raw > 0 ? raw : mod > 0 ? mod : 0;
+    return ts < 1e10 ? ts * 1000 : ts;
+  };
+
   const loadPhotos = useCallback(async (cursor?: string) => {
     try {
       const result = await MediaLibrary.getAssetsAsync({
         mediaType: [MediaLibrary.MediaType.photo, MediaLibrary.MediaType.video],
-        sortBy: [MediaLibrary.SortBy.creationTime],
+        sortBy: [[MediaLibrary.SortBy.modificationTime, false]],
         first: PAGE_SIZE,
         after: cursor,
       });
 
       if (cursor) {
-        setAssets((prev) => [...prev, ...result.assets]);
+        setAssets((prev) => {
+          const existingIds = new Set(prev.map((a) => a.id));
+          const newAssets = result.assets.filter((a) => !existingIds.has(a.id));
+          return [...prev, ...newAssets].sort((a, b) => getAssetTs(b) - getAssetTs(a));
+        });
       } else {
-        setAssets(result.assets);
+        const seen = new Set<string>();
+        const unique = result.assets.filter((a) => seen.has(a.id) ? false : (seen.add(a.id), true));
+        setAssets(unique.sort((a, b) => getAssetTs(b) - getAssetTs(a)));
       }
       setEndCursor(result.endCursor);
       setHasMore(result.hasNextPage);
@@ -218,13 +231,19 @@ export default function GalleryScreen() {
           {selectedAsset && (
             <View style={styles.viewerInfo}>
               <Text style={styles.viewerDate}>
-                {new Date(selectedAsset.creationTime).toLocaleDateString('fr-FR', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+                {(() => {
+                  const raw = selectedAsset.creationTime;
+                  const mod = selectedAsset.modificationTime;
+                  const ts = raw > 0 ? raw : mod > 0 ? mod : Date.now();
+                  const ms = ts < 1e10 ? ts * 1000 : ts;
+                  return new Date(ms).toLocaleDateString('fr-FR', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  });
+                })()}
               </Text>
             </View>
           )}
