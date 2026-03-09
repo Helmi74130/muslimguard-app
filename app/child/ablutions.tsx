@@ -592,6 +592,7 @@ export default function AblutionsScreen() {
   const [currentStep, setCurrentStep] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const isAnimating = useRef(false);
 
   const [screenMode, setScreenMode] = useState<ScreenMode>('steps');
   const [activeQuiz, setActiveQuiz] = useState<QuizQuestion[]>(() => pickRandomQuestions());
@@ -614,6 +615,8 @@ export default function AblutionsScreen() {
   // --- Navigation ---
 
   const animateTransition = (callback: () => void) => {
+    if (isAnimating.current) return;
+    isAnimating.current = true;
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 150,
@@ -624,7 +627,9 @@ export default function AblutionsScreen() {
         toValue: 1,
         duration: 200,
         useNativeDriver: true,
-      }).start();
+      }).start(() => {
+        isAnimating.current = false;
+      });
     });
   };
 
@@ -643,7 +648,7 @@ export default function AblutionsScreen() {
 
   const goPrev = () => {
     if (currentStep > 0) {
-      animateTransition(() => setCurrentStep((prev) => prev - 1));
+      animateTransition(() => setCurrentStep((prev) => Math.max(0, prev - 1)));
     }
   };
 

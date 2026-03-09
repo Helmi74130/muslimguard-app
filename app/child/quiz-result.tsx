@@ -189,6 +189,14 @@ export default function QuizResultScreen() {
     if (totalXp >= 500)
       await tryUnlock('xp500', allUnlocked);
 
+    // XP 10 000
+    if (totalXp >= 10000)
+      await tryUnlock('xp10000', allUnlocked);
+
+    // XP 50 000
+    if (totalXp >= 50000)
+      await tryUnlock('xp50000', allUnlocked);
+
     if (allUnlocked.length > 0) {
       setNewBadges(allUnlocked);
       animateBadge();

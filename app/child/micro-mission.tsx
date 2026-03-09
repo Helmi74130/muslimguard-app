@@ -1,6 +1,6 @@
 /**
  * Micro-Mission - MuslimGuard
- * A "2-minute challenge wheel" to break out of the "meh" feeling.
+ * A "1-minute challenge wheel" to break out of the "meh" feeling.
  * Spins a wheel of quick physical/sensory missions to re-engage the brain.
  */
 
@@ -506,7 +506,7 @@ type Phase = 'ready' | 'spinning' | 'mission' | 'timer' | 'done';
 export default function MicroMissionScreen() {
   const [phase, setPhase] = useState<Phase>('ready');
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
-  const [seconds, setSeconds] = useState(120);
+  const [seconds, setSeconds] = useState(60);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
 
@@ -586,18 +586,18 @@ export default function MicroMissionScreen() {
 
   const startTimer = () => {
     setPhase('timer');
-    setSeconds(120);
+    setSeconds(60);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     progressAnim.setValue(0);
     Animated.timing(progressAnim, {
       toValue: 1,
-      duration: 120000,
+      duration: 60000,
       easing: Easing.linear,
       useNativeDriver: false,
     }).start();
 
-    let remaining = 120;
+    let remaining = 60;
     timerRef.current = setInterval(() => {
       remaining -= 1;
       setSeconds(remaining);
@@ -606,7 +606,7 @@ export default function MicroMissionScreen() {
       }
       if (remaining <= 0) {
         if (timerRef.current) clearInterval(timerRef.current);
-        setElapsedTime(120);
+        setElapsedTime(60);
         setShowConfetti(true);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setPhase('done');
@@ -617,7 +617,7 @@ export default function MicroMissionScreen() {
   const completeMission = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     progressAnim.stopAnimation();
-    const elapsed = 120 - seconds;
+    const elapsed = 60 - seconds;
     setElapsedTime(elapsed);
     setShowConfetti(true);
     setPhase('done');
@@ -689,7 +689,7 @@ export default function MicroMissionScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Text style={styles.heroSubtitle}>
-            Un petit défi de 2 minutes{'\n'}pour relancer la machine !
+            Un petit défi de 1 minute{'\n'}pour relancer la machine !
           </Text>
 
           <Pressable
@@ -918,9 +918,9 @@ export default function MicroMissionScreen() {
                   </Text>
                 )}
                 <Text style={styles.doneSubtext}>
-                  {elapsedTime < 60
+                  {elapsedTime < 30
                     ? 'Waouh, rapide comme l\'éclair !'
-                    : elapsedTime < 120
+                    : elapsedTime < 60
                       ? 'Bravo, bien joué champion !'
                       : 'Bravo, tu as relancé la machine !'}
                 </Text>
@@ -979,7 +979,7 @@ export default function MicroMissionScreen() {
                   end={{ x: 1, y: 0 }}
                 >
                   <MaterialCommunityIcons name="timer-outline" size={22} color="#FFFFFF" />
-                  <Text style={styles.actionBtnText}>Lancer le timer 2 min</Text>
+                  <Text style={styles.actionBtnText}>Lancer le timer 1 min</Text>
                 </LinearGradient>
               </Pressable>
 

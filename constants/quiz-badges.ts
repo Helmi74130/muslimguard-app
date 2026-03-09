@@ -118,6 +118,20 @@ export const QUIZ_BADGES: QuizBadge[] = [
     icon: 'rocket-launch',
     color: '#8B5CF6',
   },
+  {
+    id: 'xp10000',
+    name: 'XP 10 000',
+    description: 'Atteindre 10 000 XP total',
+    icon: 'star-shooting',
+    color: '#F59E0B',
+  },
+  {
+    id: 'xp50000',
+    name: 'XP 50 000',
+    description: 'Atteindre 50 000 XP total',
+    icon: 'diamond-stone',
+    color: '#EC4899',
+  },
 ];
 
 /** XP earned per correct answer, by difficulty */
