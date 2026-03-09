@@ -193,7 +193,7 @@ export default function CameraScreen() {
       if (!mediaPermission?.granted) return;
       const result = await MediaLibrary.getAssetsAsync({
         mediaType: MediaLibrary.MediaType.photo,
-        sortBy: [MediaLibrary.SortBy.creationTime],
+        sortBy: [[MediaLibrary.SortBy.modificationTime, false]],
         first: 5,
       });
       const seen = new Set<string>();

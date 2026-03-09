@@ -38,6 +38,7 @@ import { translations } from '@/constants/translations';
 import { BlockingService } from '@/services/blocking.service';
 import { StorageService } from '@/services/storage.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as MediaLibrary from 'expo-media-library';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -255,6 +256,8 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
   const [browserEnabled, setBrowserEnabled] = useState(true);
   const [customPhotoUri, setCustomPhotoUri] = useState<string | null>(null);
   const [galleryPhotos, setGalleryPhotos] = useState<MediaLibrary.Asset[]>([]);
+  const [galleryEndCursor, setGalleryEndCursor] = useState<string | undefined>();
+  const [galleryHasMore, setGalleryHasMore] = useState(false);
   const [showGalleryPicker, setShowGalleryPicker] = useState(false);
 
 
@@ -303,16 +306,19 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
     };
   }, [copilotEvents]);
 
-  const loadGalleryPhotos = async () => {
+  const loadGalleryPhotos = async (cursor?: string) => {
     try {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== 'granted') return;
       const result = await MediaLibrary.getAssetsAsync({
         mediaType: MediaLibrary.MediaType.photo,
-        sortBy: [MediaLibrary.SortBy.creationTime],
-        first: 12,
+        sortBy: [[MediaLibrary.SortBy.modificationTime, false]],
+        first: 30,
+        after: cursor,
       });
-      setGalleryPhotos(result.assets);
+      setGalleryPhotos((prev) => cursor ? [...prev, ...result.assets] : result.assets);
+      setGalleryEndCursor(result.endCursor);
+      setGalleryHasMore(result.hasNextPage);
     } catch (error) {
       console.error('Error loading gallery photos:', error);
     }
@@ -556,27 +562,34 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
           <Pressable style={styles.modalContent} onPress={() => { }}>
             {showGalleryPicker ? (
               <>
-                <View style={styles.galleryPickerHeader}>
-                  <Pressable onPress={() => setShowGalleryPicker(false)}>
-                    <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.light.text} />
+                {/* Gallery picker header */}
+                <LinearGradient
+                  colors={['#A855F7', '#EC4899']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.galleryPickerHeader}
+                >
+                  <Pressable style={styles.galleryBackBtn} onPress={() => setShowGalleryPicker(false)}>
+                    <MaterialCommunityIcons name="arrow-left" size={22} color="#FFF" />
                   </Pressable>
-                  <Text style={styles.modalTitle}>Choisir une photo</Text>
-                  <View style={{ width: 24 }} />
-                </View>
-                <ScrollView showsVerticalScrollIndicator={false}>
+                  <Text style={styles.galleryPickerTitle}>🖼️ Mes photos</Text>
+                  <View style={{ width: 38 }} />
+                </LinearGradient>
+
+                <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 12 }}>
                   <View style={styles.galleryGrid}>
                     {galleryPhotos.map((asset) => {
                       const isSelected = selectedBgId === CUSTOM_PHOTO_BACKGROUND_ID && customPhotoUri === asset.uri;
                       return (
                         <Pressable
                           key={asset.id}
-                          style={styles.galleryPhotoOption}
+                          style={[styles.galleryPhotoOption, isSelected && styles.galleryPhotoOptionSelected]}
                           onPress={() => selectCustomPhoto(asset)}
                         >
                           <Image source={{ uri: asset.uri }} style={styles.galleryPhotoImage} />
                           {isSelected && (
-                            <View style={styles.bgCheck}>
-                              <MaterialCommunityIcons name="check" size={16} color="#FFFFFF" />
+                            <View style={styles.galleryCheckBadge}>
+                              <MaterialCommunityIcons name="check-bold" size={14} color="#FFF" />
                             </View>
                           )}
                         </Pressable>
@@ -584,7 +597,19 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
                     })}
                   </View>
                   {galleryPhotos.length === 0 && (
-                    <Text style={styles.galleryEmptyText}>Aucune photo disponible</Text>
+                    <View style={styles.galleryEmptyContainer}>
+                      <Text style={styles.galleryEmptyEmoji}>📷</Text>
+                      <Text style={styles.galleryEmptyText}>Aucune photo disponible</Text>
+                    </View>
+                  )}
+                  {galleryHasMore && (
+                    <Pressable
+                      style={styles.loadMoreBtn}
+                      onPress={() => loadGalleryPhotos(galleryEndCursor)}
+                    >
+                      <MaterialCommunityIcons name="image-plus" size={18} color="#FFF" />
+                      <Text style={styles.loadMoreText}>Voir plus de photos</Text>
+                    </Pressable>
                   )}
                 </ScrollView>
               </>
@@ -595,22 +620,26 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={styles.modalScrollContent}
                 >
-                  {/* Visual "Use a photo" Card */}
+                  {/* Fun "Use a photo" Card */}
                   <Pressable
-                    style={({ pressed }) => [
-                      styles.photoActionCard,
-                      pressed && styles.tilePressed
-                    ]}
                     onPress={() => { loadGalleryPhotos(); setShowGalleryPicker(true); }}
+                    style={({ pressed }) => [{ opacity: pressed ? 0.88 : 1 }]}
                   >
-                    <View style={styles.photoActionIconContainer}>
-                      <MaterialCommunityIcons name="camera-plus" size={32} color={Colors.primary} />
-                    </View>
-                    <View style={styles.photoActionContent}>
-                      <Text style={styles.photoActionTitle}>Utiliser ma propre photo</Text>
-                      <Text style={styles.photoActionSubtitle}>Choisis une photo de ta galerie</Text>
-                    </View>
-                    <MaterialCommunityIcons name="chevron-right" size={24} color={Colors.primary} />
+                    <LinearGradient
+                      colors={['#A855F7', '#EC4899', '#F97316']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.photoActionCard}
+                    >
+                      <View style={styles.photoActionIconContainer}>
+                        <Text style={{ fontSize: 32 }}>🌟</Text>
+                      </View>
+                      <View style={styles.photoActionContent}>
+                        <Text style={styles.photoActionTitle}>Ma propre photo !</Text>
+                        <Text style={styles.photoActionSubtitle}>Utilise une photo de ta galerie</Text>
+                      </View>
+                      <MaterialCommunityIcons name="chevron-right" size={26} color="#FFF" />
+                    </LinearGradient>
                   </Pressable>
 
                   <View style={styles.divider}>
@@ -997,83 +1026,144 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
   },
 
-  // Enhanced Photo Action Card
+  // Photo Action Card (gradient, child-friendly)
   photoActionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary + '10',
-    padding: 16,
-    borderRadius: 20,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    padding: 18,
+    borderRadius: 24,
     marginBottom: 20,
-    borderWidth: 2,
-    borderColor: Colors.primary + '20',
-    borderStyle: 'dashed',
+    elevation: 4,
+    shadowColor: '#A855F7',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
   },
   photoActionIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 15,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
   },
   photoActionContent: {
     flex: 1,
-    marginLeft: 16,
+    marginLeft: 14,
   },
   photoActionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.primary,
-    marginBottom: 2,
+    fontSize: 17,
+    fontWeight: '800' as const,
+    color: '#FFF',
+    marginBottom: 3,
   },
   photoActionSubtitle: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
+    color: 'rgba(255,255,255,0.85)',
+    fontWeight: '500' as const,
   },
   divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
     marginBottom: 16,
   },
   dividerText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     color: Colors.light.textSecondary,
-    textTransform: 'uppercase',
+    textTransform: 'uppercase' as const,
     letterSpacing: 1,
   },
+  // Gallery picker header (gradient)
   galleryPickerHeader: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
-    marginBottom: Spacing.lg,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 18,
+    marginBottom: Spacing.md,
+  },
+  galleryBackBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+  },
+  galleryPickerTitle: {
+    fontSize: 18,
+    fontWeight: '800' as const,
+    color: '#FFF',
   },
   galleryGrid: {
     flexDirection: 'row' as const,
     flexWrap: 'wrap' as const,
-    gap: Spacing.sm,
+    gap: 8,
   },
   galleryPhotoOption: {
-    width: 90,
-    height: 90,
-    borderRadius: 12,
+    width: 100,
+    height: 100,
+    borderRadius: 18,
     overflow: 'hidden' as const,
+    borderWidth: 3,
+    borderColor: 'transparent',
+  },
+  galleryPhotoOptionSelected: {
+    borderColor: '#A855F7',
   },
   galleryPhotoImage: {
     width: '100%' as any,
     height: '100%' as any,
   },
+  galleryCheckBadge: {
+    position: 'absolute' as const,
+    bottom: 6,
+    right: 6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#A855F7',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    borderWidth: 2,
+    borderColor: '#FFF',
+  },
+  galleryEmptyContainer: {
+    alignItems: 'center' as const,
+    paddingVertical: Spacing.xl,
+    gap: 8,
+  },
+  galleryEmptyEmoji: {
+    fontSize: 48,
+  },
   galleryEmptyText: {
-    fontSize: 14,
+    fontSize: 15,
     color: Colors.light.textSecondary,
     textAlign: 'center' as const,
-    paddingVertical: Spacing.xl,
+    fontWeight: '500' as const,
+  },
+  loadMoreBtn: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    alignSelf: 'center' as const,
+    gap: 8,
+    marginVertical: Spacing.md,
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    borderRadius: BorderRadius.full,
+    backgroundColor: '#A855F7',
+    elevation: 3,
+    shadowColor: '#A855F7',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  loadMoreText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: '#FFF',
   },
 });
 
