@@ -3,6 +3,7 @@
  * Custom start page with search bar and quick links for children
  */
 
+import { ArabicLearningModal } from '@/components/arabic-learning/ArabicLearningModal';
 import AllahNamesIcon from '@/assets/icons/allah-names.svg';
 import ArabicIcon from '@/assets/icons/arabic.svg';
 import BreatheIcon from '@/assets/icons/breathe.svg';
@@ -22,6 +23,7 @@ import PodometreIcon from '@/assets/icons/podometre.svg';
 import QuizIcon from '@/assets/icons/quiz.svg';
 import QuranIcon from '@/assets/icons/quran.svg';
 import SoundIcon from '@/assets/icons/sound.svg';
+import StoriesIcon from '@/assets/icons/stories.svg';
 import WuduIcon from '@/assets/icons/wudu.svg';
 import YoutubeIcon from '@/assets/icons/youtube.svg';
 import {
@@ -239,6 +241,22 @@ const QUICK_LINKS = [
     isInternal: true,
     customIcon: MeteoIcon,
   },
+  {
+    label: t.links.stories,
+    url: 'stories',
+    icon: 'book-open-variant' as const,
+    colorIndex: 1,
+    isInternal: true,
+    customIcon: StoriesIcon,
+  },
+  {
+    label: t.links.arabicLearning,
+    url: 'arabic-learning',
+    icon: 'abjad-arabic' as const,
+    colorIndex: 3,
+    isInternal: false,
+    customIcon: undefined,
+  },
 ];
 
 const MAX_VISIBLE_SITES = 6;
@@ -259,6 +277,7 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
   const [galleryEndCursor, setGalleryEndCursor] = useState<string | undefined>();
   const [galleryHasMore, setGalleryHasMore] = useState(false);
   const [showGalleryPicker, setShowGalleryPicker] = useState(false);
+  const [showArabicLearning, setShowArabicLearning] = useState(false);
 
 
   // Load strict mode status, whitelist, browser setting, and premium status
@@ -508,7 +527,9 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
                   pressed && styles.tilePressed,
                 ]}
                 onPress={() => {
-                  if (link.url === 'background-picker') {
+                  if (link.url === 'arabic-learning') {
+                    setShowArabicLearning(true);
+                  } else if (link.url === 'background-picker') {
                     setShowBgPicker(true);
                   } else if (link.isInternal) {
                     router.push(`/child/${link.url}` as any);
@@ -547,6 +568,12 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
           </View>
         </CopilotView>
       </CopilotStep>
+
+      {/* Arabic Learning Modal */}
+      <ArabicLearningModal
+        visible={showArabicLearning}
+        onClose={() => setShowArabicLearning(false)}
+      />
 
       {/* Background Picker Modal */}
       <Modal

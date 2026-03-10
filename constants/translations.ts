@@ -187,6 +187,8 @@ export const translations = {
       emotions: 'Mes émotions',
       ablutions: 'Ablutions',
       microMission: 'Micro-Mission',
+      stories: 'Histoires',
+      arabicLearning: 'Apprendre l\'arabe',
     },
     error: {
       title: 'Oups !',

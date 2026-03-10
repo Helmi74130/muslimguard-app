@@ -283,6 +283,9 @@ export const STORAGE_KEYS = {
   CUSTOM_VIDEOS: 'videos.custom',
   VIDEO_WATCH_TIME: 'videos.watchTime',
 
+  // Stories
+  FAVORITE_STORIES: 'stories.favorites',
+
   // Screen time
   SCREEN_TIME_DATA: 'screentime.data',
 

@@ -907,6 +907,28 @@ export const StorageService = {
   },
 
 
+  // ==================== FAVORITE STORIES ====================
+
+  async getFavoriteStories(): Promise<string[]> {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_STORIES);
+      if (!json) return [];
+      return JSON.parse(json);
+    } catch {
+      return [];
+    }
+  },
+
+  async toggleFavoriteStory(storyId: string): Promise<boolean> {
+    const favorites = await this.getFavoriteStories();
+    const isFavorite = favorites.includes(storyId);
+    const updated = isFavorite
+      ? favorites.filter(id => id !== storyId)
+      : [...favorites, storyId];
+    await AsyncStorage.setItem(STORAGE_KEYS.FAVORITE_STORIES, JSON.stringify(updated));
+    return !isFavorite;
+  },
+
   // ==================== CUSTOM VIDEOS ====================
 
   /**
