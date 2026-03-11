@@ -1,5 +1,4 @@
 import {
-  EXTRA_LETTERS,
   ArabicWord,
   WORDS,
   getWrongLetters,
@@ -44,7 +43,7 @@ function getPositionalLetter(letters: string[], index: number, displayLetter?: s
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type GameId = 'game1' | 'game2' | 'game3' | 'game4' | 'game5' | 'game6' | 'game7';
+type GameId = 'game1' | 'game2' | 'game3' | 'game4' | 'game5' | 'game7';
 type Screen = 'menu' | GameId;
 
 interface Props {
@@ -60,7 +59,6 @@ const GAMES: { id: GameId; title: string; desc: string; emoji: string; color: st
   { id: 'game3', title: 'Mot & Image', desc: 'Associe le bon mot à l\'image', emoji: '🖼️', color: '#43B89C' },
   { id: 'game4', title: 'Première lettre', desc: 'Trouve la première lettre du mot', emoji: '🔤', color: '#FFB347' },
   { id: 'game5', title: 'L\'intrus', desc: 'Trouve la lettre qui n\'appartient pas', emoji: '🎯', color: '#FF6B6B' },
-  { id: 'game6', title: 'Relier dans l\'ordre', desc: 'Tape les lettres dans le bon ordre', emoji: '🔗', color: '#4ECDC4' },
   { id: 'game7', title: 'Vrai ou Faux', desc: 'Le mot correspond-il à l\'image ?', emoji: '✅', color: '#F59E0B' },
 ];
 
@@ -356,66 +354,6 @@ function IntruderGame({ onBack, onNext }: { onBack: () => void; onNext: () => vo
   );
 }
 
-// ─── Game 6 : Relier dans l'ordre (grid variant) ─────────────────────────────
-// Letters in a 2-column grid; tap them in the correct order to spell the word
-
-function LetterOrderGame({ onBack, onNext }: { onBack: () => void; onNext: () => void }) {
-  const word = useMemo(() => pickRandom(WORDS), []);
-  const [pool, setPool] = useState<{ letter: string; id: number }[]>(() =>
-    shuffle(word.letters.map((l, i) => ({ letter: l, id: i })))
-  );
-  const [selected, setSelected] = useState<string[]>([]);
-  const [answered, setAnswered] = useState<boolean | null>(null);
-
-  const tap = (letter: string, id: number) => {
-    if (answered !== null) return;
-    const next = [...selected, letter];
-    setSelected(next);
-    setPool(p => p.filter(item => item.id !== id));
-    if (next.length === word.letters.length) {
-      setAnswered(next.join('') === word.letters.join(''));
-    }
-  };
-
-  const reset = () => {
-    setPool(shuffle(word.letters.map((l, i) => ({ letter: l, id: i }))));
-    setSelected([]);
-    setAnswered(null);
-  };
-
-  return (
-    <GameWrapper title="Relier dans l'ordre" color="#4ECDC4" onBack={onBack}>
-      <Text style={styles.questionEmoji}>{word.emoji}</Text>
-      <Text style={styles.frenchHint}>{word.french}</Text>
-
-      <View style={styles.answerBar}>
-        {Array(word.letters.length).fill(null).map((_, i) => (
-          <View key={i} style={[styles.answerSlot, selected[i] ? styles.answerSlotFilled : styles.answerSlotEmpty]}>
-            <Text style={styles.answerSlotText}>
-              {selected[i] ? getPositionalLetter(word.letters, i, selected[i]) : ''}
-            </Text>
-          </View>
-        ))}
-      </View>
-
-      {answered === null && (
-        <View style={styles.lettersGrid}>
-          {pool.map(({ letter, id }) => (
-            <Pressable key={id} style={styles.letterGridBtn} onPress={() => tap(letter, id)}>
-              <Text style={styles.letterBtnText}>{getPositionalLetter(word.letters, id)}</Text>
-            </Pressable>
-          ))}
-          <Pressable style={styles.resetBtn} onPress={reset}>
-            <MaterialCommunityIcons name="refresh" size={22} color="#999" />
-          </Pressable>
-        </View>
-      )}
-
-      {answered !== null && <Feedback correct={answered} word={word} onNext={onNext} />}
-    </GameWrapper>
-  );
-}
-
 // ─── Game 7 : Vrai ou Faux ────────────────────────────────────────────────────
 // Show an emoji + a word. Is it a match? Tap ✔️ or ❌.
 
@@ -485,6 +423,9 @@ function MenuScreen({ onSelect, onClose }: { onSelect: (g: GameId) => void; onCl
         end={{ x: 1, y: 1 }}
         style={styles.menuHeader}
       >
+        <Pressable onPress={onClose} style={styles.menuBackBtn}>
+          <MaterialCommunityIcons name="arrow-left" size={22} color="#FFF" />
+        </Pressable>
         <Pressable onPress={onClose} style={styles.closeBtn}>
           <MaterialCommunityIcons name="close" size={22} color="#FFF" />
         </Pressable>
@@ -493,8 +434,6 @@ function MenuScreen({ onSelect, onClose }: { onSelect: (g: GameId) => void; onCl
           <Text style={styles.menuTitle}>Apprendre l'arabe</Text>
           <Text style={styles.menuSubtitle}>{"Choisis ton jeu !"}</Text>
         </View>
-        {/* Stars decoration */}
-        <Text style={styles.menuHeaderStar}>✨</Text>
       </LinearGradient>
 
       {/* 2-column grid */}
@@ -546,8 +485,7 @@ export function ArabicLearningModal({ visible, onClose }: Props) {
         {screen === 'game3' && <WordImageMatch key={qKey} onBack={goBack} onNext={nextQ} />}
         {screen === 'game4' && <FirstLetterGame key={qKey} onBack={goBack} onNext={nextQ} />}
         {screen === 'game5' && <IntruderGame key={qKey} onBack={goBack} onNext={nextQ} />}
-        {screen === 'game6' && <LetterOrderGame key={qKey} onBack={goBack} onNext={nextQ} />}
-        {screen === 'game7' && <VraiFaux key={qKey} onBack={goBack} onNext={nextQ} />}
+{screen === 'game7' && <VraiFaux key={qKey} onBack={goBack} onNext={nextQ} />}
       </SafeAreaView>
     </Modal>
   );
@@ -573,6 +511,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
+  },
+  menuBackBtn: {
+    position: 'absolute',
+    top: 40,
+    left: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   closeBtn: {
     position: 'absolute',
