@@ -4,6 +4,7 @@
  */
 
 import { ArabicLearningModal } from '@/components/arabic-learning/ArabicLearningModal';
+import { GamesModal } from '@/components/games/GamesModal';
 import AllahNamesIcon from '@/assets/icons/allah-names.svg';
 import ArabicIcon from '@/assets/icons/arabic.svg';
 import BreatheIcon from '@/assets/icons/breathe.svg';
@@ -257,6 +258,14 @@ const QUICK_LINKS = [
     isInternal: false,
     customIcon: undefined,
   },
+  {
+    label: t.links.games,
+    url: 'games',
+    icon: 'gamepad-variant-outline' as const,
+    colorIndex: 5,
+    isInternal: false,
+    customIcon: undefined,
+  },
 ];
 
 const MAX_VISIBLE_SITES = 6;
@@ -278,6 +287,7 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
   const [galleryHasMore, setGalleryHasMore] = useState(false);
   const [showGalleryPicker, setShowGalleryPicker] = useState(false);
   const [showArabicLearning, setShowArabicLearning] = useState(false);
+  const [showGames, setShowGames] = useState(false);
 
 
   // Load strict mode status, whitelist, browser setting, and premium status
@@ -529,6 +539,8 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
                 onPress={() => {
                   if (link.url === 'arabic-learning') {
                     setShowArabicLearning(true);
+                  } else if (link.url === 'games') {
+                    setShowGames(true);
                   } else if (link.url === 'background-picker') {
                     setShowBgPicker(true);
                   } else if (link.isInternal) {
@@ -573,6 +585,12 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
       <ArabicLearningModal
         visible={showArabicLearning}
         onClose={() => setShowArabicLearning(false)}
+      />
+
+      {/* Games Modal */}
+      <GamesModal
+        visible={showGames}
+        onClose={() => setShowGames(false)}
       />
 
       {/* Background Picker Modal */}

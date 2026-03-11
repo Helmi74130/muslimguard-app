@@ -576,7 +576,7 @@ const styles = StyleSheet.create({
   },
   closeBtn: {
     position: 'absolute',
-    top: 16,
+    top: 40,
     right: 16,
     width: 36,
     height: 36,
@@ -669,7 +669,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
-    paddingVertical: 14,
+    paddingTop: 48,
+    paddingBottom: 14,
   },
   backBtn: {
     width: 38,

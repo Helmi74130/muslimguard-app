@@ -189,6 +189,7 @@ export const translations = {
       microMission: 'Micro-Mission',
       stories: 'Histoires',
       arabicLearning: 'Apprendre l\'arabe',
+      games: 'Jeux',
     },
     error: {
       title: 'Oups !',
