@@ -75,51 +75,51 @@ interface BrowserHomePageProps {
 
 const CATEGORIES = [
   {
-    title: '📖 Religion',
+    title: 'Religion',
     links: [
-      { label: t.links.quran, url: 'quran', icon: 'book-open-variant' as const, colorIndex: 0, isInternal: true, customIcon: QuranIcon },
-      { label: t.links.allahNames, url: 'allah-names', icon: 'star-crescent' as const, colorIndex: 1, isInternal: true, customIcon: AllahNamesIcon },
-      { label: t.links.ablutions, url: 'ablutions', icon: 'hand-wash' as const, colorIndex: 0, isInternal: true, customIcon: WuduIcon },
-      { label: t.links.quiz, url: 'quiz', icon: 'head-question' as const, colorIndex: 5, isInternal: true, customIcon: QuizIcon },
-      { label: t.links.stories, url: 'stories', icon: 'book-open-variant' as const, colorIndex: 1, isInternal: true, customIcon: StoriesIcon },
-      { label: t.links.prayerTimes, url: 'prayer-times', icon: 'mosque' as const, colorIndex: 2, isInternal: true, customIcon: MasjidIcon },
+      { label: t.links.quran, url: 'quran', icon: 'book-open-variant' as const, isInternal: true, customIcon: QuranIcon, gradient: ['#059669', '#047857'] as const },
+      { label: t.links.allahNames, url: 'allah-names', icon: 'star-crescent' as const, isInternal: true, customIcon: AllahNamesIcon, gradient: ['#D97706', '#B45309'] as const },
+      { label: t.links.ablutions, url: 'ablutions', icon: 'hand-wash' as const, isInternal: true, customIcon: WuduIcon, gradient: ['#0891B2', '#0E7490'] as const },
+      { label: t.links.quiz, url: 'quiz', icon: 'head-question' as const, isInternal: true, customIcon: QuizIcon, gradient: ['#7C3AED', '#6D28D9'] as const },
+      { label: t.links.stories, url: 'stories', icon: 'book-open-variant' as const, isInternal: true, customIcon: StoriesIcon, gradient: ['#EA580C', '#C2410C'] as const },
+      { label: t.links.prayerTimes, url: 'prayer-times', icon: 'mosque' as const, isInternal: true, customIcon: MasjidIcon, gradient: ['#4338CA', '#3730A3'] as const },
     ],
   },
   {
-    title: '🎓 Apprentissage',
+    title: 'Apprentissage',
     links: [
-      { label: t.links.arabicTracing, url: 'arabic-tracing', icon: 'abjad-arabic' as const, colorIndex: 3, isInternal: true, customIcon: ArabicIcon },
-      { label: t.links.arabicLearning, url: 'arabic-learning', icon: 'abjad-arabic' as const, colorIndex: 3, isInternal: false, customIcon: ArabIcon },
-      { label: t.links.calculator, url: 'calculator', icon: 'calculator-variant' as const, colorIndex: 5, isInternal: true, customIcon: CalculatorIcon },
-      { label: t.links.calligraphy, url: 'calligraphy', icon: 'fountain-pen-tip' as const, colorIndex: 0, isInternal: true, customIcon: CalligraphyIcon },
+      { label: t.links.arabicTracing, url: 'arabic-tracing', icon: 'abjad-arabic' as const, isInternal: true, customIcon: ArabicIcon, gradient: ['#D97706', '#92400E'] as const },
+      { label: t.links.arabicLearning, url: 'arabic-learning', icon: 'abjad-arabic' as const, isInternal: false, customIcon: ArabIcon, gradient: ['#E11D48', '#9F1239'] as const },
+      { label: t.links.calculator, url: 'calculator', icon: 'calculator-variant' as const, isInternal: true, customIcon: CalculatorIcon, gradient: ['#475569', '#1E293B'] as const },
+      { label: t.links.calligraphy, url: 'calligraphy', icon: 'fountain-pen-tip' as const, isInternal: true, customIcon: CalligraphyIcon, gradient: ['#9333EA', '#7E22CE'] as const },
     ],
   },
   {
-    title: '🎮 Jeux & Activités',
+    title: 'Jeux & Activités',
     links: [
-      { label: t.links.games, url: 'games', icon: 'gamepad-variant-outline' as const, colorIndex: 5, isInternal: false, customIcon: undefined },
-      { label: t.links.drawing, url: 'drawing', icon: 'draw' as const, colorIndex: 2, isInternal: true, customIcon: DrawingIcon },
-      { label: t.links.microMission, url: 'micro-mission', icon: 'target' as const, colorIndex: 1, isInternal: true, customIcon: MissionIcon },
+      { label: t.links.games, url: 'games', icon: 'gamepad-variant-outline' as const, isInternal: false, customIcon: undefined, gradient: ['#16A34A', '#15803D'] as const },
+      { label: t.links.drawing, url: 'drawing', icon: 'draw' as const, isInternal: true, customIcon: DrawingIcon, gradient: ['#DB2777', '#9D174D'] as const },
+      { label: t.links.microMission, url: 'micro-mission', icon: 'target' as const, isInternal: true, customIcon: MissionIcon, gradient: ['#F97316', '#C2410C'] as const },
     ],
   },
   {
-    title: '🧠 Bien-être',
+    title: 'Bien-être',
     links: [
-      { label: t.links.emotions, url: 'emotions', icon: 'emoticon-happy-outline' as const, colorIndex: 5, isInternal: true, customIcon: EmotionIcon },
-      { label: t.links.breathing, url: 'breathing', icon: 'leaf' as const, colorIndex: 2, isInternal: true, customIcon: BreatheIcon },
-      { label: t.links.soundMixer, url: 'sound-mixer', icon: 'music-box-multiple' as const, colorIndex: 3, isInternal: true, customIcon: SoundIcon },
+      { label: t.links.emotions, url: 'emotions', icon: 'emoticon-happy-outline' as const, isInternal: true, customIcon: EmotionIcon, gradient: ['#CA8A04', '#92400E'] as const },
+      { label: t.links.breathing, url: 'breathing', icon: 'leaf' as const, isInternal: true, customIcon: BreatheIcon, gradient: ['#0D9488', '#0F766E'] as const },
+      { label: t.links.soundMixer, url: 'sound-mixer', icon: 'music-box-multiple' as const, isInternal: true, customIcon: SoundIcon, gradient: ['#8B5CF6', '#6D28D9'] as const },
     ],
   },
   {
-    title: '🧰 Outils',
+    title: 'Outils',
     links: [
-      { label: t.links.camera, url: 'camera', icon: 'camera' as const, colorIndex: 1, isInternal: true, customIcon: CamleraIcon },
-      { label: t.links.gallery, url: 'gallery', icon: 'image-multiple' as const, colorIndex: 2, isInternal: true, customIcon: GaleryIcon },
-      { label: t.links.notes, url: 'notes', icon: 'notebook-edit' as const, colorIndex: 4, isInternal: true, customIcon: NoteIcon },
-      { label: t.links.stopwatch, url: 'stopwatch', icon: 'timer-outline' as const, colorIndex: 4, isInternal: true, customIcon: ChronoIcon },
-      { label: t.links.pedometer, url: 'pedometer', icon: 'shoe-sneaker' as const, colorIndex: 3, isInternal: true, customIcon: PodometreIcon },
-      { label: t.links.weather, url: 'weather', icon: 'weather-partly-cloudy' as const, colorIndex: 0, isInternal: true, customIcon: MeteoIcon },
-      { label: t.links.background, url: 'background-picker', icon: 'palette' as const, colorIndex: 4, isInternal: true, customIcon: GalerieIcon },
+      { label: t.links.camera, url: 'camera', icon: 'camera' as const, isInternal: true, customIcon: CamleraIcon, gradient: ['#7C3AED', '#4F46E5'] as const },
+      { label: t.links.gallery, url: 'gallery', icon: 'image-multiple' as const, isInternal: true, customIcon: GaleryIcon, gradient: ['#EC4899', '#BE185D'] as const },
+      { label: t.links.notes, url: 'notes', icon: 'notebook-edit' as const, isInternal: true, customIcon: NoteIcon, gradient: ['#2563EB', '#1D4ED8'] as const },
+      { label: t.links.stopwatch, url: 'stopwatch', icon: 'timer-outline' as const, isInternal: true, customIcon: ChronoIcon, gradient: ['#DC2626', '#991B1B'] as const },
+      { label: t.links.pedometer, url: 'pedometer', icon: 'shoe-sneaker' as const, isInternal: true, customIcon: PodometreIcon, gradient: ['#16A34A', '#166534'] as const },
+      { label: t.links.weather, url: 'weather', icon: 'weather-partly-cloudy' as const, isInternal: true, customIcon: MeteoIcon, gradient: ['#0284C7', '#075985'] as const },
+      { label: t.links.background, url: 'background-picker', icon: 'palette' as const, isInternal: true, customIcon: GalerieIcon, gradient: ['#A855F7', '#7C3AED'] as const },
     ],
   },
 ];
@@ -249,63 +249,64 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
-      {/* Greeting (hidden in strict mode) */}
-      {!effectiveStrictMode && (
-        <View style={styles.greetingContainer}>
-          <Text style={[styles.greeting, dark && styles.textLight]}>{t.greeting}</Text>
-          <Text style={[styles.homeTitle, dark && styles.textLight]}>{t.homeTitle}</Text>
-          <Text style={[styles.homeSubtitle, dark && styles.textLightSecondary]}>{t.homeSubtitle}</Text>
-        </View>
-      )}
 
       {/* Search Bar (hidden when browser disabled or strict mode) */}
       {browserEnabled && !effectiveStrictMode && (
         <CopilotStep text={tour.childSearch} order={1} name="child-search" active={browserEnabled && !effectiveStrictMode}>
           <CopilotView collapsable={false} style={styles.searchContainer}>
-            <View style={styles.searchBar}>
-              <MaterialCommunityIcons
-                name="magnify"
-                size={24}
-                color={KidColors.safeGreen}
-                style={styles.searchIcon}
-              />
-              <TextInput
-                style={styles.searchInput}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                onSubmitEditing={handleSearch}
-                placeholder={t.searchPlaceholder}
-                placeholderTextColor={KidColors.searchPlaceholder}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="off"
-                textContentType="none"
-                spellCheck={false}
-                importantForAutofill="no"
-                returnKeyType="search"
-              />
-              {searchQuery.length > 0 && (
-                <Pressable onPress={handleSearch} style={styles.searchButton}>
-                  <MaterialCommunityIcons
-                    name="arrow-right-circle"
-                    size={32}
-                    color={Colors.primary}
-                  />
-                </Pressable>
-              )}
-            </View>
-
-            {/* Safe search badge */}
-            <View style={styles.badgesRow}>
-              <View style={styles.safeBadge}>
-                <MaterialCommunityIcons
-                  name="shield-check"
-                  size={14}
-                  color={KidColors.safeGreen}
-                />
-                <Text style={styles.safeBadgeText}>{t.safeSearch}</Text>
+            <LinearGradient
+              colors={['#2563EB', '#7C3AED']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.searchCard}
+            >
+              {/* Label */}
+              <View style={styles.searchCardHeader}>
+                <MaterialCommunityIcons name="web" size={16} color="rgba(255,255,255,0.9)" />
+                <Text style={styles.searchCardLabel}>Naviguer sur internet</Text>
+                <View style={styles.searchSafeBadge}>
+                  <MaterialCommunityIcons name="shield-check" size={12} color="#4ADE80" />
+                  <Text style={styles.searchSafeBadgeText}>{t.safeSearch}</Text>
+                </View>
               </View>
-            </View>
+
+              {/* Input row */}
+              <View style={styles.searchBar}>
+                <MaterialCommunityIcons
+                  name="magnify"
+                  size={22}
+                  color="#94A3B8"
+                  style={styles.searchIcon}
+                />
+                <TextInput
+                  style={styles.searchInput}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  onSubmitEditing={handleSearch}
+                  placeholder={t.searchPlaceholder}
+                  placeholderTextColor="#94A3B8"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="off"
+                  textContentType="none"
+                  spellCheck={false}
+                  importantForAutofill="no"
+                  returnKeyType="search"
+                />
+                {searchQuery.length > 0 && (
+                  <Pressable onPress={handleSearch} style={styles.searchButton}>
+                    <LinearGradient
+                      colors={['#2563EB', '#7C3AED']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.searchGoBtn}
+                    >
+                      <MaterialCommunityIcons name="arrow-right" size={20} color="#FFF" />
+                    </LinearGradient>
+                  </Pressable>
+                )}
+              </View>
+            </LinearGradient>
           </CopilotView>
         </CopilotStep>
       )}
@@ -385,7 +386,8 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
         <CopilotView collapsable={false} style={styles.quickLinksSection}>
 
           {/* Hero row: Muslim Tube + Caméra */}
-          <View style={styles.heroRow}>
+          <Text style={[styles.categoryTitle, dark && styles.textLight]}>⭐ En vedette</Text>
+          <View style={[styles.heroRow]}>
             {/* Muslim Tube – dominant */}
             <Pressable
               style={({ pressed }) => [styles.heroCardMain, pressed && styles.tilePressed]}
@@ -399,7 +401,6 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
               >
                 <YoutubeIcon width={38} height={38} fill="#FFF" />
                 <Text style={styles.heroCardTitle}>Muslim Tube</Text>
-                <Text style={styles.heroCardSubtitle}>Vidéos islamiques</Text>
                 <View style={styles.heroPlayBadge}>
                   <MaterialCommunityIcons name="play-circle" size={18} color="#FFF" />
                   <Text style={styles.heroPlayText}>Regarder</Text>
@@ -433,7 +434,7 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
                 {category.links.map((link) => (
                   <Pressable
                     key={link.url}
-                    style={({ pressed }) => [styles.appItem, pressed && styles.tilePressed]}
+                    style={({ pressed }) => [styles.appCard, pressed && styles.tilePressed]}
                     onPress={() => {
                       if (link.url === 'arabic-learning') {
                         setShowArabicLearning(true);
@@ -448,16 +449,21 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
                       }
                     }}
                   >
-                    <View style={[styles.appIcon, { backgroundColor: KidColors.tiles[link.colorIndex] }]}>
+                    <LinearGradient
+                      colors={link.gradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.appCardInner}
+                    >
                       {link.customIcon ? (
-                        <link.customIcon width={32} height={32} fill={KidColors.tileIcons[link.colorIndex]} />
+                        <link.customIcon width={30} height={30} fill="#FFF" />
                       ) : (
-                        <MaterialCommunityIcons name={link.icon} size={32} color={KidColors.tileIcons[link.colorIndex]} />
+                        <MaterialCommunityIcons name={link.icon} size={30} color="#FFF" />
                       )}
-                    </View>
-                    <Text style={[styles.appLabel, dark && styles.textLight]} numberOfLines={1}>
-                      {link.label}
-                    </Text>
+                      <Text style={styles.appCardLabel} numberOfLines={2}>
+                        {link.label}
+                      </Text>
+                    </LinearGradient>
                   </Pressable>
                 ))}
               </View>
@@ -705,23 +711,49 @@ const styles = StyleSheet.create({
   // Search
   searchContainer: {
     marginBottom: Spacing.xl,
+  },
+  searchCard: {
+    borderRadius: 24,
+    padding: 16,
+    elevation: 6,
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    gap: 12,
+  },
+  searchCardHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
+  },
+  searchCardLabel: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.9)',
+  },
+  searchSafeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.full,
+  },
+  searchSafeBadgeText: {
+    fontSize: 11,
+    color: '#4ADE80',
+    fontWeight: '700',
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 28,
-    height: 56,
+    borderRadius: 16,
+    height: 52,
     paddingHorizontal: Spacing.md,
-    borderWidth: 2,
-    borderColor: KidColors.searchBorder,
-    width: '100%',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
   },
   searchIcon: {
     marginRight: Spacing.sm,
@@ -733,14 +765,14 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   searchButton: {
-    padding: Spacing.xs,
+    padding: 2,
   },
-  badgesRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  searchGoBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     justifyContent: 'center',
-    gap: Spacing.sm,
-    marginTop: Spacing.sm,
+    alignItems: 'center',
   },
   safeBadge: {
     flexDirection: 'row',
@@ -796,8 +828,8 @@ const styles = StyleSheet.create({
   },
   heroGradientMain: {
     borderRadius: 22,
-    padding: 18,
-    height: 160,
+    padding: 16,
+    height: 120,
     justifyContent: 'space-between',
     elevation: 6,
     shadowColor: '#FF0000',
@@ -808,7 +840,7 @@ const styles = StyleSheet.create({
   heroGradientSide: {
     borderRadius: 22,
     padding: 16,
-    height: 160,
+    height: 120,
     justifyContent: 'space-between',
     elevation: 6,
     shadowColor: '#7C3AED',
@@ -847,44 +879,40 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   categoryTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
     color: Colors.light.text,
     marginBottom: Spacing.sm,
   },
   quickLinksGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     gap: Spacing.md,
-  },
-  appItem: {
-    width: '28%',
-    alignItems: 'center',
-    marginBottom: Spacing.xs,
   },
   tilePressed: {
     opacity: 0.8,
     transform: [{ scale: 0.92 }],
   },
-  appIcon: {
-    width: 68,
-    height: 68,
+  appCard: {
+    width: '30%',
+  },
+  appCardInner: {
     borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 12,
+    height: 88,
+    justifyContent: 'space-between',
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  appLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.light.text,
-    textAlign: 'center',
-    marginTop: 6,
+  appCardLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    lineHeight: 14,
+    color: '#FFF',
   },
 
   // Strict Mode Section
