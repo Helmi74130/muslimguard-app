@@ -7,9 +7,11 @@ import {
   shuffle,
 } from '@/data/arabic-learning-data';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+
 import React, { useMemo, useState } from 'react';
 import {
+  Image,
+  ImageSourcePropType,
   Modal,
   Pressable,
   SafeAreaView,
@@ -53,13 +55,22 @@ interface Props {
 
 // ─── Game metadata ────────────────────────────────────────────────────────────
 
-const GAMES: { id: GameId; title: string; desc: string; emoji: string; color: string }[] = [
-  { id: 'game1', title: 'Ordre des lettres', desc: 'Remets les lettres dans le bon ordre', emoji: '🔀', color: '#6C63FF' },
-  { id: 'game2', title: 'Lettre manquante', desc: 'Trouve la lettre qui manque', emoji: '❓', color: '#FF6584' },
-  { id: 'game3', title: 'Mot & Image', desc: 'Associe le bon mot à l\'image', emoji: '🖼️', color: '#43B89C' },
-  { id: 'game4', title: 'Première lettre', desc: 'Trouve la première lettre du mot', emoji: '🔤', color: '#FFB347' },
-  { id: 'game5', title: 'L\'intrus', desc: 'Trouve la lettre qui n\'appartient pas', emoji: '🎯', color: '#FF6B6B' },
-  { id: 'game7', title: 'Vrai ou Faux', desc: 'Le mot correspond-il à l\'image ?', emoji: '✅', color: '#F59E0B' },
+const GAME_IMAGES: Record<GameId, ImageSourcePropType> = {
+  game1: require('@/assets/arabe-learn/ordre.jpg'),
+  game2: require('@/assets/arabe-learn/lettremanquante.jpg'),
+  game3: require('@/assets/arabe-learn/motetimage.jpg'),
+  game4: require('@/assets/arabe-learn/premierelettre.jpg'),
+  game5: require('@/assets/arabe-learn/intru.jpg'),
+  game7: require('@/assets/arabe-learn/vraioufaux.jpg'),
+};
+
+const GAMES: { id: GameId; title: string; desc: string; color: string }[] = [
+  { id: 'game1', title: 'Ordre des lettres', desc: 'Remets les lettres dans le bon ordre', color: '#5B4FE8' },
+  { id: 'game2', title: 'Lettre manquante', desc: 'Trouve la lettre qui manque', color: '#E8416A' },
+  { id: 'game3', title: 'Mot & Image', desc: 'Associe le bon mot à l\'image', color: '#0BA37F' },
+  { id: 'game4', title: 'Première lettre', desc: 'Trouve la première lettre du mot', color: '#D4820A' },
+  { id: 'game5', title: 'L\'intrus', desc: 'Trouve la lettre qui n\'appartient pas', color: '#D63031' },
+  { id: 'game7', title: 'Vrai ou Faux', desc: 'Le mot correspond-il à l\'image ?', color: '#0974D4' },
 ];
 
 // ─── Feedback ─────────────────────────────────────────────────────────────────
@@ -416,13 +427,15 @@ function VraiFaux({ onBack, onNext }: { onBack: () => void; onNext: () => void }
 function MenuScreen({ onSelect, onClose }: { onSelect: (g: GameId) => void; onClose: () => void }) {
   return (
     <View style={styles.menu}>
-      {/* Header gradient */}
-      <LinearGradient
-        colors={['#7C3AED', '#4F46E5']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.menuHeader}
-      >
+      {/* Header image */}
+      <View style={styles.menuHeader}>
+        <Image
+          source={require('@/assets/arabe-learn/headerarabe.jpg')}
+          style={styles.menuHeaderImage}
+          resizeMode="cover"
+        />
+        {/* Overlay sombre pour lisibilité */}
+        <View style={styles.menuHeaderOverlay} />
         <Pressable onPress={onClose} style={styles.menuBackBtn}>
           <MaterialCommunityIcons name="arrow-left" size={22} color="#FFF" />
         </Pressable>
@@ -430,11 +443,10 @@ function MenuScreen({ onSelect, onClose }: { onSelect: (g: GameId) => void; onCl
           <MaterialCommunityIcons name="close" size={22} color="#FFF" />
         </Pressable>
         <View style={styles.menuHeaderCenter}>
-          <Text style={styles.menuHeaderEmoji}>🌙</Text>
           <Text style={styles.menuTitle}>Apprendre l'arabe</Text>
           <Text style={styles.menuSubtitle}>{"Choisis ton jeu !"}</Text>
         </View>
-      </LinearGradient>
+      </View>
 
       {/* 2-column grid */}
       <ScrollView contentContainerStyle={styles.menuGrid} showsVerticalScrollIndicator={false}>
@@ -449,11 +461,11 @@ function MenuScreen({ onSelect, onClose }: { onSelect: (g: GameId) => void; onCl
               ]}
               onPress={() => onSelect(g.id)}
             >
-              {/* Decorative circle */}
-              <View style={[styles.gameCardCircle, { backgroundColor: 'rgba(255,255,255,0.15)' }]} />
-              <Text style={styles.gameCardEmoji}>{g.emoji}</Text>
-              <Text style={styles.gameCardTitle}>{g.title}</Text>
-              <Text style={styles.gameCardDesc}>{g.desc}</Text>
+              <Image source={GAME_IMAGES[g.id]} style={styles.gameCardImage} resizeMode="cover" />
+              <View style={[styles.gameCardBody, { backgroundColor: g.color }]}>
+                <Text style={styles.gameCardTitle}>{g.title}</Text>
+                <Text style={styles.gameCardDesc}>{g.desc}</Text>
+              </View>
             </Pressable>
           ))}
         </View>
@@ -505,12 +517,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4F0FF',
   },
   menuHeader: {
-    paddingTop: 16,
-    paddingBottom: 28,
-    paddingHorizontal: 20,
-    alignItems: 'center',
+    height: 200,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  menuHeaderImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  menuHeaderOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(30, 10, 80, 0.52)',
   },
   menuBackBtn: {
     position: 'absolute',
@@ -536,11 +565,7 @@ const styles = StyleSheet.create({
   },
   menuHeaderCenter: {
     alignItems: 'center',
-    marginTop: 8,
-  },
-  menuHeaderEmoji: {
-    fontSize: 48,
-    marginBottom: 6,
+    paddingBottom: 20,
   },
   menuTitle: {
     fontSize: 22,
@@ -573,40 +598,36 @@ const styles = StyleSheet.create({
   },
   gameCard: {
     width: '46%',
-    borderRadius: 24,
-    paddingVertical: 24,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    gap: 10,
+    borderRadius: 20,
     overflow: 'hidden',
-    elevation: 5,
+    backgroundColor: '#FFF',
+    elevation: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
     shadowRadius: 8,
   },
-  gameCardCircle: {
-    position: 'absolute',
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    top: -20,
-    right: -20,
+  gameCardImage: {
+    width: '100%',
+    height: 110,
   },
-  gameCardEmoji: {
-    fontSize: 44,
+  gameCardBody: {
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    gap: 4,
   },
   gameCardTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '800',
     color: '#FFF',
     textAlign: 'center',
   },
   gameCardDesc: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.8)',
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
-    lineHeight: 15,
+    lineHeight: 14,
   },
 
   // ── GameWrapper ──
