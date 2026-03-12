@@ -5,15 +5,21 @@ import {
   Modal,
   Pressable,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { FindTheOddGame } from './FindTheOddGame';
 import { FlagQuiz } from './FlagQuiz';
+import { HeadsUpGame } from './HeadsUpGame';
+import { MathGame } from './MathGame';
 import { MemoryGame } from './MemoryGame';
+import { NumberGame } from './NumberGame';
+import { ReactionGame } from './ReactionGame';
+import { StroopGame } from './StroopGame';
 
-type GameId = 'memory' | 'odd' | 'flags';
+type GameId = 'memory' | 'odd' | 'flags' | 'headsup' | 'math' | 'number' | 'reaction' | 'stroop';
 type Screen = 'menu' | GameId;
 
 interface Props {
@@ -42,6 +48,41 @@ const GAMES: { id: GameId; title: string; desc: string; emoji: string; color: st
     desc: 'Drapeaux du monde entier',
     emoji: '🌍',
     color: '#FFD33D',
+  },
+  {
+    id: 'headsup',
+    title: 'Devine Tête !',
+    desc: 'Pose le téléphone sur ton front et fais-toi deviner',
+    emoji: '🎯',
+    color: '#FF6584',
+  },
+  {
+    id: 'math',
+    title: 'Calcul Mental',
+    desc: '+ − × ÷ avec chrono',
+    emoji: '🧮',
+    color: '#43B89C',
+  },
+  {
+    id: 'number',
+    title: 'Trouve le Nombre',
+    desc: 'Chaud / froid · devine le nombre secret',
+    emoji: '🔢',
+    color: '#00B4D8',
+  },
+  {
+    id: 'reaction',
+    title: 'Test de Réaction',
+    desc: 'Attends le vert → tape le plus vite possible',
+    emoji: '⚡',
+    color: '#FFD33D',
+  },
+  {
+    id: 'stroop',
+    title: 'Effet Stroop',
+    desc: 'Tape la couleur de l\'encre, pas le mot !',
+    emoji: '🎨',
+    color: '#A855F7',
   },
 ];
 
@@ -75,7 +116,7 @@ export function GamesModal({ visible, onClose }: Props) {
 
           {/* Menu */}
           {screen === 'menu' && (
-            <View style={styles.menuContainer}>
+            <ScrollView style={styles.menuContainer} contentContainerStyle={styles.menuContent} showsVerticalScrollIndicator={false}>
               <Text style={styles.menuSubtitle}>Choisis un jeu</Text>
               {GAMES.map((game) => (
                 <Pressable
@@ -93,7 +134,7 @@ export function GamesModal({ visible, onClose }: Props) {
                   <MaterialCommunityIcons name="chevron-right" size={24} color="#ffffff66" />
                 </Pressable>
               ))}
-            </View>
+            </ScrollView>
           )}
 
           {/* Memory Game */}
@@ -104,6 +145,21 @@ export function GamesModal({ visible, onClose }: Props) {
 
           {/* Quiz de Géographie */}
           {screen === 'flags' && <FlagQuiz />}
+
+          {/* Devine Tête */}
+          {screen === 'headsup' && <HeadsUpGame />}
+
+          {/* Calcul Mental */}
+          {screen === 'math' && <MathGame />}
+
+          {/* Trouve le Nombre */}
+          {screen === 'number' && <NumberGame />}
+
+          {/* Test de Réaction */}
+          {screen === 'reaction' && <ReactionGame />}
+
+          {/* Effet Stroop */}
+          {screen === 'stroop' && <StroopGame />}
         </SafeAreaView>
       </LinearGradient>
     </Modal>
@@ -133,7 +189,8 @@ const styles = StyleSheet.create({
   },
   headerTitle: { flex: 1, textAlign: 'center', fontSize: 20, fontWeight: '700', color: '#fff' },
   headerSpacer: { width: 34 },
-  menuContainer: { flex: 1, padding: 24 },
+  menuContainer: { flex: 1 },
+  menuContent: { padding: 24 },
   menuSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.5)', marginBottom: 20, textAlign: 'center' },
   gameCard: {
     flexDirection: 'row',

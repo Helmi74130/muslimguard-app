@@ -13,6 +13,7 @@ import CalligraphyIcon from '@/assets/icons/calligraphy.svg';
 import CamleraIcon from '@/assets/icons/camera.svg';
 import ChronoIcon from '@/assets/icons/chrono.svg';
 import DrawingIcon from '@/assets/icons/drawing.svg';
+import ArabIcon from '@/assets/icons/iconarabe.svg';
 import EmotionIcon from '@/assets/icons/emotion.svg';
 import GalerieIcon from '@/assets/icons/galerie.svg';
 import GaleryIcon from '@/assets/icons/galery.svg';
@@ -72,199 +73,54 @@ interface BrowserHomePageProps {
   onQuickLink: (url: string) => void;
 }
 
-const QUICK_LINKS = [
+const CATEGORIES = [
   {
-    label: t.links.videos,
-    url: 'videos',
-    icon: 'youtube' as const,
-    colorIndex: 1,
-    isInternal: true,
-    customColor: '#FF0000',
-    customIcon: YoutubeIcon,
+    title: '📖 Religion',
+    links: [
+      { label: t.links.quran, url: 'quran', icon: 'book-open-variant' as const, colorIndex: 0, isInternal: true, customIcon: QuranIcon },
+      { label: t.links.allahNames, url: 'allah-names', icon: 'star-crescent' as const, colorIndex: 1, isInternal: true, customIcon: AllahNamesIcon },
+      { label: t.links.ablutions, url: 'ablutions', icon: 'hand-wash' as const, colorIndex: 0, isInternal: true, customIcon: WuduIcon },
+      { label: t.links.quiz, url: 'quiz', icon: 'head-question' as const, colorIndex: 5, isInternal: true, customIcon: QuizIcon },
+      { label: t.links.stories, url: 'stories', icon: 'book-open-variant' as const, colorIndex: 1, isInternal: true, customIcon: StoriesIcon },
+      { label: t.links.prayerTimes, url: 'prayer-times', icon: 'mosque' as const, colorIndex: 2, isInternal: true, customIcon: MasjidIcon },
+    ],
   },
   {
-    label: t.links.quiz,
-    url: 'quiz',
-    icon: 'head-question' as const,
-    colorIndex: 5,
-    isInternal: true,
-    customIcon: QuizIcon,
+    title: '🎓 Apprentissage',
+    links: [
+      { label: t.links.arabicTracing, url: 'arabic-tracing', icon: 'abjad-arabic' as const, colorIndex: 3, isInternal: true, customIcon: ArabicIcon },
+      { label: t.links.arabicLearning, url: 'arabic-learning', icon: 'abjad-arabic' as const, colorIndex: 3, isInternal: false, customIcon: ArabIcon },
+      { label: t.links.calculator, url: 'calculator', icon: 'calculator-variant' as const, colorIndex: 5, isInternal: true, customIcon: CalculatorIcon },
+      { label: t.links.calligraphy, url: 'calligraphy', icon: 'fountain-pen-tip' as const, colorIndex: 0, isInternal: true, customIcon: CalligraphyIcon },
+    ],
   },
   {
-    label: t.links.camera,
-    url: 'camera',
-    icon: 'camera' as const,
-    colorIndex: 1,
-    isInternal: true,
-    customIcon: CamleraIcon,
+    title: '🎮 Jeux & Activités',
+    links: [
+      { label: t.links.games, url: 'games', icon: 'gamepad-variant-outline' as const, colorIndex: 5, isInternal: false, customIcon: undefined },
+      { label: t.links.drawing, url: 'drawing', icon: 'draw' as const, colorIndex: 2, isInternal: true, customIcon: DrawingIcon },
+      { label: t.links.microMission, url: 'micro-mission', icon: 'target' as const, colorIndex: 1, isInternal: true, customIcon: MissionIcon },
+    ],
   },
   {
-    label: t.links.microMission,
-    url: 'micro-mission',
-    icon: 'target' as const,
-    colorIndex: 1,
-    isInternal: true,
-    customIcon: MissionIcon,
+    title: '🧠 Bien-être',
+    links: [
+      { label: t.links.emotions, url: 'emotions', icon: 'emoticon-happy-outline' as const, colorIndex: 5, isInternal: true, customIcon: EmotionIcon },
+      { label: t.links.breathing, url: 'breathing', icon: 'leaf' as const, colorIndex: 2, isInternal: true, customIcon: BreatheIcon },
+      { label: t.links.soundMixer, url: 'sound-mixer', icon: 'music-box-multiple' as const, colorIndex: 3, isInternal: true, customIcon: SoundIcon },
+    ],
   },
   {
-    label: t.links.quran,
-    url: 'quran',
-    icon: 'book-open-variant' as const,
-    colorIndex: 0,
-    isInternal: true,
-    customIcon: QuranIcon,
-  },
-  {
-    label: t.links.allahNames,
-    url: 'allah-names',
-    icon: 'star-crescent' as const,
-    colorIndex: 1,
-    isInternal: true,
-    customIcon: AllahNamesIcon,
-  },
-  {
-    label: t.links.emotions,
-    url: 'emotions',
-    icon: 'emoticon-happy-outline' as const,
-    colorIndex: 5,
-    isInternal: true,
-    customIcon: EmotionIcon,
-  },
-  {
-    label: t.links.drawing,
-    url: 'drawing',
-    icon: 'draw' as const,
-    colorIndex: 2,
-    isInternal: true,
-    customIcon: DrawingIcon,
-  },
-  {
-    label: t.links.soundMixer,
-    url: 'sound-mixer',
-    icon: 'music-box-multiple' as const,
-    colorIndex: 3,
-    isInternal: true,
-    customIcon: SoundIcon,
-  },
-  {
-    label: t.links.breathing,
-    url: 'breathing',
-    icon: 'leaf' as const,
-    colorIndex: 2,
-    isInternal: true,
-    customIcon: BreatheIcon,
-  },
-  {
-    label: t.links.arabicTracing,
-    url: 'arabic-tracing',
-    icon: 'abjad-arabic' as const,
-    colorIndex: 3,
-    isInternal: true,
-    customIcon: ArabicIcon,
-  },
-  {
-    label: t.links.calculator,
-    url: 'calculator',
-    icon: 'calculator-variant' as const,
-    colorIndex: 5,
-    isInternal: true,
-    customIcon: CalculatorIcon,
-  },
-  {
-    label: t.links.calligraphy,
-    url: 'calligraphy',
-    icon: 'fountain-pen-tip' as const,
-    colorIndex: 0,
-    isInternal: true,
-    customIcon: CalligraphyIcon,
-  },
-  {
-    label: t.links.gallery,
-    url: 'gallery',
-    icon: 'image-multiple' as const,
-    colorIndex: 2,
-    isInternal: true,
-    customIcon: GaleryIcon,
-  },
-  {
-    label: t.links.notes,
-    url: 'notes',
-    icon: 'notebook-edit' as const,
-    colorIndex: 4,
-    isInternal: true,
-    customIcon: NoteIcon,
-  },
-  {
-    label: t.links.pedometer,
-    url: 'pedometer',
-    icon: 'shoe-sneaker' as const,
-    colorIndex: 3,
-    isInternal: true,
-    customIcon: PodometreIcon,
-  },
-  {
-    label: t.links.stopwatch,
-    url: 'stopwatch',
-    icon: 'timer-outline' as const,
-    colorIndex: 4,
-    isInternal: true,
-    customIcon: ChronoIcon,
-  },
-  {
-    label: t.links.ablutions,
-    url: 'ablutions',
-    icon: 'hand-wash' as const,
-    colorIndex: 0,
-    isInternal: true,
-    customIcon: WuduIcon,
-  },
-    {
-    label: t.links.prayerTimes,
-    url: 'prayer-times',
-    icon: 'mosque' as const,
-    colorIndex: 2,
-    isInternal: true,
-    customIcon: MasjidIcon,
-  },
-  {
-    label: t.links.background,
-    url: 'background-picker',
-    icon: 'palette' as const,
-    colorIndex: 4,
-    isInternal: true,
-    customIcon: GalerieIcon,
-  },
-  {
-    label: t.links.weather,
-    url: 'weather',
-    icon: 'weather-partly-cloudy' as const,
-    colorIndex: 0,
-    isInternal: true,
-    customIcon: MeteoIcon,
-  },
-  {
-    label: t.links.stories,
-    url: 'stories',
-    icon: 'book-open-variant' as const,
-    colorIndex: 1,
-    isInternal: true,
-    customIcon: StoriesIcon,
-  },
-  {
-    label: t.links.arabicLearning,
-    url: 'arabic-learning',
-    icon: 'abjad-arabic' as const,
-    colorIndex: 3,
-    isInternal: false,
-    customIcon: undefined,
-  },
-  {
-    label: t.links.games,
-    url: 'games',
-    icon: 'gamepad-variant-outline' as const,
-    colorIndex: 5,
-    isInternal: false,
-    customIcon: undefined,
+    title: '🧰 Outils',
+    links: [
+      { label: t.links.camera, url: 'camera', icon: 'camera' as const, colorIndex: 1, isInternal: true, customIcon: CamleraIcon },
+      { label: t.links.gallery, url: 'gallery', icon: 'image-multiple' as const, colorIndex: 2, isInternal: true, customIcon: GaleryIcon },
+      { label: t.links.notes, url: 'notes', icon: 'notebook-edit' as const, colorIndex: 4, isInternal: true, customIcon: NoteIcon },
+      { label: t.links.stopwatch, url: 'stopwatch', icon: 'timer-outline' as const, colorIndex: 4, isInternal: true, customIcon: ChronoIcon },
+      { label: t.links.pedometer, url: 'pedometer', icon: 'shoe-sneaker' as const, colorIndex: 3, isInternal: true, customIcon: PodometreIcon },
+      { label: t.links.weather, url: 'weather', icon: 'weather-partly-cloudy' as const, colorIndex: 0, isInternal: true, customIcon: MeteoIcon },
+      { label: t.links.background, url: 'background-picker', icon: 'palette' as const, colorIndex: 4, isInternal: true, customIcon: GalerieIcon },
+    ],
   },
 ];
 
@@ -527,57 +383,87 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
       {/* Applications */}
       <CopilotStep text={tour.childApps} order={2} name="child-apps">
         <CopilotView collapsable={false} style={styles.quickLinksSection}>
-          <Text style={[styles.quickLinksTitle, dark && styles.textLight]}>{t.quickLinks}</Text>
-          <View style={styles.quickLinksGrid}>
-            {QUICK_LINKS.map((link) => (
-              <Pressable
-                key={link.url}
-                style={({ pressed }) => [
-                  styles.appItem,
-                  pressed && styles.tilePressed,
-                ]}
-                onPress={() => {
-                  if (link.url === 'arabic-learning') {
-                    setShowArabicLearning(true);
-                  } else if (link.url === 'games') {
-                    setShowGames(true);
-                  } else if (link.url === 'background-picker') {
-                    setShowBgPicker(true);
-                  } else if (link.isInternal) {
-                    router.push(`/child/${link.url}` as any);
-                  } else {
-                    onQuickLink(link.url);
-                  }
-                }}
+
+          {/* Hero row: Muslim Tube + Caméra */}
+          <View style={styles.heroRow}>
+            {/* Muslim Tube – dominant */}
+            <Pressable
+              style={({ pressed }) => [styles.heroCardMain, pressed && styles.tilePressed]}
+              onPress={() => router.push('/child/videos' as any)}
+            >
+              <LinearGradient
+                colors={['#FF2020', '#A80000']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.heroGradientMain}
               >
-                <View style={[
-                  styles.appIcon,
-                  {
-                    backgroundColor: link.customColor ? '#ffefefff' : KidColors.tiles[link.colorIndex],
-                    borderWidth: link.customColor ? 1 : 0,
-                    borderColor: 'rgba(0,0,0,0.05)'
-                  },
-                ]}>
-                  {link.customIcon ? (
-                    <link.customIcon
-                      width={32}
-                      height={32}
-                      fill={link.customColor || KidColors.tileIcons[link.colorIndex]}
-                    />
-                  ) : (
-                    <MaterialCommunityIcons
-                      name={link.icon}
-                      size={32}
-                      color={link.customColor || KidColors.tileIcons[link.colorIndex]}
-                    />
-                  )}
+                <YoutubeIcon width={38} height={38} fill="#FFF" />
+                <Text style={styles.heroCardTitle}>Muslim Tube</Text>
+                <Text style={styles.heroCardSubtitle}>Vidéos islamiques</Text>
+                <View style={styles.heroPlayBadge}>
+                  <MaterialCommunityIcons name="play-circle" size={18} color="#FFF" />
+                  <Text style={styles.heroPlayText}>Regarder</Text>
                 </View>
-                <Text style={[styles.appLabel, dark && styles.textLight]} numberOfLines={1}>
-                  {link.label}
-                </Text>
-              </Pressable>
-            ))}
+              </LinearGradient>
+            </Pressable>
+
+            {/* Caméra – secondaire */}
+            <Pressable
+              style={({ pressed }) => [styles.heroCardSide, pressed && styles.tilePressed]}
+              onPress={() => router.push('/child/camera' as any)}
+            >
+              <LinearGradient
+                colors={['#7C3AED', '#4F46E5']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.heroGradientSide}
+              >
+                <CamleraIcon width={34} height={34} fill="#FFF" />
+                <Text style={styles.heroCardTitle}>Caméra</Text>
+                <Text style={styles.heroCardSubtitle}>Photos & vidéos</Text>
+              </LinearGradient>
+            </Pressable>
           </View>
+
+          {/* Catégories */}
+          {CATEGORIES.map((category) => (
+            <View key={category.title} style={styles.categorySection}>
+              <Text style={[styles.categoryTitle, dark && styles.textLight]}>{category.title}</Text>
+              <View style={styles.quickLinksGrid}>
+                {category.links.map((link) => (
+                  <Pressable
+                    key={link.url}
+                    style={({ pressed }) => [styles.appItem, pressed && styles.tilePressed]}
+                    onPress={() => {
+                      if (link.url === 'arabic-learning') {
+                        setShowArabicLearning(true);
+                      } else if (link.url === 'games') {
+                        setShowGames(true);
+                      } else if (link.url === 'background-picker') {
+                        setShowBgPicker(true);
+                      } else if (link.isInternal) {
+                        router.push(`/child/${link.url}` as any);
+                      } else {
+                        onQuickLink(link.url);
+                      }
+                    }}
+                  >
+                    <View style={[styles.appIcon, { backgroundColor: KidColors.tiles[link.colorIndex] }]}>
+                      {link.customIcon ? (
+                        <link.customIcon width={32} height={32} fill={KidColors.tileIcons[link.colorIndex]} />
+                      ) : (
+                        <MaterialCommunityIcons name={link.icon} size={32} color={KidColors.tileIcons[link.colorIndex]} />
+                      )}
+                    </View>
+                    <Text style={[styles.appLabel, dark && styles.textLight]} numberOfLines={1}>
+                      {link.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          ))}
+
         </CopilotView>
       </CopilotStep>
 
@@ -894,6 +780,77 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.light.text,
     marginBottom: Spacing.md,
+  },
+
+  // Hero Row (Muslim Tube + Caméra)
+  heroRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  heroCardMain: {
+    flex: 3,
+  },
+  heroCardSide: {
+    flex: 2,
+  },
+  heroGradientMain: {
+    borderRadius: 22,
+    padding: 18,
+    height: 160,
+    justifyContent: 'space-between',
+    elevation: 6,
+    shadowColor: '#FF0000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  heroGradientSide: {
+    borderRadius: 22,
+    padding: 16,
+    height: 160,
+    justifyContent: 'space-between',
+    elevation: 6,
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  heroCardTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#FFF',
+  },
+  heroCardSubtitle: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.8)',
+    fontWeight: '500',
+  },
+  heroPlayBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  heroPlayText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFF',
+  },
+
+  // Category Sections
+  categorySection: {
+    marginBottom: Spacing.lg,
+  },
+  categoryTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.light.text,
+    marginBottom: Spacing.sm,
   },
   quickLinksGrid: {
     flexDirection: 'row',
