@@ -285,71 +285,67 @@ Assis dans le lit, dans le noir de la nuit, à 3h30 du matin, Tarek et Oummi man
     id: 'famille-4',
     title: 'La sieste d\'Oummi',
     category: 'famille',
-    excerpt: 'Tarek entend sa maman dire qu’elle est épuisée. Alors, au milieu de la nuit, il décide de lui préparer une surprise : un délicieux gâteau au chocolat.',
+    excerpt: 'Quand Tarek entend sa maman dire qu’elle est fatiguée et qu’elle ressemble à une vieille pomme, il décide de l’aider à redevenir une princesse.',
     content: `Aujourd'hui, l’atmosphère dans la maison était calme, mais une ombre planait sur le visage d’Oummi. En se regardant dans le miroir du couloir, elle avait soupiré :
 — Oh là là... Regarde ces cernes. Je ressemble à une vieille pomme oubliée au soleil. Je suis tellement fatiguée que même mon reflet a envie de retourner se coucher.
 
-Tarek, qui jouait aux petites voitures près de là, s'arrêta net. Ses oreilles de "détecteur de tristesse" s'étaient dressées. Pour lui, entendre sa maman se comparer à une vieille pomme, c'était comme si on venait de lui annoncer que la lune était tombée.
+Tarek, qui jouait aux petites voitures près de là, s'arrêta net. Ses oreilles de "détecteur de tristesse" s'étaient dressées. Pour lui, entendre sa maman se comparer à une vieille pomme, c'était comme si on venait de lui annoncer que son doudou préféré a été perdu.
 
-« Oummi n'est pas une pomme, » pensa-t-il, le cœur serré. « C'est une reine. Mais si elle ne le voit plus, c'est parce que sa beauté est partie faire une sieste. Je dois la réveiller. »
+« Oummi n'est pas une pomme » pensa-t-il, le cœur serré. « C'est une reine. Mais si elle ne le voit plus, c'est parce que sa beauté est partie faire une sieste. Je dois la réveiller. »
 
-La Sieste de la Belle au Bois Dormant
 Peu après le déjeuner, Oummi s'installa sur le canapé pour une sieste bien méritée. Elle s'endormit profondément, sa tête basculant légèrement sur le côté, le visage paisible mais marqué par la fatigue de la semaine.
 
-C'était le moment. Tarek se faufila dans sa chambre et récupéra son trésor : sa boîte de feutres magiques à pointe large. Il vérifia bien l'étiquette : "Ultra-résistants, couleurs éclatantes".
+C'était le moment. Tarek se faufila dans sa chambre et récupéra son trésor : sa boîte de feutres à pointe large. Il vérifia bien l'étiquette : "Ultra-résistants, couleurs éclatantes".
 — Parfait, murmura-t-il. Pour une beauté éclatante, il faut des feutres éclatants.
 
-Il entra dans le salon sur la pointe des pieds, son cœur battant à tout rompre. Il se sentait comme un artiste devant une toile blanche.
+Il entra dans le salon sur la pointe des pieds, son cœur battant. Il se sentait comme un artiste devant une toile blanche.
 
-Le Ridicule : Le Chef-d'œuvre du "Docteur Beauté"
 Tarek commença par les sourcils.
-— Oummi a l'air soucieux, analysa-t-il. Il lui faut des sourcils de victoire !
-Avec le feutre noir (celui qui sent la réglisse), il dessina deux arcs immenses, épais comme des limaces géantes, qui remontaient presque jusqu'à la racine des cheveux. Oummi avait maintenant l'air d'être surprise à l'infini.
+— Oummi a l'air soucieuse, analysa-t-il. Il lui faut des sourcils de victoire !
+Avec le feutre noir (celui qui sent la réglisse), il dessina deux arcs immenses, épais comme des limaces géantes, qui remontaient presque jusqu'à la racine des cheveux. Oummi avait maintenant l'air d'être drôlement surprise.
 
 Ensuite, il s'attaqua aux joues.
 — C'est trop pâle, pensa-t-il.
-Il prit le bleu ciel et le rose vif. Il dessina deux énormes fleurs de jasmin sur chaque pommette, avec des pétales qui s'étendaient jusqu'aux oreilles. Pour finir, il ajouta des petites étoiles jaunes sur le front, pour qu'elle "brille même dans le noir".
+Il prit le bleu ciel et le rose vif. Il dessina deux énormes fleurs sur chaque pommette, avec des pétales qui s'étendaient jusqu'aux oreilles. Pour finir, il ajouta des petites étoiles jaunes sur le front, pour qu'elle "brille même dans le noir".
 
-Le clou du spectacle fut le rouge à lèvres. Tarek voulait un "sourire de princesse" qui ne s'arrête jamais. Il prit le rouge rubis et commença à colorier les lèvres d'Oummi, mais dans son enthousiasme, sa main glissa. Il décida alors de transformer l'erreur en style : il fit remonter le rouge jusqu'au milieu du nez, créant une sorte de triangle flamboyant.
+Tarek voulait un sourire qui ne s'arrête jamais. Il prit le feutre rouge et commença à colorier les lèvres d'Oummi, mais dans son enthousiasme, sa main glissa. Il décida alors de transformer l'erreur en style : il fit remonter le rouge jusqu'au milieu du nez, créant une sorte de triangle flamboyant.
 
-Oummi ressemblait maintenant à un mélange entre un clown de cirque, un guerrier aztèque et un jardin printanier. Mimi le chat s'approcha, renifla le visage qui sentait maintenant le feutre chimique, et fit un bond de côté, horrifié.
+Oummi ressemblait maintenant à un mélange entre un clown de cirque et un jardin printanier. Mimi le chat s'approcha, renifla le visage qui sentait maintenant le feutre chimique, et fit un bond de côté.
 
-Le Réveil : Le Cri de la Reine
 Le réveil sonna. Oummi s'étira, encore un peu embrumée par le sommeil.
 — Ah... ça fait du bien, dit-elle en bâillant.
 Tarek se tenait devant elle, les mains derrière le dos, rayonnant de fierté.
 — Regarde-toi, Oummi ! Tu es redevenue une princesse ! Ta fatigue est partie sous les couleurs !
 
-Oummi sourit, encore inconsciente du désastre. Elle se leva et se dirigea vers le miroir de la salle de bain.
+Oummi sourit, encore inconsciente. Elle se leva et se dirigea vers le miroir de la salle de bain.
 — Voyons voir ce que tu as encore inven...
 
 « AAAAAAAAAAAAAAAAH ! »
 
-Le cri d'Oummi fit vibrer les vitres de la maison. Abi et Aliyah accoururent en panique. Ils trouvèrent Oummi pétrifiée devant le miroir, les mains sur ses joues fleuries.
-— TAREK ! C'est quoi ça ?! C'est quoi ces limaces sur mes yeux ? Pourquoi j'ai un nez de tomate ? Pourquoi je suis... BLEUE ?!
+Le cri d'Oummi fit vibrer les vitres de la maison. Abi et Aliyah accoururent en panique. Ils trouvèrent Oummi devant le miroir, les mains sur ses joues fleuries.
+— TAREK ! C'est quoi ça ?! C'est quoi sur mes yeux ? Pourquoi j'ai un nez rouge? Pourquoi je suis... BLEUE ?!
 
-Elle ouvrit le robinet et commença à frotter frénétiquement avec du savon. Mais rien ne partait. Les fleurs bleues semblaient se moquer d'elle. C'étaient des feutres indélébiles.
+Elle ouvrit le robinet et commença à frotter avec du savon. Mais rien ne partait. Les fleurs bleues étaient encore là. C'étaient des feutres indélébiles.
 
-Le Sentiment : La Joie qui ne part pas
-En voyant la colère et la panique de sa mère, le monde de Tarek s'écroula. Ses yeux se remplirent de grosses larmes qui coulèrent sur ses joues, emportant un peu de la couleur qu'il avait sur ses propres mains.
+En voyant la colère et la panique de sa mère,  Les yeux de Tarek se remplirent de grosses larmes qui coulèrent sur ses joues, emportant un peu de la couleur qu'il avait sur ses propres mains.
 
 — Je... Je voulais juste t'aider ! sanglota-t-il, les épaules secouées de pleurs. Tu as dit que tu étais une vieille pomme... Je voulais que tu sois une fleur ! J'ai dessiné de la joie sur ton visage pour que quand tu te regardes, tu ne voies plus la fatigue... Je voulais que tu sois magnifique pour toujours !
 
 Le silence tomba dans la salle de bain. Abi regarda Oummi, puis le petit Tarek dévasté. Aliyah, pour la première fois, ne se moqua pas. Elle vit que son frère avait mis tout son amour dans ces fleurs indélébiles.
 
-Oummi s'arrêta de frotter. Elle regarda son reflet ridicule, puis regarda son fils qui pleurait comme si son cœur allait exploser. Elle vit ses petites mains tachées de bleu et de rose.
+Oummi s'arrêta de frotter. Elle regarda son reflet ridicule, puis regarda son fils qui pleurait. Elle vit ses petites mains tachées de bleu et de rose.
 Elle soupira, s'accroupit et prit Tarek dans ses bras, se moquant bien de tâcher ses propres vêtements.
 
 — Oh, mon petit peintre... dit-elle tout doucement. C'est vrai que je ne me sens plus comme une vieille pomme. Je me sens comme... comme un jardin très spécial.
 
-Pendant trois jours, malgré le savon, le vinaigre, et même l'huile d'olive qu'Abi essaya d'utiliser, la fleur bleue sur la joue gauche et une partie du nez rouge refusèrent de partir. Oummi dut aller faire les courses comme ça. Les gens la regardaient bizarrement au marché, mais elle relevait la tête avec un sourire.
+Pendant trois jours, malgré le savon, le vinaigre, et même l'huile d'olive qu'Abi essaya d'utiliser, la fleur bleue sur la joue gauche et une partie du nez rouge refusèrent de partir. 
 
-Quand une voisine lui demanda : « Mais enfin, qu'est-ce qui vous est arrivé au visage ? », Oummi répondit simplement :
+Quand Tata lui demanda : « Mais enfin, qu'est-ce qui est arrivé à ton visage ? », Oummi répondit simplement :
 — C'est un traitement de luxe. Ça s'appelle "Le Maquillage de l'Amour". C'est mon fils qui l'a inventé pour que je ne sois plus jamais fatiguée.
 
 Et chaque fois que Tarek voyait la petite trace bleue sur la joue d'Oummi, il se disait que même si sa gaffe était immense, sa maman était vraiment la plus belle des princesses, car elle portait ses dessins comme une couronne.
 `,
     color: '#10B981',
-    duration: '9 min',
+    duration: '7 min',
   },
 ];
