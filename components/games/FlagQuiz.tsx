@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { RewardsService } from '@/services/rewards.service';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -264,6 +265,12 @@ export function FlagQuiz() {
   const timerAnim     = useRef(new Animated.Value(1)).current;
   const roundRef      = useRef(1);
   const diffRef       = useRef<Difficulty>('easy');
+
+  useEffect(() => {
+    if (screen === 'end') {
+      RewardsService.addGameReward(score, TOTAL_ROUNDS, difficulty);
+    }
+  }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
   const isAnsweredRef = useRef(false);
   const questionIdRef = useRef(0);
   const usedSet       = useRef(new Set<number>());

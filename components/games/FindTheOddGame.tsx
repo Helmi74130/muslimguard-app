@@ -1,5 +1,6 @@
 import { CAMERA_STICKERS } from '@/constants/camera-stickers';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { RewardsService } from '@/services/rewards.service';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -205,6 +206,13 @@ export function FindTheOddGame() {
   const [tappedIndex, setTappedIndex] = useState<number | null>(null);
   const [cardResults, setCardResults] = useState<(null | 'correct' | 'wrong' | 'reveal')[]>([]);
   const [gameOver, setGameOver] = useState(false);
+
+  useEffect(() => {
+    if (gameOver) {
+      RewardsService.addGameReward(score, TOTAL_ROUNDS);
+    }
+  }, [gameOver]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   const cardOpacity = useRef(new Animated.Value(1)).current;
   const timerAnim = useRef(new Animated.Value(1)).current;

@@ -8,6 +8,7 @@ import { DIFFICULTY_CONFIG, QUESTIONS_PER_QUIZ, QUIZ_CATEGORIES, QuizDifficulty,
 import { XP_PER_CORRECT, getComboBonus, getComboLabel } from '@/constants/quiz-badges';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { StorageService } from '@/services/storage.service';
+import { RewardsService } from '@/services/rewards.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -200,6 +201,7 @@ export default function QuizPlayScreen() {
         const finalXp = correct ? xpGained + (XP_PER_CORRECT[diff] ?? 10) + getComboBonus(currentStreak + 1) : xpGained;
         const finalStreak = correct ? Math.max(bestStreak, currentStreak + 1) : bestStreak;
         StorageService.saveQuizScore(categoryId!, finalScore, totalQuestions, diff);
+        RewardsService.addGameReward(finalScore, totalQuestions, diff);
         router.replace(
           `/child/quiz-result?score=${finalScore}&total=${totalQuestions}&categoryId=${categoryId}&difficulty=${diff}&xp=${finalXp}&streak=${finalStreak}&correct=${finalScore}` as any
         );

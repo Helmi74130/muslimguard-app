@@ -41,12 +41,14 @@ import { BorderRadius, Colors, KidColors, Spacing } from '@/constants/theme';
 import { translations } from '@/constants/translations';
 import { BlockingService } from '@/services/blocking.service';
 import { StorageService } from '@/services/storage.service';
+import { RewardsService, REWARD_EVENT } from '@/services/rewards.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as MediaLibrary from 'expo-media-library';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  DeviceEventEmitter,
   Image,
   ImageBackground,
   Keyboard,
@@ -144,7 +146,8 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
   const [showGalleryPicker, setShowGalleryPicker] = useState(false);
   const [showArabicLearning, setShowArabicLearning] = useState(false);
   const [showGames, setShowGames] = useState(false);
-
+  const [rewardCoins, setRewardCoins] = useState(0);
+  const [rewardXP, setRewardXP] = useState(0);
 
   // Load strict mode status, whitelist, browser setting, and premium status
   useEffect(() => {
@@ -172,7 +175,23 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
       }
     };
 
+    const loadRewards = async () => {
+      const [coins, xp] = await Promise.all([
+        RewardsService.getCoins(),
+        RewardsService.getXP(),
+      ]);
+      setRewardCoins(coins);
+      setRewardXP(xp);
+    };
+
     loadData();
+    loadRewards();
+
+    const sub = DeviceEventEmitter.addListener(REWARD_EVENT, ({ coins, xp }: { coins: number; xp: number }) => {
+      setRewardCoins(prev => prev + coins);
+      setRewardXP(prev => prev + xp);
+    });
+    return () => sub.remove();
   }, []);
 
   // Scroll to step on change
@@ -249,6 +268,18 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
+
+      {/* Bandeau pièces d'or + niveau */}
+      <View style={styles.rewardsBanner}>
+        <View style={styles.rewardsBadge}>
+          <Text style={styles.rewardsEmoji}>🪙</Text>
+          <Text style={styles.rewardsText}>{rewardCoins}</Text>
+        </View>
+        <View style={styles.rewardsBadge}>
+          <Text style={styles.rewardsEmoji}>⭐</Text>
+          <Text style={styles.rewardsText}>Niv. {RewardsService.getLevelInfo(rewardXP).level}</Text>
+        </View>
+      </View>
 
       {/* Search Bar (hidden when browser disabled or strict mode) */}
       {browserEnabled && !effectiveStrictMode && (
@@ -675,6 +706,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.xl,
     paddingBottom: Spacing.xxl,
+  },
+  rewardsBanner: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginBottom: Spacing.sm,
+  },
+  rewardsBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  rewardsEmoji: {
+    fontSize: 14,
+  },
+  rewardsText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 
   // Dark background text styles

@@ -6,6 +6,7 @@
  */
 
 import * as ScreenOrientation from 'expo-screen-orientation';
+import { RewardsService } from '@/services/rewards.service';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -209,6 +210,13 @@ export function HeadsUpGame() {
   const [wordIndex, setWordIndex] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [passed, setPassed] = useState(0);
+
+  useEffect(() => {
+    if (screen === 'result') {
+      const total = correct + passed;
+      RewardsService.addGameReward(correct, total > 0 ? total : 1);
+    }
+  }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Flash feedback
   const feedbackOpacity = useRef(new Animated.Value(0)).current;

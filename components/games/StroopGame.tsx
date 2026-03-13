@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { RewardsService } from '@/services/rewards.service';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -113,6 +114,12 @@ export function StroopGame() {
   const [question, setQuestion]     = useState<Question | null>(null);
   const [lives, setLives]           = useState(3);
   const [score, setScore]           = useState(0);
+
+  useEffect(() => {
+    if (screen === 'end') {
+      RewardsService.addStroopReward(score, difficulty);
+    }
+  }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
   const [combo, setCombo]           = useState(0);
   const [bestCombo, setBestCombo]   = useState(0);
   const [timerMs, setTimerMs]       = useState(4000);

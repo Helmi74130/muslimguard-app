@@ -1,5 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { useRef, useState } from 'react';
+import { RewardsService } from '@/services/rewards.service';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Pressable,
@@ -101,6 +102,13 @@ export function NumberGame() {
   const inputShake   = useRef(new Animated.Value(0)).current;
   const feedbackAnim = useRef(new Animated.Value(0)).current;
   const historyRef   = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (screen === 'result') {
+      // won = true → trouvé, false → épuisé
+      RewardsService.addGameReward(won ? 1 : 0, 1, difficulty);
+    }
+  }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cfg        = DIFF_CONFIG[difficulty];
   const lastGuess  = guesses.length > 0 ? guesses[guesses.length - 1] : null;

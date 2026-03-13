@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { RewardsService } from '@/services/rewards.service';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -168,6 +169,12 @@ export function MathGame() {
   const questionIdRef = useRef(0);
 
   useEffect(() => () => { timerAnim.stopAnimation(); }, []);
+
+  useEffect(() => {
+    if (screen === 'end') {
+      RewardsService.addGameReward(score, TOTAL_ROUNDS, difficulty);
+    }
+  }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function startTimer(q: Question, diff: Difficulty, thisId: number) {
     const { timerMs } = DIFF_CONFIG[diff];

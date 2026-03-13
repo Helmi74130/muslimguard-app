@@ -1,4 +1,5 @@
 import * as Haptics from 'expo-haptics';
+import { RewardsService } from '@/services/rewards.service';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -37,6 +38,12 @@ export function WhackAMoleGame() {
   const [phase, setPhase] = useState<Phase>('ready');
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
+
+  useEffect(() => {
+    if (phase === 'done') {
+      RewardsService.addWhackReward(score);
+    }
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
   const [moles, setMoles] = useState<Mole[]>([]);
   const [combo, setCombo] = useState(0);
   const [bestCombo, setBestCombo] = useState(0);

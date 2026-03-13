@@ -1,3 +1,4 @@
+import { RewardsService } from '@/services/rewards.service';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -38,6 +39,13 @@ export function ReactionGame() {
 
   const startTimeRef = useRef<number>(0);
   const timeoutRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (phase === 'end' && times.length > 0) {
+      const avgMs = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+      RewardsService.addReactionReward(avgMs);
+    }
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const pulseAnim  = useRef(new Animated.Value(1)).current;
   const resultAnim = useRef(new Animated.Value(0)).current;

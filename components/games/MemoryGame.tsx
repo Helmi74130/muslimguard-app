@@ -1,5 +1,6 @@
 import { CAMERA_STICKERS } from '@/constants/camera-stickers';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { RewardsService } from '@/services/rewards.service';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -120,6 +121,12 @@ export function MemoryGame() {
   const [won, setWon] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (won && level) {
+      RewardsService.addFlatReward(level);
+    }
+  }, [won]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Timer
   useEffect(() => {

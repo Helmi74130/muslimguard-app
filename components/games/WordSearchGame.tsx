@@ -1,5 +1,6 @@
 import * as Haptics from 'expo-haptics';
-import React, { useCallback, useState } from 'react';
+import { RewardsService } from '@/services/rewards.service';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Dimensions,
   Pressable,
@@ -40,6 +41,12 @@ export function WordSearchGame() {
   const [selectedCells, setSelectedCells] = useState<{ r: number, c: number }[]>([]);
   const [foundCells, setFoundCells] = useState<{ r: number, c: number }[]>([]);
   const [theme, setTheme] = useState('');
+
+  useEffect(() => {
+    if (phase === 'done') {
+      RewardsService.addFlatReward();
+    }
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Generator ─────────────────────────────────────────────────────────────
 

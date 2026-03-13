@@ -1,4 +1,5 @@
 import * as Haptics from 'expo-haptics';
+import { RewardsService } from '@/services/rewards.service';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -36,6 +37,12 @@ export function SimonSaysGame() {
 
   const opacityAnims = useRef(COLORS.map(() => new Animated.Value(0))).current;
   const timeouts = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => {
+    if (phase === 'gameover') {
+      RewardsService.addSimonReward(round);
+    }
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clean up timeouts
   const clearAllTimeouts = useCallback(() => {

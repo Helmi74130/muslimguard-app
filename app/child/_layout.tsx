@@ -7,9 +7,10 @@
 import { ScreenTimeService } from '@/services/screen-time.service';
 import { StorageService } from '@/services/storage.service';
 import { Colors } from '@/constants/theme';
+import { RewardToast } from '@/components/RewardToast';
 import { Stack, router, usePathname } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
-import { AppState } from 'react-native';
+import { AppState, StyleSheet, View } from 'react-native';
 
 // ── Module-level singleton state ──
 // Guarantees only one active timer even if React mounts the tracker twice.
@@ -149,7 +150,7 @@ async function checkLimit(): Promise<void> {
 
 export default function ChildLayout() {
   return (
-    <>
+    <View style={styles.root}>
       <ScreenTimeTracker />
       <Stack
         screenOptions={{
@@ -186,6 +187,11 @@ export default function ChildLayout() {
           }}
         />
       </Stack>
-    </>
+      <RewardToast />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+});

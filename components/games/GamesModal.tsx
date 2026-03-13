@@ -114,7 +114,7 @@ const GAMES: GameEntry[] = [
     id: 'wordsearch',
     title: 'Mots Mêlés',
     desc: 'Trouve les mots cachés dans la grille',
-    emoji: '🔠',
+    image: require('../../assets/jeu/motcroises.jpg'),
     color: '#FF6584',
   },
 ];
