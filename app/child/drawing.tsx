@@ -3,7 +3,7 @@
  * Touch canvas with colorful palette using react-native-skia
  */
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -23,6 +23,8 @@ import ViewShot from 'react-native-view-shot';
 import * as MediaLibrary from 'expo-media-library';
 import { Colors, Spacing, BorderRadius } from '@/constants/theme';
 import { COLORING_PAGES, ColoringPage } from '@/constants/coloring-pages';
+import { ShopService } from '@/services/shop.service';
+import { ShopPurchaseModal } from '@/components/ShopPurchaseModal';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const COLORING_ITEM_SIZE = Math.floor((SCREEN_WIDTH - Spacing.lg * 2 - Spacing.sm * 2) / 3);
@@ -66,6 +68,17 @@ export default function DrawingScreen() {
   const [showColoringSheet, setShowColoringSheet] = useState(false);
   const [saving, setSaving] = useState(false);
   const viewShotRef = useRef<ViewShot>(null);
+  const [unlockedMap, setUnlockedMap] = useState<any>({});
+  const [purchaseTarget, setPurchaseTarget] = useState<{
+    itemId: string; itemName: string; price: number; previewImage?: any;
+  } | null>(null);
+
+  useEffect(() => {
+    ShopService.preloadUnlocked().then(setUnlockedMap);
+  }, []);
+
+  const isColoringOwned = (page: ColoringPage) =>
+    !page.price || ShopService.isUnlockedSync(unlockedMap, 'coloring', page.id);
 
   const handleSave = useCallback(async () => {
     if (paths.length === 0 || saving) return;
@@ -372,7 +385,18 @@ export default function DrawingScreen() {
                   styles.sheetItem,
                   selectedColoring?.id === page.id && styles.sheetItemSelected,
                 ]}
-                onPress={() => handleSelectColoring(page)}
+                onPress={() => {
+                  if (!isColoringOwned(page)) {
+                    setShowColoringSheet(false);
+                    setPurchaseTarget({
+                      itemId: page.id, itemName: page.label,
+                      price: page.price!,
+                      previewImage: page.source,
+                    });
+                  } else {
+                    handleSelectColoring(page);
+                  }
+                }}
               >
                 <Image
                   source={page.source}
@@ -388,11 +412,33 @@ export default function DrawingScreen() {
                 >
                   {page.label}
                 </Text>
+                {!isColoringOwned(page) && (
+                  <View style={{ position: 'absolute', top: 4, right: 4, backgroundColor: '#F59E0B', borderRadius: 8, padding: 2 }}>
+                    <MaterialCommunityIcons name="lock" size={12} color="#FFF" />
+                  </View>
+                )}
               </Pressable>
             ))}
           </ScrollView>
         </View>
       </Modal>
+      {purchaseTarget && (
+        <ShopPurchaseModal
+          visible={!!purchaseTarget}
+          onClose={() => setPurchaseTarget(null)}
+          onPurchased={() => {
+            ShopService.preloadUnlocked().then(map => {
+              setUnlockedMap(map);
+              setPurchaseTarget(null);
+            });
+          }}
+          category="coloring"
+          itemId={purchaseTarget.itemId}
+          itemName={purchaseTarget.itemName}
+          price={purchaseTarget.price}
+          previewImage={purchaseTarget.previewImage}
+        />
+      )}
     </SafeAreaView>
   );
 }

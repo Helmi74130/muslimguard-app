@@ -11,6 +11,8 @@
 import { CAMERA_FRAMES, CameraFrame } from '@/constants/camera-frames';
 import { CAMERA_STICKERS, CameraSticker } from '@/constants/camera-stickers';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { ShopService } from '@/services/shop.service';
+import { ShopPurchaseModal } from '@/components/ShopPurchaseModal';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { CameraType, CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -177,6 +179,17 @@ export default function CameraScreen() {
   const [placedStickers, setPlacedStickers] = useState<PlacedSticker[]>([]);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [recentPhotos, setRecentPhotos] = useState<MediaLibrary.Asset[]>([]);
+  const [unlockedMap, setUnlockedMap] = useState<any>({});
+  const [purchaseTarget, setPurchaseTarget] = useState<{
+    category: 'sticker' | 'frame';
+    itemId: string;
+    itemName: string;
+    price: number;
+    previewImage?: any;
+    previewColor?: string;
+    previewIcon?: string;
+    previewIconColor?: string;
+  } | null>(null);
   const cameraRef = useRef<CameraView>(null);
   const captureViewShotRef = useRef<ViewShot>(null);
   const onPhotoReadyRef = useRef<(() => void) | null>(null);
@@ -211,6 +224,13 @@ export default function CameraScreen() {
   useEffect(() => {
     loadRecentPhotos();
   }, [loadRecentPhotos]);
+
+  useEffect(() => {
+    ShopService.preloadUnlocked().then(setUnlockedMap);
+  }, []);
+
+  const isItemOwned = (category: 'sticker' | 'frame', id: string, price?: number) =>
+    !price || ShopService.isUnlockedSync(unlockedMap, category, id);
 
   const currentFrame: CameraFrame = CAMERA_FRAMES[frameIndex];
 
@@ -602,7 +622,21 @@ export default function CameraScreen() {
                   styles.stickerPickerItem,
                   pressed && styles.stickerPickerItemPressed,
                 ]}
-                onPress={() => addSticker(sticker)}
+                onPress={() => {
+                  if (!isItemOwned('sticker', sticker.id, sticker.price)) {
+                    setPurchaseTarget({
+                      category: 'sticker',
+                      itemId: sticker.id,
+                      itemName: sticker.name,
+                      price: sticker.price!,
+                      previewImage: sticker.type === 'image' ? sticker.image : undefined,
+                      previewIcon: sticker.type === 'icon' ? sticker.icon : undefined,
+                      previewIconColor: sticker.iconColor,
+                    });
+                  } else {
+                    addSticker(sticker);
+                  }
+                }}
               >
                 {sticker.type === 'icon' && sticker.icon ? (
                   <MaterialCommunityIcons
@@ -620,6 +654,11 @@ export default function CameraScreen() {
                 <Text style={styles.stickerPickerLabel} numberOfLines={1}>
                   {sticker.name}
                 </Text>
+                {!isItemOwned('sticker', sticker.id, sticker.price) && (
+                  <View style={{ position: 'absolute', top: 2, right: 2 }}>
+                    <MaterialCommunityIcons name="lock" size={12} color="#F59E0B" />
+                  </View>
+                )}
               </Pressable>
             ))}
           </ScrollView>
@@ -660,7 +699,20 @@ export default function CameraScreen() {
                   styles.framePickerItem,
                   frameIndex === index && { borderColor: frame.borderColor === 'transparent' ? Colors.primary : frame.borderColor },
                 ]}
-                onPress={() => setFrameIndex(index)}
+                onPress={() => {
+                  if (!isItemOwned('frame', frame.id, frame.price)) {
+                    setPurchaseTarget({
+                      category: 'frame',
+                      itemId: frame.id,
+                      itemName: frame.name,
+                      price: frame.price!,
+                      previewImage: frame.overlay,
+                      previewColor: frame.borderColor !== 'transparent' ? frame.borderColor : undefined,
+                    });
+                  } else {
+                    setFrameIndex(index);
+                  }
+                }}
               >
                 {frame.overlay ? (
                   <Image source={frame.overlay} style={styles.framePickerPreview} resizeMode="cover" />
@@ -675,6 +727,11 @@ export default function CameraScreen() {
                 )}
                 {frameIndex === index && (
                   <View style={[styles.activeFrameIndicator, { backgroundColor: frame.borderColor === 'transparent' ? Colors.primary : frame.borderColor }]} />
+                )}
+                {!isItemOwned('frame', frame.id, frame.price) && (
+                  <View style={[styles.activeFrameIndicator, { backgroundColor: '#F59E0B', top: 2, right: 2 }]}>
+                    <MaterialCommunityIcons name="lock" size={8} color="#FFF" />
+                  </View>
                 )}
               </Pressable>
             ))}
@@ -765,6 +822,21 @@ export default function CameraScreen() {
         )}
         <View style={styles.captureSpacing} />
       </View>
+      {purchaseTarget && (
+        <ShopPurchaseModal
+          visible={!!purchaseTarget}
+          onClose={() => setPurchaseTarget(null)}
+          onPurchased={() => ShopService.preloadUnlocked().then(setUnlockedMap)}
+          category={purchaseTarget.category}
+          itemId={purchaseTarget.itemId}
+          itemName={purchaseTarget.itemName}
+          price={purchaseTarget.price}
+          previewImage={purchaseTarget.previewImage}
+          previewIcon={purchaseTarget.previewIcon}
+          previewIconColor={purchaseTarget.previewIconColor}
+          previewColor={purchaseTarget.previewColor}
+        />
+      )}
     </View>
   );
 }

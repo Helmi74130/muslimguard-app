@@ -19,6 +19,8 @@ export interface ColoringPage {
   id: string;
   label: string;
   source: ImageSourcePropType;
+  // Shop price (undefined = free)
+  price?: number;
 }
 
 // Add your coloring pages here
@@ -30,35 +32,35 @@ export const COLORING_PAGES: ColoringPage[] = [
    { id: 'maman', label: 'Maman', source: require('../assets/coloring/oummi.jpg') },
    { id: 'coran', label: 'Coran', source: require('../assets/coloring/coran.jpeg') },
    { id: 'the', label: 'Thé', source: require('../assets/coloring/the.jpg') },
-   { id: 'kaaba', label: 'Kaaba', source: require('../assets/coloring/kaaba.jpeg') },
-   { id: 'livre', label: 'Livre', source: require('../assets/coloring/livre.jpeg') },
-   { id: 'livre2', label: 'Livre 2', source: require('../assets/coloring/livre2.jpeg') },
-   { id: 'tapis', label: 'Tapis', source: require('../assets/coloring/tapis.jpeg') },
-   { id: 'vache', label: 'Vache', source: require('../assets/coloring/vache.jpeg') },
-   { id: 'mosquemedine', label: 'Mosquée Médine', source: require('../assets/coloring/mosquemedine.jpeg') },
-   { id: 'abeille', label: 'Abeille', source: require('../assets/coloring/abeille.jpeg') },
-  { id: 'avion', label: 'Avion', source: require('../assets/coloring/avion.jpeg') },
-  { id: 'ballon', label: 'Ballon', source: require('../assets/coloring/ballon.jpeg') },
-  { id: 'banane', label: 'Banane', source: require('../assets/coloring/banane.jpeg') },
-  { id: 'bateauavoile', label: 'Bateau à voile', source: require('../assets/coloring/bateauavoile.jpeg') },
-  { id: 'camion', label: 'Camion', source: require('../assets/coloring/camion.jpeg') },
-  { id: 'camionbenne', label: 'Camion benne', source: require('../assets/coloring/camionbenne.jpeg') },
-  { id: 'canard', label: 'Canard', source: require('../assets/coloring/canard.jpeg') },
-  { id: 'carotte', label: 'Carotte', source: require('../assets/coloring/carotte.jpeg') },
-  { id: 'chenille', label: 'Chenille', source: require('../assets/coloring/chenille.jpeg') },
-  { id: 'citerne', label: 'Citerne', source: require('../assets/coloring/citerne.jpeg') },
-  { id: 'depaneuse', label: 'Dépanneuse', source: require('../assets/coloring/depaneuse.jpeg') },
-  { id: 'fraise', label: 'Fraise', source: require('../assets/coloring/fraise.jpeg') },
-  { id: 'glace', label: 'Glace', source: require('../assets/coloring/glace.jpeg') },
-  { id: 'helicoptere', label: 'Hélicoptère', source: require('../assets/coloring/helicoptere.jpeg') },
-  { id: 'mangue', label: 'Mangue', source: require('../assets/coloring/mangue.jpeg') },
-  { id: 'moto', label: 'Moto', source: require('../assets/coloring/moto.jpeg') },
-  { id: 'orange', label: 'Orange', source: require('../assets/coloring/orange.jpeg') },
-  { id: 'parapluie', label: 'Parapluie', source: require('../assets/coloring/parapluie.jpeg') },
-  { id: 'pasteque', label: 'Pastèque', source: require('../assets/coloring/pasteque.jpeg') },
-  { id: 'poisson', label: 'Poisson', source: require('../assets/coloring/poisson.jpeg') },
-  { id: 'raisin', label: 'Raisin', source: require('../assets/coloring/raisin.jpeg') },
-  { id: 'train', label: 'Train', source: require('../assets/coloring/train.jpeg') }
+   { id: 'kaaba', label: 'Kaaba', source: require('../assets/coloring/kaaba.jpeg'), price: 20 },
+   { id: 'livre', label: 'Livre', source: require('../assets/coloring/livre.jpeg'), price: 25 },
+   { id: 'livre2', label: 'Livre 2', source: require('../assets/coloring/livre2.jpeg'), price: 25 },
+   { id: 'tapis', label: 'Tapis', source: require('../assets/coloring/tapis.jpeg'), price: 25 },
+   { id: 'vache', label: 'Vache', source: require('../assets/coloring/vache.jpeg'), price: 25 },
+   { id: 'mosquemedine', label: 'Mosquée Médine', source: require('../assets/coloring/mosquemedine.jpeg'), price: 30 },
+   { id: 'abeille', label: 'Abeille', source: require('../assets/coloring/abeille.jpeg'), price: 25 },
+  { id: 'avion', label: 'Avion', source: require('../assets/coloring/avion.jpeg'), price: 25 },
+  { id: 'ballon', label: 'Ballon', source: require('../assets/coloring/ballon.jpeg'), price: 25 },
+  { id: 'banane', label: 'Banane', source: require('../assets/coloring/banane.jpeg'), price: 20 },
+  { id: 'bateauavoile', label: 'Bateau à voile', source: require('../assets/coloring/bateauavoile.jpeg'), price: 30 },
+  { id: 'camion', label: 'Camion', source: require('../assets/coloring/camion.jpeg'), price: 25 },
+  { id: 'camionbenne', label: 'Camion benne', source: require('../assets/coloring/camionbenne.jpeg'), price: 25 },
+  { id: 'canard', label: 'Canard', source: require('../assets/coloring/canard.jpeg'), price: 25 },
+  { id: 'carotte', label: 'Carotte', source: require('../assets/coloring/carotte.jpeg'), price: 20 },
+  { id: 'chenille', label: 'Chenille', source: require('../assets/coloring/chenille.jpeg'), price: 25 },
+  { id: 'citerne', label: 'Citerne', source: require('../assets/coloring/citerne.jpeg'), price: 30 },
+  { id: 'depaneuse', label: 'Dépanneuse', source: require('../assets/coloring/depaneuse.jpeg'), price: 30 },
+  { id: 'fraise', label: 'Fraise', source: require('../assets/coloring/fraise.jpeg'), price: 20 },
+  { id: 'glace', label: 'Glace', source: require('../assets/coloring/glace.jpeg'), price: 20 },
+  { id: 'helicoptere', label: 'Hélicoptère', source: require('../assets/coloring/helicoptere.jpeg'), price: 30 },
+  { id: 'mangue', label: 'Mangue', source: require('../assets/coloring/mangue.jpeg'), price: 20 },
+  { id: 'moto', label: 'Moto', source: require('../assets/coloring/moto.jpeg'), price: 30 },
+  { id: 'orange', label: 'Orange', source: require('../assets/coloring/orange.jpeg'), price: 20 },
+  { id: 'parapluie', label: 'Parapluie', source: require('../assets/coloring/parapluie.jpeg'), price: 25 },
+  { id: 'pasteque', label: 'Pastèque', source: require('../assets/coloring/pasteque.jpeg'), price: 25 },
+  { id: 'poisson', label: 'Poisson', source: require('../assets/coloring/poisson.jpeg'), price: 25 },
+  { id: 'raisin', label: 'Raisin', source: require('../assets/coloring/raisin.jpeg'), price: 20 },
+  { id: 'train', label: 'Train', source: require('../assets/coloring/train.jpeg'), price: 30 }
 
    
 ];

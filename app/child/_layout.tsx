@@ -168,6 +168,7 @@ export default function ChildLayout() {
         <Stack.Screen name="calligraphy" />
         <Stack.Screen name="camera" />
         <Stack.Screen name="gallery" />
+        <Stack.Screen name="shop" />
         <Stack.Screen name="pedometer" />
         <Stack.Screen name="stopwatch" />
         <Stack.Screen name="emotions" />

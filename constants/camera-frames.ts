@@ -18,6 +18,8 @@ export interface CameraFrame {
   icon: string;
   borderColor: string;
   overlay?: ImageSourcePropType;
+  // Shop price (undefined = free)
+  price?: number;
 }
 
 export const CAMERA_FRAMES: CameraFrame[] = [
@@ -40,6 +42,7 @@ export const CAMERA_FRAMES: CameraFrame[] = [
     icon: 'shape-outline',
     borderColor: '#1E3A5F',
     overlay: require('../assets/camera-frames/flower.png'),
+    price: 60,
   },
   {
     id: 'cadrecouronne',
@@ -47,6 +50,7 @@ export const CAMERA_FRAMES: CameraFrame[] = [
     icon: 'star-crescent',
     borderColor: '#8B6914',
     overlay: require('../assets/camera-frames/cadrecouronne.png'),
+    price: 80,
   },
   {
     id: 'flowercadre',
@@ -54,6 +58,7 @@ export const CAMERA_FRAMES: CameraFrame[] = [
     icon: 'star-four-points',
     borderColor: '#6B21A8',
     overlay: require('../assets/camera-frames/flowercadre.png'),
+    price: 80,
   },
   {
     id: 'flowerleftbottom',
@@ -61,14 +66,16 @@ export const CAMERA_FRAMES: CameraFrame[] = [
     icon: 'flower-tulip',
     borderColor: '#BE185D',
     overlay: require('../assets/camera-frames/flowerleftbottom.png'),
+    price: 70,
   },
-  
+
   {
     id: 'baloon',
     name: 'Ballons',
     icon: 'balloon',
     borderColor: '#EF4444',
     overlay: require('../assets/camera-frames/baloon.png'),
+    price: 65,
   },
   {
     id: 'rectangle',
@@ -76,6 +83,7 @@ export const CAMERA_FRAMES: CameraFrame[] = [
     icon: 'rectangle-outline',
     borderColor: '#3B82F6',
     overlay: require('../assets/camera-frames/rectangle.png'),
+    price: 60,
   },
   {
     id: 'bubles',
@@ -83,6 +91,7 @@ export const CAMERA_FRAMES: CameraFrame[] = [
     icon: 'google-circles-extended',
     borderColor: '#06B6D4',
     overlay: require('../assets/camera-frames/bubles.png'),
+    price: 70,
   },
   {
     id: 'speed',
@@ -90,6 +99,7 @@ export const CAMERA_FRAMES: CameraFrame[] = [
     icon: 'speedometer',
     borderColor: '#F59E0B',
     overlay: require('../assets/camera-frames/speed.png'),
+    price: 75,
   },
   {
     id: 'serpentin',
@@ -97,6 +107,7 @@ export const CAMERA_FRAMES: CameraFrame[] = [
     icon: 'vector-curve',
     borderColor: '#10B981',
     overlay: require('../assets/camera-frames/serpentin.png'),
+    price: 80,
   },
   {
     id: 'abstract',
@@ -104,6 +115,7 @@ export const CAMERA_FRAMES: CameraFrame[] = [
     icon: 'palette',
     borderColor: '#8B5CF6',
     overlay: require('../assets/camera-frames/abstract.png'),
+    price: 90,
   },
   {
     id: 'geometry',
@@ -111,6 +123,7 @@ export const CAMERA_FRAMES: CameraFrame[] = [
     icon: 'shape-outline',
     borderColor: '#6366F1',
     overlay: require('../assets/camera-frames/geometry.png'),
+    price: 100,
   },
   {
     id: 'lego',
@@ -118,6 +131,7 @@ export const CAMERA_FRAMES: CameraFrame[] = [
     icon: 'puzzle',
     borderColor: '#EF4444',
     overlay: require('../assets/camera-frames/lego.png'),
+    price: 110,
   },
   {
     id: 'school',
@@ -125,6 +139,7 @@ export const CAMERA_FRAMES: CameraFrame[] = [
     icon: 'school',
     borderColor: '#4B5563',
     overlay: require('../assets/camera-frames/school.png'),
+    price: 90,
   },
   {
     id: 'zigzag',
@@ -132,6 +147,7 @@ export const CAMERA_FRAMES: CameraFrame[] = [
     icon: 'chart-bell-curve-cumulative',
     borderColor: '#EC4899',
     overlay: require('../assets/camera-frames/zigzag.png'),
+    price: 85,
   },
   {
     id: 'frame',
@@ -139,6 +155,7 @@ export const CAMERA_FRAMES: CameraFrame[] = [
     icon: 'crop-free',
     borderColor: '#111827',
     overlay: require('../assets/camera-frames/frame.png'),
+    price: 150,
   }
   
 ];

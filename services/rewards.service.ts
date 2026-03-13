@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter } from 'react-native';
 
 export const REWARD_EVENT = 'reward_earned';
+export const COINS_CHANGED_EVENT = 'coins_changed';
 
 const COINS_KEY = 'rewards_coins';
 const XP_KEY    = 'rewards_xp';
@@ -153,7 +154,9 @@ export const RewardsService = {
   async spendCoins(amount: number): Promise<boolean> {
     const current = await this.getCoins();
     if (current < amount) return false;
-    await AsyncStorage.setItem(COINS_KEY, String(current - amount));
+    const newTotal = current - amount;
+    await AsyncStorage.setItem(COINS_KEY, String(newTotal));
+    DeviceEventEmitter.emit(COINS_CHANGED_EVENT, { coins: newTotal });
     return true;
   },
 };

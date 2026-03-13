@@ -41,7 +41,9 @@ import { BorderRadius, Colors, KidColors, Spacing } from '@/constants/theme';
 import { translations } from '@/constants/translations';
 import { BlockingService } from '@/services/blocking.service';
 import { StorageService } from '@/services/storage.service';
-import { RewardsService, REWARD_EVENT } from '@/services/rewards.service';
+import { RewardsService, REWARD_EVENT, COINS_CHANGED_EVENT } from '@/services/rewards.service';
+import { ShopService } from '@/services/shop.service';
+import { ShopPurchaseModal } from '@/components/ShopPurchaseModal';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as MediaLibrary from 'expo-media-library';
@@ -148,6 +150,10 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
   const [showGames, setShowGames] = useState(false);
   const [rewardCoins, setRewardCoins] = useState(0);
   const [rewardXP, setRewardXP] = useState(0);
+  const [bgUnlockedMap, setBgUnlockedMap] = useState<any>({});
+  const [bgPurchaseTarget, setBgPurchaseTarget] = useState<{
+    itemId: string; itemName: string; price: number; previewImage?: any; previewColor?: string;
+  } | null>(null);
 
   // Load strict mode status, whitelist, browser setting, and premium status
   useEffect(() => {
@@ -186,12 +192,16 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
 
     loadData();
     loadRewards();
+    ShopService.preloadUnlocked().then(setBgUnlockedMap);
 
     const sub = DeviceEventEmitter.addListener(REWARD_EVENT, ({ coins, xp }: { coins: number; xp: number }) => {
       setRewardCoins(prev => prev + coins);
       setRewardXP(prev => prev + xp);
     });
-    return () => sub.remove();
+    const subSpend = DeviceEventEmitter.addListener(COINS_CHANGED_EVENT, ({ coins }: { coins: number }) => {
+      setRewardCoins(coins);
+    });
+    return () => { sub.remove(); subSpend.remove(); };
   }, []);
 
   // Scroll to step on change
@@ -279,6 +289,9 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
           <Text style={styles.rewardsEmoji}>⭐</Text>
           <Text style={styles.rewardsText}>Niv. {RewardsService.getLevelInfo(rewardXP).level}</Text>
         </View>
+        <Pressable style={styles.shopBtn} onPress={() => router.push('/child/shop' as any)}>
+          <Text style={styles.shopBtnText}>🛍️</Text>
+        </Pressable>
       </View>
 
       {/* Search Bar (hidden when browser disabled or strict mode) */}
@@ -617,11 +630,24 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
                   <View style={styles.bgGrid}>
                     {BACKGROUNDS.map((bg) => {
                       const isSelected = bg.id === selectedBgId;
+                      const isBgOwned = !bg.price || ShopService.isUnlockedSync(bgUnlockedMap, 'background', bg.id);
                       return (
                         <Pressable
                           key={bg.id}
                           style={styles.bgOption}
-                          onPress={() => selectBackground(bg)}
+                          onPress={() => {
+                            if (!isBgOwned) {
+                              setShowBgPicker(false);
+                              setBgPurchaseTarget({
+                                itemId: bg.id, itemName: bg.label,
+                                price: bg.price!,
+                                previewImage: bg.source,
+                                previewColor: bg.preview,
+                              });
+                            } else {
+                              selectBackground(bg);
+                            }
+                          }}
                         >
                           <View
                             style={[
@@ -643,6 +669,11 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
                                   size={16}
                                   color="#FFFFFF"
                                 />
+                              </View>
+                            )}
+                            {!isBgOwned && (
+                              <View style={styles.bgLockBadge}>
+                                <MaterialCommunityIcons name="lock" size={12} color="#FFF" />
                               </View>
                             )}
                           </View>
@@ -668,6 +699,20 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
     </ScrollView>
   );
 
+  const renderShopModal = () => bgPurchaseTarget ? (
+    <ShopPurchaseModal
+      visible={!!bgPurchaseTarget}
+      onClose={() => setBgPurchaseTarget(null)}
+      onPurchased={() => ShopService.preloadUnlocked().then(setBgUnlockedMap)}
+      category="background"
+      itemId={bgPurchaseTarget.itemId}
+      itemName={bgPurchaseTarget.itemName}
+      price={bgPurchaseTarget.price}
+      previewImage={bgPurchaseTarget.previewImage}
+      previewColor={bgPurchaseTarget.previewColor}
+    />
+  ) : null;
+
   // Wrap content with selected background
   if (selectedBg.type === 'image' && selectedBg.source) {
     return (
@@ -679,6 +724,7 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
         <View style={dark ? styles.darkOverlay : styles.container}>
           {renderScrollContent()}
         </View>
+        {renderShopModal()}
       </ImageBackground>
     );
   }
@@ -686,6 +732,7 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
   return (
     <View style={[styles.container, { backgroundColor: selectedBg.color || KidColors.homeBg }]}>
       {renderScrollContent()}
+      {renderShopModal()}
     </View>
   );
 }
@@ -729,6 +776,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  shopBtn: {
+    backgroundColor: '#F59E0B',
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  shopBtnText: {
+    fontSize: 18,
   },
 
   // Dark background text styles
@@ -1098,6 +1154,16 @@ const styles = StyleSheet.create({
     alignItems: 'center' as const,
     borderWidth: 2,
     borderColor: '#FFFFFF',
+  },
+  bgLockBadge: {
+    position: 'absolute' as const,
+    top: 4,
+    right: 4,
+    backgroundColor: '#F59E0B',
+    borderRadius: 8,
+    padding: 2,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
   },
   bgLabel: {
     fontSize: 11,
