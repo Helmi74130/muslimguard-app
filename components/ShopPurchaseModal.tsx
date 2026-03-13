@@ -5,6 +5,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, Pressable, StyleSheet, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { ShopService, ShopCategory } from '@/services/shop.service';
 import { RewardsService } from '@/services/rewards.service';
 import { Colors, BorderRadius } from '@/constants/theme';
@@ -93,8 +94,19 @@ export function ShopPurchaseModal({
                 </Text>
               </View>
 
-              {status === 'insufficient' && (
-                <Text style={styles.errorText}>Pas assez de pièces ! Joue pour en gagner plus.</Text>
+              {!canAfford && (
+                <View style={styles.hintBox}>
+                  <Text style={styles.hintText}>
+                    🎮 Joue aux jeux ou fais les quiz islamiques pour gagner des pièces !
+                  </Text>
+                  <Pressable
+                    style={styles.gamesBtn}
+                    onPress={() => { onClose(); router.push('/child/browser' as any); }}
+                  >
+                    <MaterialCommunityIcons name="gamepad-variant" size={16} color="#FFF" />
+                    <Text style={styles.gamesBtnText}>Voir les jeux</Text>
+                  </Pressable>
+                </View>
               )}
 
               <View style={styles.buttonRow}>
@@ -188,10 +200,35 @@ const styles = StyleSheet.create({
   balanceTextLow: {
     color: '#EF4444',
   },
-  errorText: {
+  hintBox: {
+    backgroundColor: 'rgba(245,158,11,0.15)',
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.3)',
+    width: '100%',
+  },
+  hintText: {
     fontSize: 13,
-    color: '#EF4444',
+    color: '#FCD34D',
     textAlign: 'center',
+    lineHeight: 18,
+  },
+  gamesBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#7C3AED',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  gamesBtnText: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '700',
   },
   successRow: {
     flexDirection: 'row',

@@ -104,6 +104,7 @@ const CATEGORIES = [
       { label: t.links.games, url: 'games', icon: 'gamepad-variant-outline' as const, isInternal: false, customIcon: undefined, gradient: ['#16A34A', '#15803D'] as const },
       { label: t.links.microMission, url: 'micro-mission', icon: 'target' as const, isInternal: true, customIcon: MissionIcon, gradient: ['#F97316', '#C2410C'] as const },
       { label: t.links.drawing, url: 'drawing', icon: 'draw' as const, isInternal: true, customIcon: DrawingIcon, gradient: ['#DB2777', '#9D174D'] as const },
+      { label: 'Boutique', url: 'shop', icon: 'store' as const, isInternal: true, customIcon: undefined, gradient: ['#F59E0B', '#D97706'] as const },
     ],
   },
   {

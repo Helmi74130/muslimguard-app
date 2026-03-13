@@ -2,11 +2,12 @@
  * Shop Screen - MuslimGuard
  * Boutique virtuelle pour débloquer des items avec les pièces d'or.
  */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, Pressable, StyleSheet,
-  Image, FlatList, Dimensions,
+  Image, FlatList, Dimensions, Animated,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -48,6 +49,8 @@ export default function ShopScreen() {
   const [coins, setCoins] = useState(0);
   const [unlockedMap, setUnlockedMap] = useState<any>({});
   const [purchaseTarget, setPurchaseTarget] = useState<PurchaseTarget | null>(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipOpacity = useRef(new Animated.Value(0)).current;
 
   const reload = useCallback(async () => {
     const [c, map] = await Promise.all([
@@ -59,6 +62,30 @@ export default function ShopScreen() {
   }, []);
 
   useEffect(() => { reload(); }, [reload]);
+
+  // Approach 2: first-launch tooltip
+  useEffect(() => {
+    AsyncStorage.getItem('shop_hint_seen').then(seen => {
+      if (!seen) {
+        setShowTooltip(true);
+        Animated.sequence([
+          Animated.timing(tooltipOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+          Animated.delay(4000),
+          Animated.timing(tooltipOpacity, { toValue: 0, duration: 400, useNativeDriver: true }),
+        ]).start(() => {
+          setShowTooltip(false);
+          AsyncStorage.setItem('shop_hint_seen', '1');
+        });
+      }
+    });
+  }, [tooltipOpacity]);
+
+  const dismissTooltip = () => {
+    Animated.timing(tooltipOpacity, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
+      setShowTooltip(false);
+      AsyncStorage.setItem('shop_hint_seen', '1');
+    });
+  };
 
   const handlePurchased = useCallback(() => {
     reload();
@@ -257,6 +284,28 @@ export default function ShopScreen() {
         ))}
       </View>
 
+      {/* Approach 3: fixed banner */}
+      <View style={styles.earnBanner}>
+        <Text style={styles.earnBannerText}>🎮 Joue → Gagne des 🪙 → Débloque !</Text>
+        <Pressable style={styles.earnBannerBtn} onPress={() => router.back()}>
+          <MaterialCommunityIcons name="gamepad-variant" size={14} color="#FFF" />
+          <Text style={styles.earnBannerBtnText}>Jeux</Text>
+        </Pressable>
+      </View>
+
+      {/* Approach 2: first-launch tooltip */}
+      {showTooltip && (
+        <Animated.View style={[styles.tooltip, { opacity: tooltipOpacity }]}>
+          <Pressable style={styles.tooltipInner} onPress={dismissTooltip}>
+            <Text style={styles.tooltipTitle}>💡 Comment gagner des pièces ?</Text>
+            <Text style={styles.tooltipBody}>
+              Joue aux jeux et fais les quiz islamiques pour gagner des 🪙 et débloquer des items !
+            </Text>
+            <Text style={styles.tooltipDismiss}>Appuie pour fermer</Text>
+          </Pressable>
+        </Animated.View>
+      )}
+
       {/* Content */}
       {tab === 'sticker'    && renderStickerTab()}
       {tab === 'frame'      && renderFrameTab()}
@@ -351,5 +400,67 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 14,
+  },
+  earnBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#7C3AED',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  earnBannerText: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '700',
+    flex: 1,
+  },
+  earnBannerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+    marginLeft: 8,
+  },
+  earnBannerBtnText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  tooltip: {
+    position: 'absolute',
+    top: 130,
+    left: 16,
+    right: 16,
+    zIndex: 100,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  tooltipInner: {
+    backgroundColor: '#1E3A5F',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: '#3B82F6',
+    gap: 6,
+  },
+  tooltipTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#93C5FD',
+  },
+  tooltipBody: {
+    fontSize: 13,
+    color: '#CBD5E1',
+    lineHeight: 18,
+  },
+  tooltipDismiss: {
+    fontSize: 11,
+    color: '#64748B',
+    textAlign: 'right',
+    marginTop: 4,
   },
 });
