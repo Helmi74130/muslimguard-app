@@ -14,33 +14,188 @@ export type Story = {
 export const STORIES: Story[] = [
   {
     id: 'famille-1',
-    title: 'Le repas du soir',
+    title: 'La Pire Idée de l’Été',
     category: 'famille',
-    excerpt: 'Une famille se retrouve autour d\'une table pour partager un dîner chaleureux.',
+    excerpt: `Quand Abi dit « pas de piscine sur l’herbe », Aliyah et Tarek trouvent une solution… très créative. Une bâche, quelques coussins, beaucoup d’eau… et un chat un peu trop courageux. Le salon ne sera plus jamais le même.,`,
     content: `
-C'était un beau samedi après-midi de printemps. Abi et Oummi devaient aller faire le grand ravitaillement au supermarché. Avant de franchir la porte, Oummi avait laissé des consignes strictes :
-— <h1>Piou</h1>Aliyah, tu surveilles ton frère. Vous regardez la télé, vous ne touchez pas au gaz, et surtout, vous ne laissez pas rentrer les chats du quartier ! On revient dans une heure.
+Ce jour la il faisait 42°C à l’ombre, même les mouches faisaient la sieste tellement l'air était brûlant.
 
-Dès que le moteur de la voiture d'Abi disparut au coin de la rue, Aliyah (9 ans) se tourna vers Tarek (6 ans) avec un grand sourire machiavélique.
-— Oummi a dit ce matin qu'elle adorait entendre les petits oiseaux chanter au printemps. Et si on lui faisait une surprise ? On va apprivoiser les oiseaux et les installer dans le salon pour quand elle rentrera !
-— Oui ! s'écria Tarek. On va faire une forêt magique !
+— Non, non et non ! avait tranché Abi le matin même. Pas de piscine gonflable dans le jardin. Ça jaunit l'herbe, ça attire les moustiques, et c'est du gaspillage en eau. Point final.
 
-... (le reste de ton texte) ...
+Mais Abi avait sous-estimé l'ingéniosité de ses enfants. Dès qu'il fut parti faire les courses, Aliyah réunit son frère Tarek dans le salon.
+— Tarek, Abi a dit : "pas sur l'herbe". Il n'a jamais dit : "pas dans le salon".
+Tarek ouvrit de grands yeux admiratifs.
+— Tu es un maligne, Aliyah !
 
-Abi ferma la porte, s'assit directement sur le carrelage, prit sa tête entre ses mains et marmonna :
-— Vendez-moi. Vendez-moi sur le marché avec les poules, je n'en peux plus.`,
+
+Les enfants se mirent au travail.
+
+Ils récupérèrent les deux grandes bâches en plastique bleu qu'Abi utilisait pour peindre les murs. Ils les étalèrent sur le tapis du salon (celui qu'Oummi interdit de toucher avec des mains sales).
+
+Pour faire les bords de la piscine, ils utilisèrent tous les coussins du canapé. Pour que ça tienne bien, Aliyah eut l'idée de caler les coussins avec les énormes dictionnaires de la bibliothèque et les livres de sciences religieuses d'Abi et Oummi.
+
+Armés de seaux de plage et de casseroles, ils commencèrent les allez venues entre la cuisine et le salon.
+
+— Plus vite, Tarek ! ordonnait Aliyah. On n'a que 5 centimètres d'eau, on ne peut même pas faire la planche !
+
+Après deux heures d'efforts, ils avaient réussi à créer une "mare" de 10 centimètres de profondeur au beau milieu du salon. C'était magnifique. Ils enfilèrent leurs maillots de bain, mirent leurs masques et leurs tubas, et s'allongèrent dans l'eau tiède en faisant des bruits de baleine.
+
+Mimi le chat observait cette lagune bleue avec une méfiance totale. Pour lui, le salon était devenu un océan dangereux. Mais soudain, il vit une mouche se poser pile au milieu de la bâche.
+L'instinct de chasseur fut plus fort que la peur de l'eau. Mimi prit son élan et fit un bond de tigre... PLOUF !
+
+Le chat atterrit en plein milieu de la piscine. Horrifié par l'eau, il entra en mode "panique totale". Ses griffes sortirent.
+Scratch... Rip... Shhhh...
+Mimi griffa la bâche pour s'extraire de là, créant une dizaine de trous béants avant de s'enfuir dans le couloir en ressemblant à une éponge mouillée.
+
+— Oh non ! La piscine fuit ! hurla Tarek.
+
+L'eau commença à s'infiltrer sous la bâche, aspirée goulûment par le tapis de laine qui se mit à gonfler comme une éponge.
+
+— Vite, Tarek ! Il faut éponger ! cria Aliyah en essayant de retenir l'eau avec ses mains.
+
+Tarek, paniqué, chercha quelque chose de très absorbant. Son regard tomba sur les magnifiques rideaux blancs en lin qu'Oummi venait de faire repasser. Sans réfléchir, il grimpa sur le canapé, tira de toutes ses forces, et les rideaux se décrochèrent dans un bruit de tissu déchiré.
+Il les jeta sur le sol et commença à piétiner les rideaux blancs dans l'eau sale et les restes de poussière sous le tapis pour "éponger". Les rideaux devinrent gris instantanément.
+
+C'est à ce moment-là que la clé tourna dans la serrure.
+Abi entra, les bras chargés de sacs de courses, suivi par Oummi.
+
+Ils se figèrent.
+
+Aliyah était allongée à plat ventre sur une bâche percée, avec un tuba sur la bouche, faisant semblant de nager dans 2 cm d'eau.
+
+Tarek, était en train de sauter à pieds joints sur les rideaux d'Oummi, qui étaient maintenant marron.
+
+Chaque pas d'Abi sur le tapis déclenchait un bruit de succion : "FLIC-FLAC-SPLOUCH".
+
+— On... on ne gâche pas l'herbe, Abi ! balbutia Aliyah à travers son tuba, la voix toute étouffée.
+
+Ce soir-là, il n'y eut pas de piscine, pas de télé, mais il y eut beaucoup, beaucoup de serpillières et deux enfants qui durent frotter le carrelage jusqu'à minuit sous la surveillance d'un Abi très, très silencieux.`,
     color: '#F59E0B',
-    duration: '8 min',
+    duration: '5 min',
     image: require('@/assets/stories/lafamille.jpg'),
   },
   {
     id: 'famille-2',
-    title: 'La prière du matin',
+    title: 'Où es-tu, Mimi ?',
     category: 'famille',
     excerpt: 'Chaque matin, toute la famille se lève ensemble pour prier avant que le soleil se lève.',
-    content: 'Chaque matin, toute la famille se lève ensemble pour prier avant que le soleil se lève.',
+    content: `C’était un vendredi soir d’automne, le genre de soir où le vent siffle doucement contre les carreaux et où l’on a juste envie de rester au chaud à la maison. L’appel à la prière du Maghreb venait de résonner.
+
+Dans la cuisine, une bonne odeur de soupe aux lentilles réchauffait l'atmosphère. Oummi dressait la table.
+— Les enfants ! À table ! appela-t-elle.
+
+Tarek déboula dans la cuisine en glissant sur ses chaussettes, comme à son habitude. Il s'assit bruyamment. Aliyah arriva plus calmement, un livre à la main qu'elle posa sur le buffet.
+— Bismillah ! s'exclama Tarek en saisissant sa cuillère.
+
+Soudain, il s'arrêta. Son regard se porta vers le coin de la cuisine, près du radiateur. Là où se trouvait le bol bleu de Mimi, le chat persan.
+Le bol était plein. Les croquettes n'avaient pas été touchées.
+
+— Tiens ? dit Tarek, la bouche pleine. Où est Mimi? D'habitude, il miaule dès qu'il entend le bruit des cuillères.
+
+Oummi fronça les sourcils.
+— C'est vrai. Je ne l'ai pas vu depuis le retour de l'école. Aliyah, tu l'as vu ?
+— Non, Oummi. Je pensais qu'il dormait sur le lit de Tarek.
+
+Tarek reposa sa cuillère. Une petite inquiétude, légère comme une plume, vint lui chatouiller le ventre.
+— Je vais voir, dit-il en se levant.
+
+Le silence de la maison
+Tarek monta les escaliers quatre à quatre.
+— Mimi ! Mimi ! Pssst !
+Il entra dans sa chambre. Pas de chat sur le lit. Pas de chat sous le bureau. Il regarda dans le panier à linge sale (la cachette préférée de Mimi pour les siestes incognito). Rien.
+
+Il alla dans la chambre d'Aliyah. Rien.
+Il vérifia la salle de bain, derrière le rideau de douche. Rien.
+
+Tarek redescendit, moins vite cette fois. Le silence de la maison lui semblait soudainement plus lourd.
+— Il n'est pas en haut, annonça-t-il d'une petite voix.
+
+Abi se leva à son tour.
+— Ne t'inquiète pas, Tarek. Il s'est peut-être faufilé dans le garage quand j'ai rentré la voiture. Allons voir.
+
+Ils cherchèrent partout. Dans le garage, dans le salon, sous les canapés. Ils ouvrirent la porte d'entrée et appelèrent dans la nuit noire. Le vent froid leur répondit, faisant bougerr les feuilles mortes. Mais pas de miaulement familier. Pas de petite boule de poils soyeuse qui vient frotter ses jambes.
+
+L'angoisse monte
+Une heure passa. L'inquiétude de Tarek s'était transformée en une boule dure dans sa gorge. Il ne voulait plus manger. Il tournait en rond dans le salon.
+
+Lui qui, d'habitude, passait son temps à embêter Mimi – à lui faire porter des chapeaux en papier, à lui courir après pour jouer à "chat-perché", ou à l'appeler "Gros Patapouf" – se sentait soudain terriblement coupable.
+
+Il s'imagina Mimi dehors, seul, dans le froid. Il pensa aux voitures qui passaient vite dans la rue voisine. Il pensa aux chiens des voisins.
+— C'est de ma faute, chuchota Tarek.
+Aliyah, qui l'observait depuis le canapé, s'approcha doucement.
+— Pourquoi tu dis ça, Tarek ?
+— Parce que ce matin... renifla Tarek, ce matin, je l'ai grondé parce qu'il avait marché sur mes devoirs. Je lui ai dit "Va-t'en, tu m'énerves !". Et si... et s'il était parti parce qu'il croit que je ne l'aime plus ?
+
+Les larmes, que Tarek retenait courageusement depuis tout à l'heure, commencèrent à déborder. Il courut vers la baie vitrée du salon et colla son front contre la vitre froide, scrutant l'obscurité du jardin.
+
+Il pleurait pour de bon, pas des larmes pour avoir un bonbon, mais des larmes chaudes et salées qui venaient du cœur. Il se sentait petit et impuissant. Il réalisa à quel point il aimait cette petite bête silencieuse. Sans Mimi, la maison semblait vide, immense et triste.
+
+Aliyah s'approcha de lui. Elle ne se moqua pas. Elle ne lui fit pas de remarque sarcastique. Elle vit la détresse de son petit frère et son cœur se serra. Elle s'assit par terre, à côté de lui, devant la grande vitre.
+
+— Tarek, dit-elle doucement en posant sa main sur son épaule. Mimi sait que tu l'aimes. Même quand tu l'embêtes, il revient toujours dormir sur tes pieds, non ?
+Tarek hocha la tête, incapable de parler.
+— Tu sais ce qu'on va faire ? On va demander à Celui qui voit tout et qui entend tout.
+
+Aliyah leva ses mains paumes vers le ciel. Tarek, reniflant bruyamment, l'imita. Ses petites mains tremblaient un peu.
+
+— Ô Allah, Tu es le Protecteur. Protège notre chat Mimi où qu'il soit. Il a froid et il doit avoir peur. Guide-le vers la maison, Ya Allah. Apaise le cœur de Tarek et ramène-nous notre ami.
+— Amine, murmura Tarek, la voix brisée. Ya Allah, ramène-le moi. Je promets de ne plus jamais l'embêter, je lui donnerai même ma part de fromage.
+
+Ils restèrent là un moment, assis dans le calme, épaule contre épaule.
+— Tu te souviens, dit Aliyah avec un petit sourire triste, la fois où Mimi a essayé d'attraper une mouche et qu'il est tombé dans la baignoire ?
+Tarek eut un petit rire mouillé à travers ses larmes.
+— Oui... il ressemblait à un rat tout mouillé et furieux.
+— Et la fois où il a dormi sur la tête d'Abi pendant sa sieste ?
+— Il ronronnait tellement fort qu'on croyait que c'était Abi qui ronflait ! ajouta Tarek.
+
+Se remémorer ces souvenirs apaisa un peu Tarek. Il se sentit moins seul. Il savait qu'il avait fait la chose la plus importante : il avait placé sa confiance en Allah.
+
+Soudain, au milieu du silence, un bruit se fit entendre.
+Crac. Scroutch. Cromch.
+
+Tarek se figea.
+— Tu as entendu ?
+— Ça vient de la cuisine, chuchota Aliyah.
+
+Tarek se leva d'un bond, essuyant ses joues d'un revers de manche. Ils marchèrent sur la pointe des pieds vers la cuisine. La lumière était éteinte.
+Cromch. Cromch. Burp.
+
+Le bruit venait du placard du bas. Celui... des réserves de gâteaux.
+Le cœur de Tarek battait à tout rompre. Il s'approcha de la porte du placard. Il posa sa main sur la poignée.
+Un, deux, trois !
+
+Il ouvrit la porte grand.
+
+La lumière du couloir éclaira l'intérieur du placard.
+Là, assis confortablement au milieu d'un paquet de biscuits au beurre, se trouvait Mimi.
+Il avait des miettes partout : sur ses moustaches, sur ses sourcils, et même collées sur son petit nez humide. Il avait l'air repu, gros et totalement satisfait de lui-même.
+
+Il cligna des yeux, aveuglé par la lumière, regarda Tarek, et lâcha un petit :
+— Miaou ? (Traduction approximative : "Tu peux fermer la porte ? On mange, ici.")
+
+Tarek resta bouche bée une seconde, puis il éclata de rire. Un rire de soulagement, nerveux, joyeux.
+— Mimi !
+
+Tarek se jeta presque dans le placard pour serrer le chat dans ses bras, ne se souciant même pas des miettes de biscuits qui se collaient à son pyjama. Il enfouit son visage dans la fourrure douce du chat.
+— J'ai cru que je t'avais perdu !
+
+Aliyah, appuyée contre le cadre de la porte, croisa les bras avec un sourire amusé.
+— Eh bien, monsieur Tarek... on dirait qu'Allah a exaucé ta Doua très vite. Mais dis-moi... qui a laissé la porte du placard mal fermée après avoir pris le goûter tout à l'heure ?
+
+Tarek releva la tête, serrant toujours Mimi contre lui. Il devint tout rouge. C'était lui. Il avait cherché des biscuits en rentrant de l'école et, pressé de retourner jouer, il n'avait pas clipsé la porte. Mimi, curieux et gourmand, s'était faufilé à l'intérieur et la porte s'était refermée sur lui.
+
+Oummi et Abi arrivèrent dans la cuisine, attirés par le bruit.
+— On l'a retrouvé ! cria Tarek. Il était en train de voler nos gâteaux !
+
+Oummi soupira en voyant le désastre des miettes, mais elle sourit en voyant le visage rayonnant de son fils.
+— Alhamdulillah, dit-elle.
+
+Tarek regarda Mimi, qui essayait de lécher une miette sur son oreille.
+— Bon, dit Tarek en reprenant son air de grand frère sérieux (mais avec les yeux encore rouges), tu es puni de câlins forcés pendant une semaine, Mimi. Et tu me dois un paquet de gâteaux.
+
+Mimi bâilla, indifférent, et posa sa tête sur l'épaule de Tarek. Tout était rentré dans l'ordre. Et ce soir-là, Tarek comprit que même quand on fait le dur, il n'y a aucune honte à avoir un cœur tendre.`,
     color: '#3B82F6',
-    duration: '2 min',
+    duration: '10 min',
   },
   {
     id: 'famille-3',

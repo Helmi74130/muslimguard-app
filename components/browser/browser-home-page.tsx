@@ -77,10 +77,10 @@ const CATEGORIES = [
   {
     title: 'Religion',
     links: [
+      { label: t.links.quiz, url: 'quiz', icon: 'head-question' as const, isInternal: true, customIcon: QuizIcon, gradient: ['#7C3AED', '#6D28D9'] as const },
       { label: t.links.quran, url: 'quran', icon: 'book-open-variant' as const, isInternal: true, customIcon: QuranIcon, gradient: ['#059669', '#047857'] as const },
       { label: t.links.allahNames, url: 'allah-names', icon: 'star-crescent' as const, isInternal: true, customIcon: AllahNamesIcon, gradient: ['#D97706', '#B45309'] as const },
       { label: t.links.ablutions, url: 'ablutions', icon: 'hand-wash' as const, isInternal: true, customIcon: WuduIcon, gradient: ['#0891B2', '#0E7490'] as const },
-      { label: t.links.quiz, url: 'quiz', icon: 'head-question' as const, isInternal: true, customIcon: QuizIcon, gradient: ['#7C3AED', '#6D28D9'] as const },
       { label: t.links.stories, url: 'stories', icon: 'book-open-variant' as const, isInternal: true, customIcon: StoriesIcon, gradient: ['#EA580C', '#C2410C'] as const },
       { label: t.links.prayerTimes, url: 'prayer-times', icon: 'mosque' as const, isInternal: true, customIcon: MasjidIcon, gradient: ['#4338CA', '#3730A3'] as const },
     ],
@@ -88,18 +88,18 @@ const CATEGORIES = [
   {
     title: 'Apprentissage',
     links: [
-      { label: t.links.arabicTracing, url: 'arabic-tracing', icon: 'abjad-arabic' as const, isInternal: true, customIcon: ArabicIcon, gradient: ['#D97706', '#92400E'] as const },
       { label: t.links.arabicLearning, url: 'arabic-learning', icon: 'abjad-arabic' as const, isInternal: false, customIcon: ArabIcon, gradient: ['#E11D48', '#9F1239'] as const },
-      { label: t.links.calculator, url: 'calculator', icon: 'calculator-variant' as const, isInternal: true, customIcon: CalculatorIcon, gradient: ['#475569', '#1E293B'] as const },
+      { label: t.links.arabicTracing, url: 'arabic-tracing', icon: 'abjad-arabic' as const, isInternal: true, customIcon: ArabicIcon, gradient: ['#D97706', '#92400E'] as const },
       { label: t.links.calligraphy, url: 'calligraphy', icon: 'fountain-pen-tip' as const, isInternal: true, customIcon: CalligraphyIcon, gradient: ['#9333EA', '#7E22CE'] as const },
+      { label: t.links.calculator, url: 'calculator', icon: 'calculator-variant' as const, isInternal: true, customIcon: CalculatorIcon, gradient: ['#475569', '#1E293B'] as const },
     ],
   },
   {
     title: 'Jeux & Activités',
     links: [
       { label: t.links.games, url: 'games', icon: 'gamepad-variant-outline' as const, isInternal: false, customIcon: undefined, gradient: ['#16A34A', '#15803D'] as const },
-      { label: t.links.drawing, url: 'drawing', icon: 'draw' as const, isInternal: true, customIcon: DrawingIcon, gradient: ['#DB2777', '#9D174D'] as const },
       { label: t.links.microMission, url: 'micro-mission', icon: 'target' as const, isInternal: true, customIcon: MissionIcon, gradient: ['#F97316', '#C2410C'] as const },
+      { label: t.links.drawing, url: 'drawing', icon: 'draw' as const, isInternal: true, customIcon: DrawingIcon, gradient: ['#DB2777', '#9D174D'] as const },
     ],
   },
   {

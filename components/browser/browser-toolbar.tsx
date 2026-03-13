@@ -5,9 +5,10 @@
 
 import { Colors, KidColors, Spacing } from '@/constants/theme';
 import { translations } from '@/constants/translations';
+import { PrayerService, NextPrayerInfo } from '@/services/prayer.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -41,6 +42,33 @@ export function BrowserToolbar({
   onHomePress,
   isOnHomePage,
 }: BrowserToolbarProps) {
+  const [currentTime, setCurrentTime] = useState('');
+  const [nextPrayer, setNextPrayer] = useState<NextPrayerInfo | null>(null);
+
+  useEffect(() => {
+    const updateClock = () => {
+      const now = new Date();
+      const h = now.getHours().toString().padStart(2, '0');
+      const m = now.getMinutes().toString().padStart(2, '0');
+      setCurrentTime(`${h}:${m}`);
+    };
+
+    const loadPrayer = async () => {
+      const info = await PrayerService.getNextPrayer();
+      setNextPrayer(info);
+    };
+
+    updateClock();
+    loadPrayer();
+
+    const interval = setInterval(() => {
+      updateClock();
+      loadPrayer();
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.navRow}>
@@ -83,6 +111,20 @@ export function BrowserToolbar({
                 color={Colors.primary}
               />
             </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Heure + prochaine prière (accueil seulement) */}
+        {isOnHomePage && (
+          <View style={styles.prayerInfo}>
+            <Text style={styles.prayerTime}>{currentTime}</Text>
+            {nextPrayer && (
+              <Text style={styles.prayerNext}>
+                {nextPrayer.nameFr} dans {nextPrayer.minutesRemaining >= 60
+                  ? `${Math.floor(nextPrayer.minutesRemaining / 60)}h${(nextPrayer.minutesRemaining % 60).toString().padStart(2, '0')}`
+                  : `${nextPrayer.minutesRemaining}min`}
+              </Text>
+            )}
           </View>
         )}
 
@@ -151,6 +193,22 @@ const styles = StyleSheet.create({
   },
   navSpacer: {
     flex: 1,
+  },
+  prayerInfo: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 1,
+  },
+  prayerTime: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1E293B',
+    letterSpacing: 0.5,
+  },
+  prayerNext: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#059669',
   },
   parentBtn: {
     flexDirection: 'row',
