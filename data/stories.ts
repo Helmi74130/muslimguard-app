@@ -196,6 +196,7 @@ Tarek regarda Mimi, qui essayait de lécher une miette sur son oreille.
 Mimi bâilla, indifférent, et posa sa tête sur l'épaule de Tarek. Tout était rentré dans l'ordre. Et ce soir-là, Tarek comprit que même quand on fait le dur, il n'y a aucune honte à avoir un cœur tendre.`,
     color: '#3B82F6',
     duration: '10 min',
+    image: require('@/assets/stories/lafamille2.jpg'),
   },
 
   {

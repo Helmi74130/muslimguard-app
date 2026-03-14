@@ -117,7 +117,7 @@ export const BACKGROUNDS: BackgroundOption[] = [
      type: 'image',
      source: require('../assets/backgrounds/sky.jpg'),
      preview: '#C8A96E',
-     price: 80,
+     price: 160,
    },
    {
      id: 'couloir',
@@ -125,7 +125,7 @@ export const BACKGROUNDS: BackgroundOption[] = [
      type: 'image',
      source: require('../assets/backgrounds/couloir.jpg'),
      preview: '#C8A96E',
-     price: 90,
+     price: 180,
    },
    {
      id: 'lantern',
@@ -133,7 +133,7 @@ export const BACKGROUNDS: BackgroundOption[] = [
      type: 'image',
      source: require('../assets/backgrounds/lantern.jpg'),
      preview: '#C8A96E',
-     price: 100,
+     price: 200,
    },
    {
      id: 'lune',
@@ -141,7 +141,7 @@ export const BACKGROUNDS: BackgroundOption[] = [
      type: 'image',
      source: require('../assets/backgrounds/lune.jpg'),
      preview: '#C8A96E',
-     price: 120,
+     price: 240,
    },
    {
      id: 'minaret',
@@ -149,7 +149,7 @@ export const BACKGROUNDS: BackgroundOption[] = [
      type: 'image',
      source: require('../assets/backgrounds/minaret.jpg'),
      preview: '#C8A96E',
-     price: 130,
+     price: 260,
    },
    {
      id: 'porte',
@@ -157,7 +157,7 @@ export const BACKGROUNDS: BackgroundOption[] = [
      type: 'image',
      source: require('../assets/backgrounds/porte.jpg'),
      preview: '#C8A96E',
-     price: 100,
+     price: 200,
    },
    {
      id: 'quran',
@@ -165,7 +165,7 @@ export const BACKGROUNDS: BackgroundOption[] = [
      type: 'image',
      source: require('../assets/backgrounds/quran.jpg'),
      preview: '#C8A96E',
-     price: 150,
+     price: 300,
    },
    {
      id: 'Tracedepas',
@@ -173,7 +173,7 @@ export const BACKGROUNDS: BackgroundOption[] = [
      type: 'image',
      source: require('../assets/backgrounds/pas.jpeg'),
      preview: '#C8A96E',
-     price: 90,
+     price: 180,
    },
    {
      id: 'pont',
@@ -181,7 +181,7 @@ export const BACKGROUNDS: BackgroundOption[] = [
      type: 'image',
      source: require('../assets/backgrounds/pont.jpeg'),
      preview: '#C8A96E',
-     price: 100,
+     price: 200,
    },
    {
      id: 'drap',
@@ -189,7 +189,7 @@ export const BACKGROUNDS: BackgroundOption[] = [
      type: 'image',
      source: require('../assets/backgrounds/drap.jpeg'),
      preview: '#C8A96E',
-     price: 80,
+     price: 160,
    },
 ];
 

@@ -23,9 +23,11 @@ import { ReactionGame } from './ReactionGame';
 import { SimonSaysGame } from './SimonSaysGame';
 import { StroopGame } from './StroopGame';
 import { WhackAMoleGame } from './WhackAMoleGame';
+import { FlappyBirdGame } from './FlappyBirdGame';
+import { SpaceShooterGame } from './SpaceShooterGame';
 import { WordSearchGame } from './WordSearchGame';
 
-type GameId = 'memory' | 'odd' | 'flags' | 'headsup' | 'math' | 'number' | 'reaction' | 'stroop' | 'whack' | 'simon' | 'wordsearch';
+type GameId = 'memory' | 'odd' | 'flags' | 'headsup' | 'math' | 'number' | 'reaction' | 'stroop' | 'whack' | 'simon' | 'wordsearch' | 'shooter' | 'flappy';
 type Screen = 'menu' | GameId;
 
 interface Props {
@@ -116,6 +118,20 @@ const GAMES: GameEntry[] = [
     desc: 'Trouve les mots cachés dans la grille',
     image: require('../../assets/jeu/motcroises.jpg'),
     color: '#FF6584',
+  },
+  {
+    id: 'shooter',
+    title: 'Space Invaders',
+    desc: 'Détruis les envahisseurs 👾',
+    image: require('./vaisseau.png'),
+    color: '#0f3460',
+  },
+  {
+    id: 'flappy',
+    title: 'Flappy Bird',
+    desc: 'Vole entre les tuyaux sans tomber !',
+    image: require('../../assets/jeu/flappybird.png'),
+    color: '#1565C0',
   },
 ];
 
@@ -218,6 +234,12 @@ export function GamesModal({ visible, onClose }: Props) {
 
           {/* Mots mêlés */}
           {screen === 'wordsearch' && <WordSearchGame />}
+
+          {/* Space Invaders */}
+          {screen === 'shooter' && <SpaceShooterGame />}
+
+          {/* Flappy Bird */}
+          {screen === 'flappy' && <FlappyBirdGame />}
         </SafeAreaView>
       </LinearGradient>
     </Modal>

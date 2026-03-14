@@ -151,6 +151,28 @@ export const RewardsService = {
     await this.addReward(coins, Math.round(coins * 0.5));
   },
 
+  /**
+   * Pour SpaceShooterGame (score basé sur les ennemis détruits × niveau).
+   */
+  async addShooterReward(score: number): Promise<void> {
+    let coins = 5;
+    if (score >= 500)      coins = 40;
+    else if (score >= 250) coins = 25;
+    else if (score >= 100) coins = 15;
+    await this.addReward(coins, Math.round(coins * 0.5));
+  },
+
+  /**
+   * Pour FlappyBirdGame (score = nombre de tuyaux passés).
+   */
+  async addFlappyReward(score: number): Promise<void> {
+    let coins = 5;
+    if (score >= 30)      coins = 40;
+    else if (score >= 15) coins = 25;
+    else if (score >= 5)  coins = 15;
+    await this.addReward(coins, Math.round(coins * 0.5));
+  },
+
   async spendCoins(amount: number): Promise<boolean> {
     const current = await this.getCoins();
     if (current < amount) return false;

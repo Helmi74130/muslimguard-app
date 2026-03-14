@@ -59,7 +59,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/chat-calin.png'),
     size: 160,
-    price: 40,
+    price: 80,
   },
   {
     id: 'chat-idees',
@@ -67,7 +67,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/chat-idees.png'),
     size: 160,
-    price: 40,
+    price: 80,
   },
   {
     id: 'chat-musulman',
@@ -75,7 +75,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/chat-musulman.png'),
     size: 160,
-    price: 50,
+    price: 100,
   },
   {
     id: 'chat-surprise',
@@ -83,7 +83,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/chat-surprise.png'),
     size: 160,
-    price: 40,
+    price: 80,
   },
   {
     id: 'chat',
@@ -91,7 +91,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/chat.png'),
     size: 160,
-    price: 35,
+    price: 70,
   },
   {
     id: 'dates',
@@ -99,7 +99,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/dates.png'),
     size: 160,
-    price: 45,
+    price: 90,
   },
   {
     id: 'eid-mubarak',
@@ -107,7 +107,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/eid-mubarak.png'),
     size: 220,
-    price: 60,
+    price: 120,
   },
   {
     id: 'foot-print',
@@ -115,7 +115,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/foot-print.png'),
     size: 120,
-    price: 30,
+    price: 60,
   },
   {
     id: 'giraffe',
@@ -123,7 +123,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/giraffe.png'),
     size: 160,
-    price: 35,
+    price: 70,
   },
   {
     id: 'kaaba',
@@ -131,7 +131,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/kaaba.png'),
     size: 180,
-    price: 60,
+    price: 120,
   },
   {
     id: 'koala-enerve',
@@ -139,7 +139,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/koala-enerve.png'),
     size: 160,
-    price: 40,
+    price: 80,
   },
   {
     id: 'koala-sports',
@@ -147,7 +147,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/koala-sports.png'),
     size: 160,
-    price: 40,
+    price: 80,
   },
   {
     id: 'lapin-en-colere',
@@ -155,7 +155,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/lapin-en-colere.png'),
     size: 160,
-    price: 40,
+    price: 80,
   },
   {
     id: 'lapin-joyeux',
@@ -163,7 +163,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/lapin-joyeux.png'),
     size: 160,
-    price: 40,
+    price: 80,
   },
   {
     id: 'lion-coeur',
@@ -171,7 +171,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/lion-coeur.png'),
     size: 160,
-    price: 50,
+    price: 100,
   },
   {
     id: 'muslims',
@@ -179,7 +179,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/muslims.png'),
     size: 200,
-    price: 70,
+    price: 140,
   },
   {
     id: 'ours-annonce',
@@ -187,7 +187,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/ours-annonce.png'),
     size: 160,
-    price: 45,
+    price: 90,
   },
   {
     id: 'panda-allonge',
@@ -195,7 +195,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/panda-allongé.png'),
     size: 160,
-    price: 45,
+    price: 90,
   },
   {
     id: 'panda-coucou',
@@ -203,7 +203,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/panda-coucou.png'),
     size: 160,
-    price: 45,
+    price: 90,
   },
   {
     id: 'panda-enerve',
@@ -211,7 +211,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/panda-enerve.png'),
     size: 160,
-    price: 40,
+    price: 80,
   },
   {
     id: 'poussin-colere',
@@ -219,7 +219,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/poussin-colere.png'),
     size: 160,
-    price: 35,
+    price: 70,
   },
   {
     id: 'poussin-coucou',
@@ -227,7 +227,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/poussin-coucou.png'),
     size: 160,
-    price: 35,
+    price: 70,
   },
   {
     id: 'poussin-joyeux',
@@ -235,7 +235,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/poussin-joyeux.png'),
     size: 160,
-    price: 35,
+    price: 70,
   },
   {
     id: 'quran',
@@ -243,7 +243,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/quran (1).png'),
     size: 180,
-    price: 80,
+    price: 160,
   },
   {
     id: 'singe',
@@ -251,7 +251,7 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/singe.png'),
     size: 160,
-    price: 35,
+    price: 70,
   },
   {
     id: 'zakat',
@@ -259,6 +259,6 @@ export const CAMERA_STICKERS: CameraSticker[] = [
     type: 'image',
     image: require('../assets/camera-stickers/zakat.png'),
     size: 180,
-    price: 60,
+    price: 120,
   },
 ];
