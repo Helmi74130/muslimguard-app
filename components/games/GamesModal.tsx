@@ -27,8 +27,9 @@ import { DodgeGame } from './DodgeGame';
 import { FlappyBirdGame } from './FlappyBirdGame';
 import { SpaceShooterGame } from './SpaceShooterGame';
 import { WordSearchGame } from './WordSearchGame';
+import { SnakeGame } from './SnakeGame';
 
-type GameId = 'memory' | 'odd' | 'flags' | 'headsup' | 'math' | 'number' | 'reaction' | 'stroop' | 'whack' | 'simon' | 'wordsearch' | 'shooter' | 'flappy' | 'dodge';
+type GameId = 'memory' | 'odd' | 'flags' | 'headsup' | 'math' | 'number' | 'reaction' | 'stroop' | 'whack' | 'simon' | 'wordsearch' | 'shooter' | 'flappy' | 'dodge' | 'snake';
 type Screen = 'menu' | GameId;
 
 interface Props {
@@ -141,6 +142,13 @@ const GAMES: GameEntry[] = [
     image: require('../../assets/jeu/dodge.jpg'),
     color: '#4A148C',
   },
+  {
+    id: 'snake',
+    title: 'Snake',
+    desc: 'Mange les pommes sans te mordre !',
+    image: require('../../assets/jeu/snake.jpg'),
+    color: '#1B5E20',
+  },
 ];
 
 export function GamesModal({ visible, onClose }: Props) {
@@ -251,6 +259,9 @@ export function GamesModal({ visible, onClose }: Props) {
 
           {/* Dodge */}
           {screen === 'dodge' && <DodgeGame />}
+
+          {/* Snake */}
+          {screen === 'snake' && <SnakeGame />}
 
         </SafeAreaView>
       </LinearGradient>

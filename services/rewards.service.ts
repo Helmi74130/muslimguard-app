@@ -185,6 +185,17 @@ export const RewardsService = {
     await this.addReward(coins, Math.round(coins * 0.5));
   },
 
+  /**
+   * Pour SnakeGame (score = nombre de pommes mangées).
+   */
+  async addSnakeReward(score: number): Promise<void> {
+    let coins = 5;
+    if (score >= 30)      coins = 40;
+    else if (score >= 15) coins = 25;
+    else if (score >= 7)  coins = 15;
+    await this.addReward(coins, Math.round(coins * 0.5));
+  },
+
   async spendCoins(amount: number): Promise<boolean> {
     const current = await this.getCoins();
     if (current < amount) return false;
