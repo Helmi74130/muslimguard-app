@@ -85,7 +85,7 @@ const CATEGORIES = [
       { label: t.links.quran, url: 'quran', icon: 'book-open-variant' as const, isInternal: true, customIcon: QuranIcon, gradient: ['#059669', '#047857'] as const },
       { label: t.links.allahNames, url: 'allah-names', icon: 'star-crescent' as const, isInternal: true, customIcon: AllahNamesIcon, gradient: ['#D97706', '#B45309'] as const },
       { label: t.links.ablutions, url: 'ablutions', icon: 'hand-wash' as const, isInternal: true, customIcon: WuduIcon, gradient: ['#0891B2', '#0E7490'] as const },
-      { label: t.links.stories, url: 'stories', icon: 'book-open-variant' as const, isInternal: true, customIcon: StoriesIcon, gradient: ['#EA580C', '#C2410C'] as const },
+      { label: t.links.stories, url: 'stories',  isInternal: true, customIcon: StoriesIcon, gradient: ['#EA580C', '#C2410C'] as const },
       { label: t.links.prayerTimes, url: 'prayer-times', icon: 'mosque' as const, isInternal: true, customIcon: MasjidIcon, gradient: ['#4338CA', '#3730A3'] as const },
     ],
   },

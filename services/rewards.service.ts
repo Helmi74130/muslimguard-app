@@ -173,6 +173,18 @@ export const RewardsService = {
     await this.addReward(coins, Math.round(coins * 0.5));
   },
 
+  /**
+   * Pour DodgeGame (score = secondes survécues + étoiles × 5).
+   */
+  async addDodgeReward(score: number): Promise<void> {
+    let coins = 5;
+    if (score >= 80)      coins = 60;  // ☠️ IMPOSSIBLE
+    else if (score >= 60) coins = 40;  // 🔴 EXTRÊME
+    else if (score >= 30) coins = 25;  // 🟠 INTENSE
+    else if (score >= 12) coins = 15;  // 🟡 RAPIDE
+    await this.addReward(coins, Math.round(coins * 0.5));
+  },
+
   async spendCoins(amount: number): Promise<boolean> {
     const current = await this.getCoins();
     if (current < amount) return false;

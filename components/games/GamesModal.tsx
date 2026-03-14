@@ -23,11 +23,12 @@ import { ReactionGame } from './ReactionGame';
 import { SimonSaysGame } from './SimonSaysGame';
 import { StroopGame } from './StroopGame';
 import { WhackAMoleGame } from './WhackAMoleGame';
+import { DodgeGame } from './DodgeGame';
 import { FlappyBirdGame } from './FlappyBirdGame';
 import { SpaceShooterGame } from './SpaceShooterGame';
 import { WordSearchGame } from './WordSearchGame';
 
-type GameId = 'memory' | 'odd' | 'flags' | 'headsup' | 'math' | 'number' | 'reaction' | 'stroop' | 'whack' | 'simon' | 'wordsearch' | 'shooter' | 'flappy';
+type GameId = 'memory' | 'odd' | 'flags' | 'headsup' | 'math' | 'number' | 'reaction' | 'stroop' | 'whack' | 'simon' | 'wordsearch' | 'shooter' | 'flappy' | 'dodge';
 type Screen = 'menu' | GameId;
 
 interface Props {
@@ -123,15 +124,22 @@ const GAMES: GameEntry[] = [
     id: 'shooter',
     title: 'Space Invaders',
     desc: 'Détruis les envahisseurs 👾',
-    image: require('./vaisseau.png'),
+    image: require('../../assets/jeu/spaceinvaders.jpg'),
     color: '#0f3460',
   },
   {
     id: 'flappy',
     title: 'Flappy Bird',
     desc: 'Vole entre les tuyaux sans tomber !',
-    image: require('../../assets/jeu/flappybird.png'),
+    image: require('../../assets/jeu/flappy.jpg'),
     color: '#1565C0',
+  },
+  {
+    id: 'dodge',
+    title: 'Dodge !',
+    desc: 'Esquive les météorites, collecte les étoiles',
+    image: require('../../assets/jeu/dodge.jpg'),
+    color: '#4A148C',
   },
 ];
 
@@ -240,6 +248,10 @@ export function GamesModal({ visible, onClose }: Props) {
 
           {/* Flappy Bird */}
           {screen === 'flappy' && <FlappyBirdGame />}
+
+          {/* Dodge */}
+          {screen === 'dodge' && <DodgeGame />}
+
         </SafeAreaView>
       </LinearGradient>
     </Modal>
