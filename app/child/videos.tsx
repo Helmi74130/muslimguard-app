@@ -530,9 +530,16 @@ export default function VideosScreen() {
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>{t.title}</Text>
           {!isPremium ? (
-            <Text style={[styles.headerSubtitle, remainingMinutes <= 5 && { color: Colors.warning }]}>
-              {remainingMinutes} min restantes
-            </Text>
+            <View style={[styles.timeBadge, remainingMinutes <= 5 && styles.timeBadgeWarning]}>
+              <MaterialCommunityIcons
+                name="clock-outline"
+                size={12}
+                color={remainingMinutes <= 5 ? Colors.warning : Colors.primary}
+              />
+              <Text style={[styles.timeBadgeText, remainingMinutes <= 5 && { color: Colors.warning }]}>
+                {remainingMinutes} min restantes
+              </Text>
+            </View>
           ) : (
             <Text style={styles.headerSubtitle}>{t.subtitle}</Text>
           )}
@@ -863,6 +870,28 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.light.textSecondary,
     marginTop: 2,
+  },
+  timeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 3,
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.primary + '18',
+    borderWidth: 1,
+    borderColor: Colors.primary + '40',
+    borderRadius: 10,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  timeBadgeWarning: {
+    backgroundColor: Colors.warning + '18',
+    borderColor: Colors.warning + '40',
+  },
+  timeBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.primary,
   },
   headerSpacer: {
     width: 40,

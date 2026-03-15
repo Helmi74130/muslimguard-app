@@ -11,6 +11,7 @@ import { usePremiumFeature } from '@/hooks/use-premium-feature';
 import { StorageService } from '@/services/storage.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import * as StoreReview from 'expo-store-review';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
@@ -337,6 +338,19 @@ export default function SettingsScreen() {
             title={translations.support.contact.title}
             subtitle={translations.support.contact.subtitle}
             onPress={() => router.push('/parent/settings/contact')}
+          />
+          <View style={styles.divider} />
+          <SettingItem
+            icon="star-outline"
+            title="Laisser un avis"
+            subtitle="Donnez votre avis sur l'App Store / Play Store"
+            onPress={async () => {
+              const available = await StoreReview.isAvailableAsync();
+              if (available) {
+                await StoreReview.requestReview();
+              }
+            }}
+            color={Colors.warning}
           />
         </Card>
 

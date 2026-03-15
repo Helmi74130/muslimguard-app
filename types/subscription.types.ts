@@ -48,7 +48,7 @@ export const FREE_TIER_LIMITS = {
   maxBlockedDomains: 50,
   maxCustomVideos: 3,
   historyDays: 7,
-  maxVideoDailyMinutes: 30,
+  maxVideoDailyMinutes: 15,
   maxCustomDomains: 10,
   maxCustomKeywords: 10,
   maxScreenTimeDailyMinutes: 120,

@@ -8,6 +8,7 @@ import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { translations } from '@/constants/translations';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import * as StoreReview from 'expo-store-review';
 import React from 'react';
 import {
   Image,
@@ -16,6 +17,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -112,6 +114,31 @@ export default function AboutScreen() {
           title={t.privacy}
           text={t.privacyDescription}
         />
+
+        {/* Review Encouragement */}
+        <AboutSection
+          icon="star-circle-outline"
+          color={Colors.warning}
+          title={t.reviewEncouragement}
+          text={t.reviewEncouragementText}
+        />
+
+        {/* Leave a Review */}
+        <TouchableOpacity
+          style={styles.reviewButton}
+          activeOpacity={0.85}
+          onPress={async () => {
+            const available = await StoreReview.isAvailableAsync();
+            if (available) {
+              await StoreReview.requestReview();
+            } else {
+              Alert.alert('Merci !', 'Recherchez MuslimGuard sur le store pour laisser votre avis.');
+            }
+          }}
+        >
+          <MaterialCommunityIcons name="star" size={20} color="#FFF" />
+          <Text style={styles.reviewButtonText}>Laisser un avis</Text>
+        </TouchableOpacity>
 
         {/* Version */}
         <View style={styles.versionContainer}>
@@ -210,9 +237,29 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
     lineHeight: 19,
   },
+  reviewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.warning,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.md,
+    marginBottom: Spacing.lg,
+    elevation: 4,
+    shadowColor: Colors.warning,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  reviewButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFF',
+  },
   versionContainer: {
     alignItems: 'center',
-    marginTop: Spacing.lg,
+    marginTop: Spacing.sm,
     marginBottom: Spacing.xl,
   },
   versionText: {

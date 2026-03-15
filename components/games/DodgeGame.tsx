@@ -1,16 +1,16 @@
 import * as Haptics from 'expo-haptics';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { RewardsService } from '@/services/rewards.service';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const PLAYER_W    = 48;
-const PLAYER_H    = 48;
-const OBJ_SIZE    = 38;
+const PLAYER_W = 75;
+const PLAYER_H = 75;
+const OBJ_SIZE = 38;
 const PLAYER_SPEED = 10;
-const PLAYER_PAD  = 24;   // distance from bottom
-const TICK_MS     = 32;   // ~31 fps
+const PLAYER_PAD = 24;   // distance from bottom
+const TICK_MS = 32;   // ~31 fps
 
 const DANGER_EMOJIS = ['☄️', '🪨', '⚡', '💣', '🔥'] as const;
 
@@ -20,20 +20,20 @@ let _uid = 0;
 const nid = () => ++_uid;
 
 interface FallingObj {
-  id:    number;
-  x:     number;
-  y:     number;
+  id: number;
+  x: number;
+  y: number;
   speed: number;
-  type:  'danger' | 'star';
+  type: 'danger' | 'star';
   emoji: string;
 }
 
 interface GS {
-  playerX:       number;
-  objects:       FallingObj[];
-  frame:         number;
+  playerX: number;
+  objects: FallingObj[];
+  frame: number;
   starsCollected: number;
-  phase:         Phase;
+  phase: Phase;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -51,24 +51,25 @@ function spawnEvery(seconds: number) {
 
 function makeGS(fw: number): GS {
   return {
-    playerX:        fw / 2 - PLAYER_W / 2,
-    objects:        [],
-    frame:          0,
+    playerX: fw / 2 - PLAYER_W / 2,
+    objects: [],
+    frame: 0,
     starsCollected: 0,
-    phase:          'ready',
+    phase: 'ready',
   };
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export function DodgeGame() {
   const [, forceRender] = useState(0);
-  const gs         = useRef<GS | null>(null);
-  const loopRef    = useRef<ReturnType<typeof setInterval> | null>(null);
-  const leftRef    = useRef(false);
-  const rightRef   = useRef(false);
-  const fieldH     = useRef(520);
-  const fieldW     = useRef(380);
-  const bestScore  = useRef(0);
+  const gs = useRef<GS | null>(null);
+  const loopRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const leftRef = useRef(false);
+  const rightRef = useRef(false);
+  const facingRight = useRef(true);
+  const fieldH = useRef(520);
+  const fieldW = useRef(380);
+  const bestScore = useRef(0);
 
   if (!gs.current) gs.current = makeGS(fieldW.current);
 
@@ -79,33 +80,39 @@ export function DodgeGame() {
 
   // ── Tick ───────────────────────────────────────────────────────────────────
   const tick = useCallback(() => {
-    const g  = gs.current!;
+    const g = gs.current!;
     if (g.phase !== 'playing') return;
 
-    const fh  = fieldH.current;
-    const fw  = fieldW.current;
+    const fh = fieldH.current;
+    const fw = fieldW.current;
     g.frame++;
 
-    const secs  = secondsFromFrame(g.frame);
+    const secs = secondsFromFrame(g.frame);
     const speed = objSpeed(secs);
     const every = spawnEvery(secs);
 
     // Player move
-    if (leftRef.current)  g.playerX = Math.max(0, g.playerX - PLAYER_SPEED);
-    if (rightRef.current) g.playerX = Math.min(fw - PLAYER_W, g.playerX + PLAYER_SPEED);
+    if (leftRef.current) {
+      g.playerX = Math.max(0, g.playerX - PLAYER_SPEED);
+      facingRight.current = false;
+    }
+    if (rightRef.current) {
+      g.playerX = Math.min(fw - PLAYER_W, g.playerX + PLAYER_SPEED);
+      facingRight.current = true;
+    }
 
     // Spawn object
     if (g.frame % every === 0) {
       const isStar = Math.random() < 0.2;
-      const emoji  = isStar
+      const emoji = isStar
         ? '⭐'
         : DANGER_EMOJIS[Math.floor(Math.random() * DANGER_EMOJIS.length)];
       g.objects.push({
-        id:    nid(),
-        x:     Math.random() * (fw - OBJ_SIZE),
-        y:     -OBJ_SIZE,
+        id: nid(),
+        x: Math.random() * (fw - OBJ_SIZE),
+        y: -OBJ_SIZE,
         speed: isStar ? speed * 0.65 : speed * (0.85 + Math.random() * 0.45),
-        type:  isStar ? 'star' : 'danger',
+        type: isStar ? 'star' : 'danger',
         emoji,
       });
     }
@@ -114,9 +121,9 @@ export function DodgeGame() {
     g.objects = g.objects.filter(o => { o.y += o.speed; return o.y < fh + OBJ_SIZE; });
 
     // Player hitbox (shrunk for fairness)
-    const py  = fh - PLAYER_H - PLAYER_PAD;
-    const px1 = g.playerX + 8,  px2 = g.playerX + PLAYER_W - 8;
-    const py1 = py + 6,          py2 = py + PLAYER_H - 6;
+    const py = fh - PLAYER_H - PLAYER_PAD;
+    const px1 = g.playerX + PLAYER_W * 0.35, px2 = g.playerX + PLAYER_W * 0.65;
+    const py1 = py + PLAYER_H * 0.2, py2 = py + PLAYER_H - 10;
 
     const toRemove = new Set<number>();
     let dead = false;
@@ -125,18 +132,18 @@ export function DodgeGame() {
       // Object center
       const cx = o.x + OBJ_SIZE / 2;
       const cy = o.y + OBJ_SIZE / 2;
-      const r  = OBJ_SIZE / 2 - 7;   // reduced collision radius
+      const r = OBJ_SIZE / 2 - 7;   // reduced collision radius
 
       // Closest point on player rect to circle center
       const closestX = Math.max(px1, Math.min(cx, px2));
       const closestY = Math.max(py1, Math.min(cy, py2));
-      const dist     = Math.hypot(cx - closestX, cy - closestY);
+      const dist = Math.hypot(cx - closestX, cy - closestY);
 
       if (dist < r) {
         if (o.type === 'star') {
           toRemove.add(o.id);
           g.starsCollected++;
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => { });
         } else {
           dead = true;
           break;
@@ -151,8 +158,8 @@ export function DodgeGame() {
       stopLoop();
       const finalScore = secs + g.starsCollected * 5;
       if (finalScore > bestScore.current) bestScore.current = finalScore;
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
-      RewardsService.addDodgeReward(finalScore).catch(() => {});
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => { });
+      RewardsService.addDodgeReward(finalScore).catch(() => { });
     }
 
     forceRender(n => n + 1);
@@ -160,9 +167,9 @@ export function DodgeGame() {
 
   // ── Start ──────────────────────────────────────────────────────────────────
   const startGame = useCallback(() => {
-    const fresh  = makeGS(fieldW.current);
-    fresh.phase  = 'playing';
-    gs.current   = fresh;
+    const fresh = makeGS(fieldW.current);
+    fresh.phase = 'playing';
+    gs.current = fresh;
     stopLoop();
     loopRef.current = setInterval(tick, TICK_MS);
     forceRender(n => n + 1);
@@ -171,27 +178,29 @@ export function DodgeGame() {
   useEffect(() => () => stopLoop(), [stopLoop]);
 
   // ── Render ─────────────────────────────────────────────────────────────────
-  const g    = gs.current!;
-  const fh   = fieldH.current;
+  const g = gs.current!;
+  const fh = fieldH.current;
   const secs = secondsFromFrame(g.frame);
-  const py   = fh - PLAYER_H - PLAYER_PAD;
+  const py = fh - PLAYER_H - PLAYER_PAD;
 
   // ── Ready ──────────────────────────────────────────────────────────────────
   if (g.phase === 'ready') {
     return (
-      <View style={styles.center}>
-        <Text style={styles.bigEmoji}>🏃</Text>
-        <Text style={styles.screenTitle}>Dodge !</Text>
-        <Text style={styles.screenDesc}>
-          {'Esquive les météorites ☄️ 🪨 ⚡\nCollecte les étoiles ⭐ (+5 pts)\nSurvie le plus longtemps possible !'}
-        </Text>
-        {bestScore.current > 0 && (
-          <Text style={styles.bestScore}>Meilleur : {bestScore.current} pts</Text>
-        )}
-        <Pressable style={styles.startBtn} onPress={startGame}>
-          <Text style={styles.startBtnText}>Commencer</Text>
-        </Pressable>
-      </View>
+      <ImageBackground source={require('../../assets/jeu/decor.jpg')} style={styles.bg} resizeMode="cover">
+        <View style={styles.overlayCenter}>
+          <Image source={require('../../assets/jeu/boyrun.png')} style={styles.bigImage} />
+          <Text style={styles.screenTitle}>Dodge !</Text>
+          <Text style={styles.screenDesc}>
+            {'Esquive les météorites ☄️ 🪨 ⚡\nCollecte les étoiles ⭐ (+5 pts)\nSurvie le plus longtemps possible !'}
+          </Text>
+          {bestScore.current > 0 && (
+            <Text style={styles.bestScore}>Meilleur : {bestScore.current} pts</Text>
+          )}
+          <Pressable style={styles.startBtn} onPress={startGame}>
+            <Text style={styles.startBtnText}>Commencer</Text>
+          </Pressable>
+        </View>
+      </ImageBackground>
     );
   }
 
@@ -199,20 +208,22 @@ export function DodgeGame() {
   if (g.phase === 'dead') {
     const finalScore = secs + g.starsCollected * 5;
     return (
-      <View style={styles.center}>
-        <Text style={styles.bigEmoji}>💀</Text>
-        <Text style={[styles.screenTitle, { color: '#FF6B6B' }]}>Perdu !</Text>
-        <Text style={styles.scoreText}>{finalScore}</Text>
-        <Text style={styles.scoreLabel}>
-          {secs}s survécu · {g.starsCollected} ⭐ collectées
-        </Text>
-        {bestScore.current > 0 && (
-          <Text style={styles.bestScore}>Meilleur : {bestScore.current} pts</Text>
-        )}
-        <Pressable style={styles.startBtn} onPress={startGame}>
-          <Text style={styles.startBtnText}>Rejouer</Text>
-        </Pressable>
-      </View>
+      <ImageBackground source={require('../../assets/jeu/decor.jpg')} style={styles.bg} resizeMode="cover">
+        <View style={styles.overlayCenter}>
+          <Image source={require('../../assets/jeu/hitboy.png')} style={styles.deadImage} />
+          <Text style={[styles.screenTitle, { color: '#FF6B6B' }]}>Perdu !</Text>
+          <Text style={styles.scoreText}>{finalScore}</Text>
+          <Text style={styles.scoreLabel}>
+            {secs}s survécu · {g.starsCollected} ⭐ collectées
+          </Text>
+          {bestScore.current > 0 && (
+            <Text style={styles.bestScore}>Meilleur : {bestScore.current} pts</Text>
+          )}
+          <Pressable style={styles.startBtn} onPress={startGame}>
+            <Text style={styles.startBtnText}>Rejouer</Text>
+          </Pressable>
+        </View>
+      </ImageBackground>
     );
   }
 
@@ -220,7 +231,7 @@ export function DodgeGame() {
   const liveScore = secs + g.starsCollected * 5;
 
   return (
-    <View style={styles.wrapper}>
+    <ImageBackground source={require('../../assets/jeu/decor.jpg')} style={styles.wrapper} resizeMode="cover">
       {/* HUD */}
       <View style={styles.hud}>
         <View style={styles.hudItem}>
@@ -263,7 +274,17 @@ export function DodgeGame() {
         ))}
 
         {/* Player */}
-        <Text style={[styles.player, { left: g.playerX, top: py }]}>🏃</Text>
+        <Image
+          source={require('../../assets/jeu/boyrun.png')}
+          style={[
+            styles.playerImage,
+            {
+              left: g.playerX,
+              top: py,
+              transform: [{ scaleX: facingRight.current ? -1 : 1 }]
+            }
+          ]}
+        />
 
         {/* Ground line */}
         <View style={styles.ground} />
@@ -291,16 +312,19 @@ export function DodgeGame() {
           <Text style={styles.ctrlArrow}>►</Text>
         </Pressable>
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   // ─ Screens
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
+  bg: { flex: 1 },
+  overlayCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: 'rgba(0,0,0,0.65)' },
 
   bigEmoji: { fontSize: 80, marginBottom: 16 },
+  bigImage: { width: 75, height: 75, marginBottom: 16, resizeMode: 'contain' },
+  deadImage: { width: 250, height: 250, marginBottom: 16, resizeMode: 'contain' },
 
   screenTitle: {
     fontSize: 30, fontWeight: '900', color: '#fff',
@@ -363,9 +387,11 @@ const styles = StyleSheet.create({
     fontSize: OBJ_SIZE,
   },
 
-  player: {
+  playerImage: {
     position: 'absolute',
-    fontSize: PLAYER_W,
+    width: PLAYER_W,
+    height: PLAYER_H,
+    resizeMode: 'contain',
   },
 
   ground: {

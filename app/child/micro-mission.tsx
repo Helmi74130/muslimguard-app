@@ -5,6 +5,8 @@
  */
 
 import { ConfettiOverlay } from '@/components/ui/confetti';
+import { PremiumModal } from '@/components/PremiumModal';
+import { useSubscription } from '@/contexts/subscription.context';
 import { Colors, Spacing } from '@/constants/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -500,17 +502,22 @@ const BADGES: Badge[] = [
 ];
 
 const MISSION_COUNT_KEY = 'mission.count';
+const MISSION_DAILY_KEY = 'mission.daily'; // JSON: { date: string, count: number }
+const FREE_DAILY_LIMIT = 5;
 
 type Phase = 'ready' | 'spinning' | 'mission' | 'timer' | 'done';
 
 export default function MicroMissionScreen() {
+  const { isPremium } = useSubscription();
   const [phase, setPhase] = useState<Phase>('ready');
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const [seconds, setSeconds] = useState(60);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   const [missionCount, setMissionCount] = useState(0);
+  const [dailyCount, setDailyCount] = useState(0);
   const [newBadgeUnlocked, setNewBadgeUnlocked] = useState<Badge | null>(null);
 
   const spinAnim = useRef(new Animated.Value(0)).current;
@@ -519,16 +526,25 @@ export default function MicroMissionScreen() {
   const countBounce = useRef(new Animated.Value(1)).current;
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Charger le compteur au démarrage
+  // Charger les compteurs au démarrage
   useEffect(() => {
-    AsyncStorage.getItem(MISSION_COUNT_KEY).then(val => {
-      setMissionCount(val ? parseInt(val, 10) : 0);
+    const today = new Date().toISOString().slice(0, 10);
+    Promise.all([
+      AsyncStorage.getItem(MISSION_COUNT_KEY),
+      AsyncStorage.getItem(MISSION_DAILY_KEY),
+    ]).then(([total, dailyRaw]) => {
+      setMissionCount(total ? parseInt(total, 10) : 0);
+      if (dailyRaw) {
+        const daily = JSON.parse(dailyRaw);
+        setDailyCount(daily.date === today ? daily.count : 0);
+      }
     });
   }, []);
 
   // Incrémenter quand une mission est accomplie
   useEffect(() => {
     if (phase !== 'done') return;
+    const today = new Date().toISOString().slice(0, 10);
     AsyncStorage.getItem(MISSION_COUNT_KEY).then(val => {
       const current = val ? parseInt(val, 10) : 0;
       const next = current + 1;
@@ -541,6 +557,13 @@ export default function MicroMissionScreen() {
       setMissionCount(next);
       countBounce.setValue(1.4);
       Animated.spring(countBounce, { toValue: 1, friction: 4, useNativeDriver: true }).start();
+    });
+    // Incrémenter compteur journalier
+    AsyncStorage.getItem(MISSION_DAILY_KEY).then(raw => {
+      const daily = raw ? JSON.parse(raw) : { date: today, count: 0 };
+      const newCount = daily.date === today ? daily.count + 1 : 1;
+      AsyncStorage.setItem(MISSION_DAILY_KEY, JSON.stringify({ date: today, count: newCount }));
+      setDailyCount(newCount);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
@@ -658,6 +681,7 @@ export default function MicroMissionScreen() {
   // ─── Ready phase ───────────────────────────────────────
   if (phase === 'ready') {
     return (
+      <>
       <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
         <LinearGradient
           colors={['#FDF6E3', '#FAF0D7', '#FDF6E3']}
@@ -692,18 +716,48 @@ export default function MicroMissionScreen() {
             Un petit défi de 1 minute{'\n'}pour relancer la machine !
           </Text>
 
+          {/* Compteur journalier */}
+          {!isPremium && (
+            <View style={styles.dailyCounterRow}>
+              {[...Array(FREE_DAILY_LIMIT)].map((_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.dailyDot,
+                    i < dailyCount ? styles.dailyDotUsed : styles.dailyDotFree,
+                  ]}
+                />
+              ))}
+              <Text style={styles.dailyCounterText}>
+                {dailyCount}/{FREE_DAILY_LIMIT} missions aujourd'hui
+              </Text>
+            </View>
+          )}
+
           <Pressable
-            onPress={spin}
+            onPress={() => {
+              if (!isPremium && dailyCount >= FREE_DAILY_LIMIT) {
+                setShowPremiumModal(true);
+              } else {
+                spin();
+              }
+            }}
             style={({ pressed }) => [styles.spinBtnWrap, pressed && { opacity: 0.85 }]}
           >
             <LinearGradient
-              colors={['#C4852A', '#E8A23A']}
+              colors={!isPremium && dailyCount >= FREE_DAILY_LIMIT ? ['#AAAAAA', '#888888'] : ['#C4852A', '#E8A23A']}
               style={styles.spinBtn}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
             >
-              <MaterialCommunityIcons name="rotate-3d-variant" size={28} color="#FFFFFF" />
-              <Text style={styles.spinBtnText}>Lancer la roue !</Text>
+              <MaterialCommunityIcons
+                name={!isPremium && dailyCount >= FREE_DAILY_LIMIT ? 'lock' : 'rotate-3d-variant'}
+                size={28}
+                color="#FFFFFF"
+              />
+              <Text style={styles.spinBtnText}>
+                {!isPremium && dailyCount >= FREE_DAILY_LIMIT ? 'Limite atteinte' : 'Lancer la roue !'}
+              </Text>
             </LinearGradient>
           </Pressable>
 
@@ -792,6 +846,9 @@ export default function MicroMissionScreen() {
           })()}
         </ScrollView>
       </SafeAreaView>
+
+      <PremiumModal visible={showPremiumModal} onClose={() => setShowPremiumModal(false)} />
+      </>
     );
   }
 
@@ -1110,6 +1167,40 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
     lineHeight: 22,
     fontWeight: '500',
+  },
+
+  // Daily counter
+  dailyCounterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: Spacing.md,
+    alignSelf: 'center',
+    backgroundColor: '#FFF8E7',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#F5DFA0',
+  },
+  dailyDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  dailyDotUsed: {
+    backgroundColor: '#C4852A',
+  },
+  dailyDotFree: {
+    backgroundColor: '#E5E7EB',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
+  dailyCounterText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#8B6914',
+    marginLeft: 4,
   },
 
   // Spin button

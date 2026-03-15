@@ -41,6 +41,16 @@ export function PinInput({
   const inputRef = useRef<TextInput>(null);
   const shakeAnim = useRef(new Animated.Value(0)).current;
 
+  // Focus with delay to handle cases where screen is opened from a Modal
+  useEffect(() => {
+    if (autoFocus) {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [autoFocus]);
+
   // Shake animation on error
   useEffect(() => {
     if (error) {
@@ -132,7 +142,7 @@ export function PinInput({
         onChangeText={handleChange}
         keyboardType="number-pad"
         maxLength={length}
-        autoFocus={autoFocus}
+        autoFocus={false}
         editable={!disabled}
         caretHidden
         contextMenuHidden

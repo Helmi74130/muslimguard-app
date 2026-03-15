@@ -6,6 +6,8 @@
 import { STORIES, Story } from '@/data/stories';
 import { StorageService } from '@/services/storage.service';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { PremiumModal } from '@/components/PremiumModal';
+import { useSubscription } from '@/contexts/subscription.context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -21,55 +23,90 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+const FREE_STORIES_COUNT = 3;
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - Spacing.lg * 2 - Spacing.sm) / 2;
 const CARD_HEIGHT = CARD_WIDTH * 1.4;
 
 function StoryCard({
   story,
+  index,
   isFavorite,
+  isPremium,
   onToggleFavorite,
+  onLockedPress,
 }: {
   story: Story;
+  index: number;
   isFavorite: boolean;
+  isPremium: boolean;
   onToggleFavorite: (id: string) => void;
+  onLockedPress: () => void;
 }) {
+  const isLocked = !isPremium && index >= FREE_STORIES_COUNT;
+
   return (
     <Pressable
-      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-      onPress={() => router.push(`/child/stories/${story.id}` as any)}
+      style={({ pressed }) => [styles.card, pressed && !isLocked && styles.cardPressed]}
+      onPress={() => isLocked ? onLockedPress() : router.push(`/child/stories/${story.id}` as any)}
     >
       {/* Image ou gradient de fond */}
       {story.image ? (
-        <Image source={story.image} style={styles.cardImage} />
+        <Image source={story.image} style={[styles.cardImage, isLocked && styles.cardImageLocked]} />
       ) : (
         <LinearGradient
-          colors={[story.color, story.color + 'AA']}
+          colors={isLocked ? ['#CCCCCC', '#AAAAAA'] : [story.color, story.color + 'AA']}
           style={styles.cardImage}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
-          <MaterialCommunityIcons name="book-open-page-variant" size={48} color="rgba(255,255,255,0.6)" />
+          <MaterialCommunityIcons
+            name="book-open-page-variant"
+            size={48}
+            color="rgba(255,255,255,0.6)"
+          />
         </LinearGradient>
       )}
 
-      {/* Bouton favori */}
-      <Pressable
-        style={styles.favoriteButton}
-        onPress={() => onToggleFavorite(story.id)}
-        hitSlop={8}
-      >
-        <MaterialCommunityIcons
-          name={isFavorite ? 'heart' : 'heart-outline'}
-          size={20}
-          color={isFavorite ? '#EF4444' : 'rgba(255,255,255,0.9)'}
-        />
-      </Pressable>
+      {/* Lock overlay */}
+      {isLocked && (
+        <View style={styles.lockOverlay}>
+          <View style={styles.lockCircle}>
+            <MaterialCommunityIcons name="lock" size={24} color="#FFFFFF" />
+          </View>
+        </View>
+      )}
+
+      {/* Premium chip */}
+      {isLocked && (
+        <View style={styles.premiumChip}>
+          <MaterialCommunityIcons name="crown" size={10} color={Colors.warning} />
+          <Text style={styles.premiumChipText}>Premium</Text>
+        </View>
+      )}
+
+      {/* Bouton favori (seulement si débloqué) */}
+      {!isLocked && (
+        <Pressable
+          style={styles.favoriteButton}
+          onPress={() => onToggleFavorite(story.id)}
+          hitSlop={8}
+        >
+          <MaterialCommunityIcons
+            name={isFavorite ? 'heart' : 'heart-outline'}
+            size={20}
+            color={isFavorite ? '#EF4444' : 'rgba(255,255,255,0.9)'}
+          />
+        </Pressable>
+      )}
 
       {/* Infos */}
       <View style={styles.cardInfo}>
-        <Text style={styles.cardTitle} numberOfLines={2}>{story.title}</Text>
-        {story.duration && (
+        <Text style={[styles.cardTitle, isLocked && styles.cardTitleLocked]} numberOfLines={2}>
+          {story.title}
+        </Text>
+        {story.duration && !isLocked && (
           <View style={styles.durationRow}>
             <MaterialCommunityIcons name="clock-outline" size={12} color={Colors.light.tabIconDefault} />
             <Text style={styles.durationText}>{story.duration}</Text>
@@ -81,7 +118,9 @@ function StoryCard({
 }
 
 export default function StoriesScreen() {
+  const { isPremium } = useSubscription();
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   useEffect(() => {
     StorageService.getFavoriteStories().then(setFavorites);
@@ -110,14 +149,19 @@ export default function StoriesScreen() {
         numColumns={2}
         contentContainerStyle={styles.grid}
         columnWrapperStyle={styles.row}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <StoryCard
             story={item}
+            index={index}
             isFavorite={favorites.includes(item.id)}
+            isPremium={isPremium}
             onToggleFavorite={handleToggleFavorite}
+            onLockedPress={() => setShowPremiumModal(true)}
           />
         )}
       />
+
+      <PremiumModal visible={showPremiumModal} onClose={() => setShowPremiumModal(false)} />
     </SafeAreaView>
   );
 }
@@ -176,6 +220,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  cardImageLocked: {
+    opacity: 0.45,
+  },
+  lockOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: CARD_HEIGHT * 0.6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.22)',
+  },
+  lockCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  premiumChip: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: Colors.warning + 'EE',
+    borderRadius: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  premiumChipText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
   favoriteButton: {
     position: 'absolute',
     top: 8,
@@ -192,6 +274,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.light.text,
     lineHeight: 18,
+  },
+  cardTitleLocked: {
+    color: '#AAAAAA',
   },
   durationRow: {
     flexDirection: 'row',

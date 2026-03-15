@@ -44,13 +44,16 @@ import { StorageService } from '@/services/storage.service';
 import { RewardsService, REWARD_EVENT, COINS_CHANGED_EVENT } from '@/services/rewards.service';
 import { ShopService } from '@/services/shop.service';
 import { ShopPurchaseModal } from '@/components/ShopPurchaseModal';
+import { PremiumModal } from '@/components/PremiumModal';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as MediaLibrary from 'expo-media-library';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   DeviceEventEmitter,
+  Easing,
   Image,
   ImageBackground,
   Keyboard,
@@ -155,6 +158,9 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
   const [bgPurchaseTarget, setBgPurchaseTarget] = useState<{
     itemId: string; itemName: string; price: number; previewImage?: any; previewColor?: string;
   } | null>(null);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const premiumPulse = useRef(new Animated.Value(1)).current;
+  const premiumShine = useRef(new Animated.Value(-1)).current;
 
   // Load strict mode status, whitelist, browser setting, and premium status
   useEffect(() => {
@@ -259,6 +265,69 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
     await StorageService.setChildBackground(CUSTOM_PHOTO_BACKGROUND_ID);
     await StorageService.setChildBackgroundUri(asset.uri);
   };
+
+  // Premium banner animations
+  useEffect(() => {
+    if (isPremium) return;
+    const pulseLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(premiumPulse, { toValue: 1.03, duration: 900, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(premiumPulse, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      ])
+    );
+    const shineLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(premiumShine, { toValue: 2, duration: 1800, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.delay(1400),
+        Animated.timing(premiumShine, { toValue: -1, duration: 0, useNativeDriver: true }),
+      ])
+    );
+    pulseLoop.start();
+    shineLoop.start();
+    return () => { pulseLoop.stop(); shineLoop.stop(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPremium]);
+
+  const renderPremiumBanner = () => (
+    <>
+      <Animated.View style={[styles.premiumBannerWrap, { transform: [{ scale: premiumPulse }] }]}>
+        <Pressable onPress={() => setShowPremiumModal(true)} style={styles.premiumBannerBtn}>
+          <LinearGradient
+            colors={['#1A0533', '#4C1D95', '#6D28D9', '#B45309']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.premiumBannerGradient}
+          >
+            {/* Shine sweep */}
+            <Animated.View style={[styles.premiumBannerShine, {
+              transform: [{
+                translateX: premiumShine.interpolate({ inputRange: [-1, 2], outputRange: [-120, 340] }),
+              }],
+            }]} />
+
+            {/* Crown circle */}
+            <View style={styles.premiumCrownCircle}>
+              <MaterialCommunityIcons name="crown" size={22} color="#FCD34D" />
+            </View>
+
+            {/* Text */}
+            <View style={styles.premiumBannerText}>
+              <Text style={styles.premiumBannerTitle}>Passer à Premium ✨</Text>
+              <Text style={styles.premiumBannerSub} numberOfLines={1}>
+                Quiz · Histoires · Sons · illimité
+              </Text>
+            </View>
+
+            {/* Arrow badge */}
+            <View style={styles.premiumArrowBadge}>
+              <MaterialCommunityIcons name="chevron-right" size={20} color="#1A0533" />
+            </View>
+          </LinearGradient>
+        </Pressable>
+      </Animated.View>
+      <PremiumModal visible={showPremiumModal} onClose={() => setShowPremiumModal(false)} />
+    </>
+  );
 
   const handleSearch = () => {
     Keyboard.dismiss();
@@ -602,25 +671,40 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={styles.modalScrollContent}
                 >
-                  {/* Fun "Use a photo" Card */}
+                  {/* Fun "Use a photo" Card — Premium only */}
                   <Pressable
-                    onPress={() => { loadGalleryPhotos(); setShowGalleryPicker(true); }}
+                    onPress={() => {
+                      if (!isPremium) {
+                        setShowBgPicker(false);
+                        setShowPremiumModal(true);
+                      } else {
+                        loadGalleryPhotos();
+                        setShowGalleryPicker(true);
+                      }
+                    }}
                     style={({ pressed }) => [{ opacity: pressed ? 0.88 : 1 }]}
                   >
                     <LinearGradient
-                      colors={['#A855F7', '#EC4899', '#F97316']}
+                      colors={isPremium ? ['#A855F7', '#EC4899', '#F97316'] : ['#9CA3AF', '#6B7280', '#4B5563']}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
                       style={styles.photoActionCard}
                     >
                       <View style={styles.photoActionIconContainer}>
-                        <Text style={{ fontSize: 32 }}>🌟</Text>
+                        <Text style={{ fontSize: 32 }}>{isPremium ? '🌟' : '👑'}</Text>
                       </View>
                       <View style={styles.photoActionContent}>
                         <Text style={styles.photoActionTitle}>Ma propre photo !</Text>
-                        <Text style={styles.photoActionSubtitle}>Utilise une photo de ta galerie</Text>
+                        <Text style={styles.photoActionSubtitle}>
+                          {isPremium ? 'Utilise une photo de ta galerie' : 'Réservé aux membres Premium'}
+                        </Text>
                       </View>
-                      <MaterialCommunityIcons name="chevron-right" size={26} color="#FFF" />
+                      {isPremium
+                        ? <MaterialCommunityIcons name="chevron-right" size={26} color="#FFF" />
+                        : <View style={styles.photoPremiumBadge}>
+                            <MaterialCommunityIcons name="crown" size={14} color="#1A0533" />
+                          </View>
+                      }
                     </LinearGradient>
                   </Pressable>
 
@@ -722,8 +806,9 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
         style={styles.container}
         resizeMode="cover"
       >
-        <View style={dark ? styles.darkOverlay : styles.container}>
+        <View style={[dark ? styles.darkOverlay : styles.container, { flex: 1 }]}>
           {renderScrollContent()}
+          {!isPremium && renderPremiumBanner()}
         </View>
         {renderShopModal()}
       </ImageBackground>
@@ -733,6 +818,7 @@ export function BrowserHomePage({ onSearch, onQuickLink }: BrowserHomePageProps)
   return (
     <View style={[styles.container, { backgroundColor: selectedBg.color || KidColors.homeBg }]}>
       {renderScrollContent()}
+      {!isPremium && renderPremiumBanner()}
       {renderShopModal()}
     </View>
   );
@@ -1213,6 +1299,14 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.85)',
     fontWeight: '500' as const,
   },
+  photoPremiumBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FCD34D',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
   divider: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
@@ -1315,6 +1409,71 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700' as const,
     color: '#FFF',
+  },
+
+  // ── Premium Banner ──
+  premiumBannerWrap: {
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+    borderRadius: 20,
+    elevation: 12,
+    shadowColor: '#6D28D9',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
+  },
+  premiumBannerBtn: {
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  premiumBannerGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    gap: 12,
+    overflow: 'hidden',
+  },
+  premiumBannerShine: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 70,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    transform: [{ skewX: '-20deg' }],
+  },
+  premiumCrownCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(253,211,77,0.18)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(253,211,77,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  premiumBannerText: {
+    flex: 1,
+  },
+  premiumBannerTitle: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 0.2,
+  },
+  premiumBannerSub: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.72)',
+    marginTop: 2,
+  },
+  premiumArrowBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FCD34D',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

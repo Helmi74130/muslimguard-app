@@ -17,6 +17,7 @@ import { StorageService } from '@/services/storage.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
+import * as StoreReview from 'expo-store-review';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Image,
@@ -152,6 +153,21 @@ function DashboardContent({ scrollViewRef }: { scrollViewRef: React.RefObject<Sc
     }, 600);
     return () => clearTimeout(timer);
   }, [parentTourDone]);
+
+  // Review prompt: trigger on 3rd visit, then every 20 visits (23, 43, …)
+  useEffect(() => {
+    const checkReviewPrompt = async () => {
+      const settings = await StorageService.getSettings();
+      const newCount = settings.dashboardVisitCount + 1;
+      await StorageService.updateSettings({ dashboardVisitCount: newCount });
+      const shouldPrompt = newCount === 3 || (newCount > 3 && (newCount - 3) % 20 === 0);
+      if (shouldPrompt) {
+        const available = await StoreReview.isAvailableAsync();
+        if (available) StoreReview.requestReview();
+      }
+    };
+    checkReviewPrompt();
+  }, []);
 
   // Persist tour completion on stop
   useEffect(() => {

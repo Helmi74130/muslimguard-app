@@ -6,6 +6,8 @@
 import { QUIZ_CATEGORIES } from '@/constants/quiz-data';
 import { QUIZ_BADGES } from '@/constants/quiz-badges';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { useSubscription } from '@/contexts/subscription.context';
+import { PremiumModal } from '@/components/PremiumModal';
 import { StorageService } from '@/services/storage.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -22,6 +24,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+const FREE_CATEGORIES_COUNT = 3;
 
 const BADGES_PREVIEW = 3;
 
@@ -40,10 +44,12 @@ function getLevel(xp: number): { level: number; progress: number; nextLevelXp: n
 }
 
 export default function QuizScreen() {
+  const { isPremium } = useSubscription();
   const [scores, setScores] = useState<Record<string, number>>({});
   const [totalXp, setTotalXp] = useState(0);
   const [unlockedBadges, setUnlockedBadges] = useState<string[]>([]);
   const [badgesExpanded, setBadgesExpanded] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const expandAnim = useRef(new Animated.Value(0)).current;
 
   useFocusEffect(
@@ -175,7 +181,8 @@ export default function QuizScreen() {
           </Pressable>
 
           {/* Category cards */}
-          {QUIZ_CATEGORIES.map((cat) => {
+          {QUIZ_CATEGORIES.map((cat, index) => {
+            const isLocked = !isPremium && index >= FREE_CATEGORIES_COUNT;
             const diffScores = ['easy', 'normal', 'hard'].map(d => scores[`${cat.id}_${d}`] || 0);
             const legacyScore = scores[cat.id] || 0;
             const bestScore = Math.max(...diffScores, legacyScore);
@@ -185,37 +192,64 @@ export default function QuizScreen() {
             return (
               <Pressable
                 key={cat.id}
-                style={({ pressed }) => [styles.categoryCard, pressed && styles.cardPressed]}
-                onPress={() => router.push(`/child/quiz-difficulty?categoryId=${cat.id}` as any)}
+                style={({ pressed }) => [
+                  styles.categoryCard,
+                  isLocked && styles.categoryCardLocked,
+                  pressed && !isLocked && styles.cardPressed,
+                ]}
+                onPress={() => isLocked
+                  ? setShowPremiumModal(true)
+                  : router.push(`/child/quiz-difficulty?categoryId=${cat.id}` as any)
+                }
               >
-                <View style={[styles.categoryImageWrapper, { backgroundColor: cat.colorLight }]}>
-                  <Image source={cat.image} style={styles.categoryImage} resizeMode="contain" />
-                </View>
-                <View style={styles.categoryInfo}>
-                  <Text style={[styles.categoryLabel, { color: cat.color }]}>{cat.label}</Text>
-                  <Text style={styles.categoryCount}>
-                    {cat.questions.length} question{cat.questions.length > 1 ? 's' : ''}
-                  </Text>
-                  {hasPlayed && (
-                    <View style={styles.starsRow}>
-                      {[1, 2, 3].map((i) => (
-                        <MaterialCommunityIcons
-                          key={i}
-                          name={i <= stars ? 'star' : 'star-outline'}
-                          size={16}
-                          color={i <= stars ? '#FBBF24' : '#D1D5DB'}
-                        />
-                      ))}
-                      <Text style={styles.scoreText}>{bestScore}%</Text>
+                <View style={[styles.categoryImageWrapper, { backgroundColor: isLocked ? '#F0F0F0' : cat.colorLight }]}>
+                  <Image source={cat.image} style={[styles.categoryImage, isLocked && styles.categoryImageLocked]} resizeMode="contain" />
+                  {isLocked && (
+                    <View style={styles.lockOverlay}>
+                      <MaterialCommunityIcons name="lock" size={28} color="#FFFFFF" />
                     </View>
                   )}
                 </View>
-                <MaterialCommunityIcons name="chevron-right" size={22} color={Colors.light.textSecondary} />
+                <View style={styles.categoryInfo}>
+                  <Text style={[styles.categoryLabel, { color: isLocked ? '#AAAAAA' : cat.color }]}>{cat.label}</Text>
+                  {isLocked ? (
+                    <View style={styles.premiumChip}>
+                      <MaterialCommunityIcons name="crown" size={11} color={Colors.warning} />
+                      <Text style={styles.premiumChipText}>Premium</Text>
+                    </View>
+                  ) : (
+                    <>
+                      <Text style={styles.categoryCount}>
+                        {cat.questions.length} question{cat.questions.length > 1 ? 's' : ''}
+                      </Text>
+                      {hasPlayed && (
+                        <View style={styles.starsRow}>
+                          {[1, 2, 3].map((i) => (
+                            <MaterialCommunityIcons
+                              key={i}
+                              name={i <= stars ? 'star' : 'star-outline'}
+                              size={16}
+                              color={i <= stars ? '#FBBF24' : '#D1D5DB'}
+                            />
+                          ))}
+                          <Text style={styles.scoreText}>{bestScore}%</Text>
+                        </View>
+                      )}
+                    </>
+                  )}
+                </View>
+                <MaterialCommunityIcons
+                  name={isLocked ? 'lock-outline' : 'chevron-right'}
+                  size={22}
+                  color={isLocked ? '#CCCCCC' : Colors.light.textSecondary}
+                />
               </Pressable>
             );
           })}
         </ScrollView>
       </SafeAreaView>
+
+      <PremiumModal visible={showPremiumModal} onClose={() => setShowPremiumModal(false)} />
     </LinearGradient>
   );
 }
@@ -383,4 +417,35 @@ const styles = StyleSheet.create({
   categoryCount: { fontSize: 14, color: Colors.light.textSecondary, marginTop: 5 },
   starsRow: { flexDirection: 'row', alignItems: 'center', marginTop: 5, gap: 2 },
   scoreText: { fontSize: 11, fontWeight: '600', color: Colors.light.textSecondary, marginLeft: 6 },
+  // Locked category
+  categoryCardLocked: {
+    opacity: 0.75,
+  },
+  categoryImageLocked: {
+    opacity: 0.4,
+  },
+  lockOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.25)',
+  },
+  premiumChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.warning + '18',
+    borderWidth: 1,
+    borderColor: Colors.warning + '50',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  premiumChipText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.warning,
+  },
 });

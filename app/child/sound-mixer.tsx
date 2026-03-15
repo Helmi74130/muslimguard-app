@@ -5,6 +5,8 @@
  */
 
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { PremiumModal } from '@/components/PremiumModal';
+import { useSubscription } from '@/contexts/subscription.context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { Audio } from 'expo-av';
@@ -21,6 +23,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+const FREE_SOUNDS_COUNT = 3;
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const TILE_GAP = 16;
@@ -135,7 +139,9 @@ const SOUNDS: SoundItem[] = [
 ];
 
 export default function SoundMixerScreen() {
+  const { isPremium } = useSubscription();
   const [activeSounds, setActiveSounds] = useState<Set<string>>(new Set());
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const soundRefs = useRef<Map<string, Audio.Sound>>(new Map());
 
   // Cleanup all sounds when leaving the screen
@@ -232,38 +238,48 @@ export default function SoundMixerScreen() {
       >
         {/* Sound Grid */}
         <View style={styles.grid}>
-          {SOUNDS.map((item) => {
+          {SOUNDS.map((item, index) => {
+            const isLocked = !isPremium && index >= FREE_SOUNDS_COUNT;
             const isActive = activeSounds.has(item.id);
             return (
               <Pressable
                 key={item.id}
                 style={[
                   styles.tile,
-                  isActive && { backgroundColor: item.color },
-                  !isActive && { backgroundColor: item.colorLight },
+                  isLocked && styles.tileLocked,
+                  !isLocked && isActive && { backgroundColor: item.color },
+                  !isLocked && !isActive && { backgroundColor: item.colorLight },
                 ]}
-                onPress={() => toggleSound(item)}
+                onPress={() => isLocked ? setShowPremiumModal(true) : toggleSound(item)}
               >
                 <View style={[
                   styles.iconCircle,
-                  isActive
-                    ? { backgroundColor: 'rgba(255,255,255,0.25)' }
-                    : { backgroundColor: 'rgba(0,0,0,0.06)' },
+                  isLocked
+                    ? { backgroundColor: 'rgba(0,0,0,0.08)' }
+                    : isActive
+                      ? { backgroundColor: 'rgba(255,255,255,0.25)' }
+                      : { backgroundColor: 'rgba(0,0,0,0.06)' },
                 ]}>
                   <MaterialCommunityIcons
-                    name={item.icon}
+                    name={isLocked ? 'lock' : item.icon}
                     size={32}
-                    color={isActive ? '#FFFFFF' : item.color}
+                    color={isLocked ? '#AAAAAA' : isActive ? '#FFFFFF' : item.color}
                   />
                 </View>
                 <Text style={[
                   styles.tileLabel,
-                  isActive && styles.tileLabelActive,
-                  !isActive && { color: item.color },
+                  isLocked && styles.tileLabelLocked,
+                  !isLocked && isActive && styles.tileLabelActive,
+                  !isLocked && !isActive && { color: item.color },
                 ]}>
                   {item.label}
                 </Text>
-                {isActive && (
+                {isLocked && (
+                  <View style={styles.premiumChip}>
+                    <MaterialCommunityIcons name="crown" size={9} color={Colors.warning} />
+                  </View>
+                )}
+                {!isLocked && isActive && (
                   <View style={styles.activeDot} />
                 )}
               </Pressable>
@@ -274,15 +290,12 @@ export default function SoundMixerScreen() {
 
       {/* Fixed Bottom Controls */}
       <View style={styles.bottomControls}>
-        {/* Stop All Button */}
         {activeCount > 0 && (
           <Pressable style={styles.stopButton} onPress={stopAll}>
             <MaterialCommunityIcons name="stop-circle" size={24} color="#FFFFFF" />
             <Text style={styles.stopButtonText}>Tout arrêter</Text>
           </Pressable>
         )}
-
-        {/* Status */}
         <View style={styles.statusContainer}>
           <MaterialCommunityIcons
             name={activeCount > 0 ? 'volume-high' : 'volume-off'}
@@ -296,6 +309,8 @@ export default function SoundMixerScreen() {
           </Text>
         </View>
       </View>
+
+      <PremiumModal visible={showPremiumModal} onClose={() => setShowPremiumModal(false)} />
     </SafeAreaView>
   );
 }
@@ -407,6 +422,21 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     backgroundColor: '#FFFFFF',
+  },
+  tileLocked: {
+    backgroundColor: '#F0F0F0',
+    opacity: 0.75,
+  },
+  tileLabelLocked: {
+    color: '#AAAAAA',
+  },
+  premiumChip: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: Colors.warning + 'DD',
+    borderRadius: 8,
+    padding: 3,
   },
   // Stop button
   stopButton: {

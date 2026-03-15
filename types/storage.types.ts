@@ -44,6 +44,7 @@ export interface AppSettings {
   parentTourDone: boolean; // Mini-onboarding tour seen on parent dashboard
   screenTimeLimitEnabled: boolean; // Daily screen time limit for child
   screenTimeLimitMinutes: number; // Max daily minutes (0 = unlimited)
+  dashboardVisitCount: number; // Number of times parent dashboard has been opened
 }
 
 // Default settings
@@ -72,6 +73,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   parentTourDone: false,
   screenTimeLimitEnabled: false,
   screenTimeLimitMinutes: 0,
+  dashboardVisitCount: 0,
 };
 
 // Blocklist data
